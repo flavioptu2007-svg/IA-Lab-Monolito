@@ -1,0 +1,107 @@
+# ── Python ──────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+*.egg
+dist/
+build/
+*.whl
+
+# ── Virtual environments ────────────────────────────────────────
+.venv/
+venv/
+env/
+.env/
+
+# ── IDE / Editors ──────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ── Databases ──────────────────────────────────────────────────
+*.db
+*.sqlite
+*.sqlite3
+
+# ── Logs ───────────────────────────────────────────────────────
+*.log
+logs/
+~/.local/log/
+
+# ── Audio artifacts ────────────────────────────────────────────
+*.wav
+*.mp3
+*.flac
+*.pcm
+testes-audio/
+
+# ── Environment & Secrets ──────────────────────────────────────
+.env
+.env.local
+*.key
+*.pem
+auth.json
+
+# ── Docker ─────────────────────────────────────────────────────
+.docker/
+.dockerignore
+
+# ── OS ─────────────────────────────────────────────────────────
+*.xcf  # GIMP images (personal)
+Desktop/
+Documents/
+Downloads/
+Pictures/
+Videos/
+Music/
+.Trash-*/
+lost+found/
+
+# ── Node / NPM ─────────────────────────────────────────────────
+node_modules/
+# NOTA: package-lock.json é versionado — o GitHub Actions usa `npm ci`,
+# que exige o lockfile para instalar dependências de forma reproduzível.
+
+# ── Project temp artifacts ─────────────────────────────────────
+temp/
+hello.py
+erro.txt
+saida.txt
+
+# ── Config backups ─────────────────────────────────────────────
+config-backup-*/
+
+# ── AI / ML models ─────────────────────────────────────────────
+models/
+*.pt
+*.pth
+*.bin
+*.gguf
+checkpoints/
+
+# ── Grok / CLI tools ──────────────────────────────────────────
+.grok/sessions/
+.grok/logs/
+.grok/memtrace/
+.grok/upload_queue/
+.grok/marketplace-cache/
+.grok/downloads/
+.grok/relocations/
+.grok/vendor/
+
+# ── Qdrant ─────────────────────────────────────────────────────
+qdrant/
+storage/
+
+# ── OpenClaw / Freebuff (secrets nunca versionar) ─────────────
+.openclaw/
+.config/openclaw/
+
+# dotfiles com secrets
+/.bashrc

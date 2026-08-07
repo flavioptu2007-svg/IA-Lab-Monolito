@@ -161,8 +161,8 @@ all = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/flavio/ia-lab-unified"
-Documentation = "https://github.com/flavio/ia-lab-unified#readme"
+Homepage = "https://github.com/flavioptu2007-svg/IA-Lab-Monolito"
+Documentation = "https://github.com/flavioptu2007-svg/IA-Lab-Monolito#readme"
 
 [tool.setuptools.packages.find]
 include = [

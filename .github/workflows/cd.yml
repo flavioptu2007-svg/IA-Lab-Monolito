@@ -1,0 +1,72 @@
+name: CD — Deploy Dashboard
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - "web/dashboard/**"
+      - ".github/workflows/cd.yml"
+
+  # Permite deploy manual via GitHub UI
+  workflow_dispatch:
+
+# Permite ao job clonar o repo e criar um deployment do GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Só uma deploy por vez
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  deploy-dashboard:
+    name: Build & Deploy Dashboard
+    runs-on: ubuntu-latest
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: web/dashboard/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          cd web/dashboard
+          npm ci
+
+      - name: TypeScript check
+        run: |
+          cd web/dashboard
+          npx tsc -b --noEmit
+
+      - name: Build (Vite)
+        run: |
+          cd web/dashboard
+          npm run build
+        env:
+          # Define o base path para o GitHub Pages
+          # URL final: https://flavioptu2007-svg.github.io/IA-Lab-Monolito/
+          VITE_BASE_PATH: /IA-Lab-Monolito/
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: web/dashboard/dist/
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

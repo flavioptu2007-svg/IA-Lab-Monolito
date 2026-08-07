@@ -193,7 +193,7 @@ export function LandingPage({ onNavigate }: PageProps) {
               Testar Chat
             </button>
             <a
-              href="https://github.com/flavio/IA-Lab-Monolito"
+              href="https://github.com/flavioptu2007-svg/IA-Lab-Monolito"
               target="_blank"
               rel="noopener noreferrer"
               className="btn btn-ghost"
