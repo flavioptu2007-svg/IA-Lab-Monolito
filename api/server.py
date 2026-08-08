@@ -154,7 +154,7 @@ async def health():
         hs.labels(component="ollama").set(0)
 
     overall = "ok" if all(v == "ok" for v in checks.values()) else "degraded"
-    return {"status": overall, "checks": checks, "version": "0.1.0"}
+    return {"status": overall, "checks": checks, "version": "2.0.0"}
 
 
 @app.get("/api/providers")
@@ -169,7 +169,7 @@ async def list_providers():
             "task": "code",
         },
         {"name": "ollama", "model": cfg.ollama_model, "configured": True, "task": "local"},
-        {"name": "freebuff", "model": cfg.ollama_model, "configured": True, "task": "refactor"},
+        {"name": "bitnet", "model": cfg.bitnet_model, "configured": True, "task": "local"},
         {
             "name": "openai",
             "model": cfg.openai_model,
@@ -813,4 +813,4 @@ if __name__ == "__main__":
     import uvicorn
 
     port = int(os.getenv("API_PORT", "8000"))
-    uvicorn.run("web.api.server:app", host="0.0.0.0", port=port, reload=True)
+    uvicorn.run("api.server:app", host="0.0.0.0", port=port, reload=True)

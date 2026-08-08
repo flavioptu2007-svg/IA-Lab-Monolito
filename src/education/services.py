@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import logging
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 
 from src.education.enums import BNCC_SKILLS
@@ -28,6 +28,11 @@ from src.education.schemas import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+def _utcnow() -> datetime:
+    """Agora em UTC como datetime naive (equivalente ao removido ``utcnow()``)."""
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -52,7 +57,7 @@ class EducationStore:
 
     def create_lesson_plan(self, data: LessonPlanCreate) -> LessonPlanResponse:
         plan_id = str(uuid.uuid4())
-        now = datetime.utcnow()
+        now = _utcnow()
         plan = LessonPlanResponse(id=plan_id, created_at=now, updated_at=now, **data.model_dump())
         self._lesson_plans[plan_id] = plan
         return plan
@@ -82,7 +87,7 @@ class EducationStore:
         update_data = data.model_dump(exclude_unset=True)
         for key, value in update_data.items():
             setattr(plan, key, value)
-        plan.updated_at = datetime.utcnow()
+        plan.updated_at = _utcnow()
         return plan
 
     def delete_lesson_plan(self, plan_id: str) -> bool:
@@ -92,7 +97,7 @@ class EducationStore:
 
     def create_activity(self, data: ActivityCreate) -> ActivityResponse:
         act_id = str(uuid.uuid4())
-        now = datetime.utcnow()
+        now = _utcnow()
         activity = ActivityResponse(id=act_id, created_at=now, updated_at=now, **data.model_dump())
         self._activities[act_id] = activity
         return activity
@@ -122,7 +127,7 @@ class EducationStore:
         update_data = data.model_dump(exclude_unset=True)
         for key, value in update_data.items():
             setattr(activity, key, value)
-        activity.updated_at = datetime.utcnow()
+        activity.updated_at = _utcnow()
         return activity
 
     def delete_activity(self, activity_id: str) -> bool:
@@ -132,7 +137,7 @@ class EducationStore:
 
     def create_evaluation(self, data: EvaluationCreate) -> EvaluationResponse:
         eval_id = str(uuid.uuid4())
-        now = datetime.utcnow()
+        now = _utcnow()
         evaluation = EvaluationResponse(
             id=eval_id, created_at=now, updated_at=now, **data.model_dump()
         )
@@ -166,7 +171,7 @@ class EducationStore:
         update_data = data.model_dump(exclude_unset=True)
         for key, value in update_data.items():
             setattr(evaluation, key, value)
-        evaluation.updated_at = datetime.utcnow()
+        evaluation.updated_at = _utcnow()
         return evaluation
 
     def delete_evaluation(self, evaluation_id: str) -> bool:
@@ -176,7 +181,7 @@ class EducationStore:
 
     def create_event(self, data: CalendarEventCreate) -> CalendarEventResponse:
         event_id = str(uuid.uuid4())
-        now = datetime.utcnow()
+        now = _utcnow()
         raw = data.model_dump()
         # Converte date para string ISO (CalendarEventResponse espera str)
         if "event_date" in raw and hasattr(raw["event_date"], "isoformat"):

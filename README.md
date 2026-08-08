@@ -1,6 +1,6 @@
 # IA-Lab Unified
 
-[![🇧🇷 Português](README.md)](README.md) [![🇺🇸 English](README.en.md)](README.en.md)
+[![🇧🇷 Português](README.md)](README.md) [![🇺🇸 English](README.en.md)](README.en.md) [![🇨🇳 中文](README_zh.md)](README_zh.md) [![🇯🇵 日本語](README_ja.md)](README_ja.md) [![🇰🇷 한국어](README_ko.md)](README_ko.md)
 [![CI](https://github.com/flavioptu2007-svg/IA-Lab-Monolito/actions/workflows/ci.yml/badge.svg)](https://github.com/flavioptu2007-svg/IA-Lab-Monolito/actions/workflows/ci.yml)
 
 **Monolito FastAPI** que unifica 5 projetos em um único ecossistema de IA, áudio, RAG, educação e inferência local.
@@ -14,9 +14,9 @@
 ├── 🏫 Módulo educacional (planos de aula, BNCC, avaliações, calendário)
 ├── 🔧 OpenVINO opcional (inferência local Intel)
 ├── 🔢 BitNet (LLM 1-bit ultra-eficiente em CPU)
-├── 🧪 487 testes — 100% passando
-├── 📡 58+ endpoints REST
-└── 🐳 14 serviços Docker orquestrados
+├── 🧪 487 testes — suíte completa
+├── 📡 53+ endpoints REST
+└── 🐳 13 serviços Docker orquestrados
 ```
 
 ---
@@ -65,6 +65,7 @@ cd web/dashboard && npm install && npm run dev
 - [API Endpoints](#api-endpoints)
 - [Testes](#testes)
 - [Estrutura do Projeto](#estrutura-do-projeto)
+- [Ferramentas do Ambiente](#ferramentas-do-ambiente)
 - [Troubleshooting](#troubleshooting)
 - [Contribuição](#contribuição)
 
@@ -230,7 +231,7 @@ Copie o arquivo de exemplo e configure as variáveis de ambiente:
 cp .env.example .env
 ```
 
-> 📄 O arquivo completo com **todas as variáveis** está em [`.env.example`](.env.example).
+> 📄 O arquivo completo com **todas as variáveis** está em [`.env.example`](.env.example) (47 variáveis).
 
 ### Variáveis principais
 
@@ -363,6 +364,9 @@ docker compose --profile all up -d
 | `POST` | `/api/audio/effects` | Processar áudio |
 | `POST` | `/api/audio/mic/create` | Criar microfone virtual |
 | `POST` | `/api/audio/mic/remove` | Remover microfone virtual |
+| `GET` | `/api/audio/mic/status` | Status do microfone virtual |
+| `GET` | `/api/audio/metrics` | Métricas Prometheus de áudio |
+| `GET` | `/api/audio/config` | Configuração do módulo de áudio |
 
 ### v2 — Chat SSE (Coraci)
 
@@ -437,7 +441,9 @@ python3 -m pytest tests/ --cov=ai,api,src --cov-report=term-missing
 docker compose --profile test up
 ```
 
-### Cobertura atual: **487 testes — 100% passando**
+### Cobertura atual: **487 testes**
+
+> 💡 **Nota:** se o plugin `pytest-flask` estiver instalado no ambiente, ele conflita com as fixtures do FastAPI e gera erros (`AttributeError: response_class`). Remova com `pip uninstall pytest-flask`.
 
 | Módulo | Testes | Status |
 |--------|:------:|:------:|
@@ -484,7 +490,8 @@ docker compose --profile test up
 │   ├── settings.py               # Settings (SecretStr, ProviderName Literal)
 │   ├── classifier.py             # TaskClassifier
 │   ├── memory/store.py           # VectorStore (Qdrant — singleton + close())
-│   ├── audio/                    # Engine, STT, TTS, VAD, efeitos
+│   ├── agents/                   # Agentes especializados (architect, code, audio, writer)
+│   ├── audio/                    # Engine, STT, TTS, VAD, efeitos, microfone virtual
 │   └── telemetry.py              # Prometheus metrics
 ├── api/
 │   └── server.py                 # FastAPI app (lifespan + register_routers)
@@ -499,20 +506,55 @@ docker compose --profile test up
 │       └── package.json          # React 19, lucide-react, recharts
 ├── tests/                        # 487 testes
 │   ├── test_service.py
+│   ├── test_classifier.py
 │   ├── test_bitnet_provider.py
 │   ├── test_api_v2_chat.py
 │   ├── test_openvino_module.py
 │   ├── test_education_module.py
-│   └── test_e2e_monolito.py      # 🆕 35 testes E2E (57 rotas)
+│   ├── test_e2e_monolito.py      # 🆕 35 testes E2E (57 rotas)
+│   └── test_audio/               # STT, TTS, VAD, efeitos, recorder, player…
 ├── Aplicativo_Coraci/            # Flask app (mantido para compatibilidade)
 ├── AI/                           # Projetos fonte originais
 │   ├── BitNet/
 │   ├── openvino/
 │   └── historiaia/
-├── docker-compose.yml            # 14 serviços com profiles
+├── docker-compose.yml            # 13 serviços com profiles
 ├── pyproject.toml                # Dependências consolidadas (8 grupos)
-└── .env.example                  # 50+ variáveis documentadas
+└── .env.example                  # 47 variáveis documentadas
 ```
+
+---
+
+## Ferramentas do Ambiente
+
+Ferramentas complementares instaladas neste ambiente, fora do monolito.
+
+### Multi-Agent-CAD (`mac`)
+
+Geração de modelos 3D a partir de texto (**text-to-CAD**) com 4 agentes orquestrados por LangGraph e kernel build123d. Repo local: `Projetos/Multi-Agent-CAD/` (venv Python 3.11, `multi-agent-cad 1.0.0`).
+
+**Provider configurado (Z.AI / GLM):**
+
+| Item | Valor |
+|------|-------|
+| `DS_BASE_URL` | `https://api.z.ai/api/coding/paas/v4` (OpenAI-compatible, Z.AI Coding Plan) |
+| Modelos (4 etapas) | `glm-4.7` (Spec Planner, Architect, Coder, Repair) |
+| Aider | `AIDER_MODEL = openai/glm-4.7` · `AIDER_CHECK_UPDATE=false` (pin aider 0.82.3) |
+| Chave | env `ZAI_API_KEY` (**nunca** em arquivo) — prioridade: `ZAI_API_KEY` → `OPENAI_API_KEY` → `DASHSCOPE_API_KEY` → `DS_API_KEY` |
+| Web UI | `http://localhost:8001` (sessão tmux `macweb`) |
+
+**Comandos:**
+
+| Comando | O que faz |
+|---------|-----------|
+| `mac graph` | Pipeline padrão (determinístico + fallback Aider) na pasta atual |
+| `mac peça "descrição"` | Gera em **subpasta datada** `peca_AAAAMMDD-HHMMSS[_desc]` e abre o STL (f3d/FreeCAD/xdg-open) |
+| `mac aider` | Fluxo Aider-first (modifica `temp_design*.py` existente) |
+| `mac web [porta]` | Sobe a Web UI (porta livre em 8001+, padrão `8001`) |
+| `oc-mac` | Função do `~/.bashrc` — roda `mac graph` em `~/Projetos/peças/` (peças organizadas) |
+| `mac config` / `mac reset` | Ver configuração (sem chaves) / restaurar defaults |
+
+> Detalhes: `multi_agent_cad/config.py` e seção "Z.AI / GLM" do README do projeto (`Projetos/Multi-Agent-CAD/README.md`).
 
 ---
 
@@ -613,18 +655,6 @@ nvm install 22
 - **Testes:** pytest com `asyncio_mode = auto`
 - **Documentação:** docstrings em português (projeto brasileiro)
 - **Frontend:** TypeScript strict + React 19 + Vite
-
-### Skills Grok
-
-Este projeto utiliza skills do Grok CLI para tarefas auxiliares:
-
-```bash
-# Listar skills disponíveis para o projeto
-grok -p "liste as skills disponíveis"
-
-# Usar Grok para análise do projeto
-grok -p "analise a estrutura do projeto e sugira melhorias"
-```
 
 ---
 

@@ -220,6 +220,10 @@ force_single_line = true
 
 [tool.pytest.ini_options]
 minversion = "8.0"
+# Desativa o plugin pytest-flask (instalado no ambiente por acidente):
+# sua fixture autouse assume apps Flask e quebra fixtures "app" do FastAPI
+# (AttributeError: 'FastAPI' object has no attribute 'response_class').
+addopts = "-p no:flask"
 testpaths = ["tests"]
 python_files = ["test_*.py", "*_test.py"]
 asyncio_mode = "auto"
