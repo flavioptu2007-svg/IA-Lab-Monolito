@@ -30,10 +30,21 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS para desenvolvimento (React em localhost:5173)
+# CORS: painel dev (React localhost:5173) + portal educacional
+# (Firebase Hosting, LAN escolar e futuro domínio próprio)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:4173", "http://127.0.0.1:5173"],
+    allow_origins=[
+        "http://localhost:5173",
+        "http://localhost:4173",
+        "http://127.0.0.1:5173",
+        "http://localhost:8765",
+        "http://127.0.0.1:8765",
+        "https://jogos-5f131.web.app",
+        "http://192.168.15.17:8765",
+        "https://educacionai.com.br",
+    ],
+    allow_origin_regex=r"https?://192\.168\.\d{1,3}\.\d{1,3}:\d+",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
