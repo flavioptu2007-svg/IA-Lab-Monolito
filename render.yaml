@@ -22,7 +22,17 @@ services:
       # RAG desabilitado na nuvem (Qdrant é local) — decisão do projeto
       - key: IA_LAB_RAG_ENABLED
         value: "false"
-      # Chave OpenAI — substitua por uma chave VÁLIDA para o chat funcionar
+      # ── CHAT ────────────────────────────────────────────────────────────
+      # Provider primário do chat. Opções gratuitas SEM cartão:
+      #   groq   → console.groq.com (conta Google, chave gsk_...) — RECOMENDADO
+      #   gemini → aistudio.google.com (chave AIza...)
+      #   openai → exige chave paga (evitar)
+      - key: IA_LAB_PRIMARY_PROVIDER
+        value: "groq"
+      # Chave Groq (grátis, sem cartão) — preencher no dashboard do Render
+      - key: IA_LAB_GROQ_API_KEY
+        sync: false
+      # Chave OpenAI — apenas se usar openai como provider
       - key: IA_LAB_OPENAI_API_KEY
         sync: false
       # Desliga módulos locais que não existem na nuvem
