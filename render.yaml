@@ -14,7 +14,9 @@ services:
     repo: https://github.com/flavioptu2007-svg/IA-Lab-Monolito
     dockerfilePath: ./Dockerfile.cloudrun
     plan: free
-    region: sao-paulo
+    # Virginia (costa leste EUA) = menor latência para o Brasil
+    # (Render não tem região na América do Sul; válidas: oregon, ohio, virginia, frankfurt, singapore)
+    region: virginia
     healthCheckPath: /api/health
     envVars:
       # RAG desabilitado na nuvem (Qdrant é local) — decisão do projeto
