@@ -558,6 +558,32 @@ Geração de modelos 3D a partir de texto (**text-to-CAD**) com 4 agentes orques
 
 ---
 
+### Busca na Web — Brave Search API
+
+Busca na web em tempo real para os agentes de IA (grounding com informação atualizada), usando o índice independente da Brave.
+
+**Recursos:**
+
+| Recurso | Detalhe |
+|---|---|
+| Plano gratuito | ~US$ 5/mês em créditos (≈ 1.000 buscas) · 50 req/s |
+| Chave | env `BRAVE_API_KEY` **ou** arquivo `~/.brave_api_key` (obtenha em [brave.com/search/api](https://brave.com/search/api/)) — o fallback de arquivo é necessário porque o cliente MCP sanitiza o env do subprocesso |
+| Servidor MCP | `OpenManus/brave_search_mcp.py` (tools `brave_web_search`, `brave_news_search`, `brave_image_search`, `brave_video_search`, `brave_autosuggest`) |
+| Registro | `OpenManus/config/mcp.json` — o agente Manus conecta via stdio (tools `mcp_brave_*`). O `command` precisa apontar para um interpretador com o pacote `mcp` instalado |
+| Agente local | `buscar_web()` no `OpenManus/agente_ollama.py` (function calling com Ollama) |
+
+**Teste rápido:**
+
+```bash
+export BRAVE_API_KEY=BSA-...
+python3 OpenManus/brave_search_mcp.py   # servidor MCP (stdio)
+python3 OpenManus/agente_ollama.py "pesquise sobre o 7 de setembro de 1822"
+```
+
+> 🔑 Sem a chave configurada, as ferramentas retornam mensagem de erro amigável orientando a criação em https://brave.com/search/api/. Para o MCP, o jeito mais simples é `echo 'BSA-sua-chave' > ~/.brave_api_key` (chmod 600).
+
+---
+
 ## Troubleshooting
 
 ### `ImportError: openvino not found`
