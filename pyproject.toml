@@ -98,8 +98,6 @@ dev = [
     "pytest-cov>=6.0.0",
     "ruff==0.15.20",  # pin alinhado ao .pre-commit-config.yaml (evita drift no format)
     "mypy>=1.10.0",
-    "black>=24.0.0",
-    "isort>=5.13.0",
     "pre-commit>=3.7.0",
 ]
 
@@ -267,16 +265,6 @@ module = [
     "asyncpg", "argon2_cffi", "cv2", "pyzbar",
 ]
 ignore_missing_imports = true
-
-[tool.black]
-target-version = ["py311"]
-line-length = 100
-skip-magic-trailing-comma = true
-
-[tool.isort]
-profile = "black"
-line_length = 100
-force_single_line = true
 
 [tool.pytest.ini_options]
 minversion = "8.0"

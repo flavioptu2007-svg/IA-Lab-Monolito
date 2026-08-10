@@ -604,8 +604,8 @@ nvm install 22
 ### Code Conventions
 
 - **Python:** Follow PEP 8 with line-length 100
-- **Formatting:** Black + Ruff (automatic via `black . && ruff check --fix`)
-- **Imports:** isort with black profile
+- **Formatting:** Ruff format + Ruff lint (automatic via `ruff format . && ruff check --fix`)
+- **Imports:** Ruff (rule I, project default)
 - **Types:** Type hints on all public functions
 - **Tests:** pytest with `asyncio_mode = auto`
 - **Documentation:** Docstrings in English for this version

@@ -719,8 +719,8 @@ nvm install 22
 ### Convenções de código
 
 - **Python:** seguir PEP 8 com line-length 100
-- **Formatação:** Black + Ruff (automático via `black . && ruff check --fix`)
-- **Imports:** isort com profile black
+- **Formatação:** Ruff format + Ruff lint (automático via `ruff format . && ruff check --fix`)
+- **Imports:** Ruff (regra I, padrão do projeto)
 - **Tipos:** type hints em todas as funções públicas
 - **Testes:** pytest com `asyncio_mode = auto`
 - **Documentação:** docstrings em português (projeto brasileiro)
