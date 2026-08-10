@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Organizador de Debate Argumentativo</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🗣️</text></svg>">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<style>
+  @page { margin: 1.5cm; }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', Arial, Helvetica, sans-serif;
+    background: #f5f7fa;
+    color: #1a1a2e;
+    padding: 2rem 1rem;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .container {
+    max-width: 900px;
+    width: 100%;
+    background: #ffffff;
+    border-radius: 24px;
+    padding: 2.5rem 2rem;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  }
+
+  /* ===== HEADER ===== */
+  .header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    padding-bottom: 1.2rem;
+    border-bottom: 3px solid #e8edf5;
+  }
+
+  .header-icon {
+    font-size: 2.2rem;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+
+  .header h1 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #1a1a2e;
+  }
+
+  .header .subtitle {
+    font-size: 0.85rem;
+    color: #7a7a9a;
+    margin-top: 0.2rem;
+  }
+
+  /* ===== TIMER + STEPS ROW ===== */
+  .controls-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.8rem;
+    flex-wrap: wrap;
+  }
+
+  .timer-box {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    background: #f0f4ff;
+    padding: 0.5rem 1rem;
+    border-radius: 30px;
+    font-weight: 600;
+    font-size: 1rem;
+    color: #2a4a7f;
+  }
+
+  .timer-box .timer-display {
+    font-variant-numeric: tabular-nums;
+    min-width: 4ch;
+    text-align: center;
+    font-size: 1.2rem;
+  }
+
+  .timer-btn {
+    background: none;
+    border: none;
+    font-size: 1.1rem;
+    cursor: pointer;
+    padding: 0.2rem 0.4rem;
+    border-radius: 6px;
+    transition: background 0.2s;
+    line-height: 1;
+  }
+
+  .timer-btn:hover { background: #dce5f5; }
+
+  .steps-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .step-dot {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #fff;
+    background: #d0d5dd;
+    cursor: pointer;
+    transition: all 0.3s;
+    border: 2px solid transparent;
+    user-select: none;
+  }
+
+  .step-dot.active {
+    background: #3a7bd5;
+    border-color: #1a5cb5;
+    box-shadow: 0 2px 8px rgba(58,123,213,0.35);
+  }
+
+  .step-dot.done {
+    background: #2e7d5e;
+    border-color: #1d5e44;
+  }
+
+  .step-dot:hover { transform: scale(1.1); }
+
+  /* ===== TEMA ===== */
+  .tema-section {
+    background: linear-gradient(135deg, #f8faff, #f0f4ff);
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    border-left: 5px solid #3a7bd5;
+  }
+
+  .tema-section label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #3a7bd5;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 0.5rem;
+  }
+
+  .tema-section input {
+    width: 100%;
+    font-size: 1.3rem;
+    font-weight: 700;
+    padding: 0.7rem 1rem;
+    border: 2px solid #dce5ef;
+    border-radius: 12px;
+    background: #fff;
+    color: #1a1a2e;
+    transition: border-color 0.2s;
+    outline: none;
+  }
+
+  .tema-section input:focus {
+    border-color: #3a7bd5;
+    box-shadow: 0 0 0 3px rgba(58,123,213,0.12);
+  }
+
+  .tema-section input::placeholder {
+    color: #b0b8c8;
+    font-weight: 400;
+    font-size: 1.1rem;
+  }
+
+  /* ===== INSTRUCTION BOX ===== */
+  .instruction-box {
+    background: #fefce8;
+    border: 2px dashed #e6d88a;
+    border-radius: 14px;
+    padding: 1rem 1.4rem;
+    margin-bottom: 1.8rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.8rem;
+  }
+
+  .instruction-box .icon { font-size: 1.5rem; flex-shrink: 0; margin-top: 0.1rem; }
+
+  .instruction-box p {
+    font-size: 0.95rem;
+    color: #5a4e1a;
+    line-height: 1.5;
+  }
+
+  .instruction-box strong { color: #3a2e0a; }
+
+  /* ===== ARGUMENTS GRID ===== */
+  .arguments-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  @media (max-width: 600px) {
+    .arguments-grid { grid-template-columns: 1fr; }
+    .summary-table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  }
+
+  .arg-column {
+    background: #fafbfc;
+    border-radius: 16px;
+    padding: 1.4rem;
+    border: 2px solid #e8edf5;
+    transition: border-color 0.2s;
+  }
+
+  .arg-column:focus-within { border-color: #3a7bd5; }
+
+  .arg-column.for { border-top: 4px solid #2e7d5e; }
+  .arg-column.against { border-top: 4px solid #c94040; }
+
+  .arg-header {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 1rem;
+  }
+
+  .arg-header .emoji {
+    font-size: 1.5rem;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f0f2f5;
+    border-radius: 10px;
+  }
+
+  .arg-header h2 {
+    font-size: 1.05rem;
+    font-weight: 700;
+  }
+
+  .arg-column.for .arg-header h2 { color: #2e7d5e; }
+  .arg-column.against .arg-header h2 { color: #c94040; }
+
+  .arg-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 0.8rem 1rem;
+    margin-bottom: 0.7rem;
+    border: 1.5px solid #eef2f7;
+    transition: all 0.2s;
+  }
+
+  .arg-card:focus-within {
+    border-color: #3a7bd5;
+    box-shadow: 0 2px 8px rgba(58,123,213,0.1);
+  }
+
+  .arg-card .arg-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    background: #f0f2f5;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #7a7a9a;
+    margin-right: 0.5rem;
+  }
+
+  .arg-card textarea {
+    width: 100%;
+    border: none;
+    background: transparent;
+    font-size: 0.95rem;
+    font-family: inherit;
+    color: #1a1a2e;
+    resize: vertical;
+    min-height: 1.4em;
+    max-height: 4em;
+    outline: none;
+    line-height: 1.5;
+    padding: 0.2rem 0;
+  }
+
+  .arg-card textarea::placeholder {
+    color: #b0b8c8;
+    font-style: italic;
+  }
+
+  /* ===== POSITION SECTION ===== */
+  .position-section {
+    background: linear-gradient(135deg, #f8faff, #fefce8);
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    border: 2px solid #e8edf5;
+  }
+
+  .position-section h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .position-options {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .position-option {
+    flex: 1;
+    min-width: 120px;
+  }
+
+  .position-option input {
+    display: none;
+  }
+
+  .position-option label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 1rem 0.8rem;
+    background: #fff;
+    border: 2px solid #dce5ef;
+    border-radius: 14px;
+    cursor: pointer;
+    transition: all 0.25s;
+    text-align: center;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #5a5a7a;
+  }
+
+  .position-option label .pos-emoji {
+    font-size: 1.8rem;
+    line-height: 1;
+  }
+
+  .position-option:focus-within label {
+    outline: 2px solid #3a7bd5;
+    outline-offset: 2px;
+  }
+
+  .position-option input:checked + label {
+    border-color: #3a7bd5;
+    background: #f0f4ff;
+    color: #2a4a7f;
+    box-shadow: 0 2px 12px rgba(58,123,213,0.2);
+    transform: translateY(-2px);
+  }
+
+  .position-option.for input:checked + label {
+    border-color: #2e7d5e;
+    background: #edf7f2;
+    color: #1d5e44;
+  }
+
+  .position-option.against input:checked + label {
+    border-color: #c94040;
+    background: #fdf0f0;
+    color: #8a2a2a;
+  }
+
+  .position-option.mid input:checked + label {
+    border-color: #d4a017;
+    background: #fefce8;
+    color: #7a5e10;
+  }
+
+  /* ===== JUSTIFICATION ===== */
+  .justification-section {
+    background: #fafbfc;
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    border: 2px solid #e8edf5;
+    transition: border-color 0.2s;
+  }
+
+  .justification-section:focus-within {
+    border-color: #3a7bd5;
+  }
+
+  .justification-section h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin-bottom: 0.3rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .justification-section .hint {
+    font-size: 0.85rem;
+    color: #7a7a9a;
+    margin-bottom: 0.8rem;
+  }
+
+  .justification-section textarea {
+    width: 100%;
+    min-height: 140px;
+    padding: 1rem;
+    border: 2px solid #dce5ef;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-family: inherit;
+    color: #1a1a2e;
+    resize: vertical;
+    outline: none;
+    transition: border-color 0.2s;
+    line-height: 1.6;
+    background: #fff;
+  }
+
+  .justification-section textarea:focus {
+    border-color: #3a7bd5;
+    box-shadow: 0 0 0 3px rgba(58,123,213,0.1);
+  }
+
+  .justification-section textarea::placeholder {
+    color: #b0b8c8;
+    font-style: italic;
+  }
+
+  /* ===== FINISH BUTTON ===== */
+  .finish-row {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .finish-btn {
+    padding: 0.8rem 2.5rem;
+    font-size: 1.05rem;
+    font-weight: 700;
+    font-family: inherit;
+    border: none;
+    border-radius: 40px;
+    cursor: pointer;
+    transition: all 0.25s;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .finish-btn.primary {
+    background: linear-gradient(135deg, #3a7bd5, #2a5db0);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(58,123,213,0.3);
+  }
+
+  .finish-btn.primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(58,123,213,0.4);
+  }
+
+  .finish-btn.primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .finish-btn.secondary {
+    background: #f0f2f5;
+    color: #5a5a7a;
+  }
+
+  .finish-btn.secondary:hover {
+    background: #e0e4ea;
+  }
+
+  /* ===== OVERLAY ===== */
+  .overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    backdrop-filter: blur(4px);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+
+  .overlay.show { display: flex; }
+
+  .overlay-card {
+    background: #fff;
+    border-radius: 24px;
+    padding: 2.5rem 2rem;
+    max-width: 480px;
+    width: 100%;
+    text-align: center;
+    animation: popIn 0.35s ease-out;
+    box-shadow: 0 12px 48px rgba(0,0,0,0.2);
+  }
+
+  @keyframes popIn {
+    0% { transform: scale(0.8); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  .overlay-card .big-icon { font-size: 3.5rem; margin-bottom: 1rem; }
+  .overlay-card h2 { font-size: 1.5rem; color: #1a1a2e; margin-bottom: 0.5rem; }
+  .overlay-card p { color: #5a5a7a; line-height: 1.6; margin-bottom: 1.5rem; }
+
+  .overlay-card .finish-btn {
+    margin: 0 auto;
+  }
+
+  /* ===== SUMMARY TABLE ===== */
+  .summary-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+    text-align: left;
+    font-size: 0.9rem;
+  }
+
+  .summary-table th, .summary-table td {
+    padding: 0.6rem 0.8rem;
+    border: 1px solid #e8edf5;
+    vertical-align: top;
+  }
+
+  .summary-table th {
+    background: #f0f4ff;
+    font-weight: 700;
+    color: #2a4a7f;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .summary-table .for-cell { background: #edf7f2; }
+  .summary-table .against-cell { background: #fdf0f0; }
+
+  /* ===== PRINT ===== */
+  @media print {
+    body { background: #fff; padding: 0; }
+    .container { box-shadow: none; padding: 1.5rem; }
+    .step-dot { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+    .timer-btn, .finish-btn.secondary { display: none; }
+    .overlay { display: none !important; }
+    .tema-section input { border: 1px solid #ccc; }
+    .arg-card textarea { border: none; resize: none; }
+    .position-option label { border: 1px solid #ccc; }
+    .instruction-box { break-inside: avoid; }
+    .arguments-grid { break-inside: avoid; }
+    .position-section { break-inside: avoid; }
+    .justification-section { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container" id="app">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-icon">💬</div>
+    <div>
+      <h1>Organizador de Debate</h1>
+      <div class="subtitle">Estruture seus argumentos e forme sua opinião</div>
+    </div>
+  </div>
+
+  <!-- CONTROLS -->
+  <div class="controls-row">
+    <div class="timer-box">
+      ⏱️
+      <span class="timer-display" id="timerDisplay">00:00</span>
+      <button class="timer-btn" id="timerBtn" onclick="toggleTimer()" title="Iniciar/Pausar">▶️</button>
+      <button class="timer-btn" onclick="resetTimer()" title="Reiniciar">↺</button>
+    </div>
+
+    <div class="steps-badge">
+      <span class="step-dot" data-step="0" onclick="scrollToSection('tema')">1</span>
+      <span class="step-dot" data-step="1" onclick="scrollToSection('args')">2</span>
+      <span class="step-dot" data-step="2" onclick="scrollToSection('position')">3</span>
+      <span class="step-dot" data-step="3" onclick="scrollToSection('justify')">4</span>
+      <span class="step-dot" data-step="4" onclick="scrollToSection('finish')">✓</span>
+    </div>
+  </div>
+
+  <!-- INSTRUCTION -->
+  <div class="instruction-box">
+    <div class="icon">📋</div>
+    <p><strong>Instruções:</strong> Primeiro, escreva o tema do debate. Depois, preencha <strong>3 argumentos a favor</strong> e <strong>3 argumentos contra</strong>. Escolha sua posição e justifique. Ao finalizar, o resumo completo será exibido.</p>
+  </div>
+
+  <!-- TEMA -->
+  <div class="tema-section" id="tema">
+    <label for="temaInput">📌 Tema do Debate</label>
+    <input type="text" id="temaInput" placeholder="Escreva o tema aqui..." oninput="checkFields()" autocomplete="off">
+  </div>
+
+  <!-- ARGUMENTS -->
+  <div class="arguments-grid" id="args">
+    <!-- A FAVOR -->
+    <div class="arg-column for">
+      <div class="arg-header">
+        <div class="emoji">✅</div>
+        <h2>Argumentos a Favor</h2>
+      </div>
+      <div class="arg-card">
+        <span class="arg-number">1</span>
+        <textarea placeholder="Digite o 1º argumento a favor..." oninput="checkFields()"></textarea>
+      </div>
+      <div class="arg-card">
+        <span class="arg-number">2</span>
+        <textarea placeholder="Digite o 2º argumento a favor..." oninput="checkFields()"></textarea>
+      </div>
+      <div class="arg-card">
+        <span class="arg-number">3</span>
+        <textarea placeholder="Digite o 3º argumento a favor..." oninput="checkFields()"></textarea>
+      </div>
+    </div>
+
+    <!-- CONTRA -->
+    <div class="arg-column against">
+      <div class="arg-header">
+        <div class="emoji">❌</div>
+        <h2>Argumentos Contra</h2>
+      </div>
+      <div class="arg-card">
+        <span class="arg-number">1</span>
+        <textarea placeholder="Digite o 1º argumento contra..." oninput="checkFields()"></textarea>
+      </div>
+      <div class="arg-card">
+        <span class="arg-number">2</span>
+        <textarea placeholder="Digite o 2º argumento contra..." oninput="checkFields()"></textarea>
+      </div>
+      <div class="arg-card">
+        <span class="arg-number">3</span>
+        <textarea placeholder="Digite o 3º argumento contra..." oninput="checkFields()"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- POSITION -->
+  <div class="position-section" id="position">
+    <h3>🎯 Minha Posição</h3>
+
+    <div class="position-options">
+      <div class="position-option for">
+        <input type="radio" name="position" id="posFor" value="for" onchange="checkFields()">
+        <label for="posFor">
+          <span class="pos-emoji">👍</span>
+          A Favor
+        </label>
+      </div>
+
+      <div class="position-option against">
+        <input type="radio" name="position" id="posAgainst" value="against" onchange="checkFields()">
+        <label for="posAgainst">
+          <span class="pos-emoji">👎</span>
+          Contra
+        </label>
+      </div>
+
+      <div class="position-option mid">
+        <input type="radio" name="position" id="posMid" value="mid" onchange="checkFields()">
+        <label for="posMid">
+          <span class="pos-emoji">🤔</span>
+          Intermediário
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- JUSTIFICATION -->
+  <div class="justification-section" id="justify">
+    <h3>✍️ Justificativa</h3>
+    <div class="hint">Explique com suas palavras por que você adotou esta posição, considerando os argumentos que listou.</div>
+    <textarea placeholder="Escreva sua justificativa aqui..." oninput="checkFields()"></textarea>
+  </div>
+
+  <!-- FINISH -->
+  <div class="finish-row" id="finish">
+    <button class="finish-btn primary" id="finishBtn" onclick="finalizar()" disabled>
+      ✅ Finalizar e Ver Resumo
+    </button>
+    <button class="finish-btn secondary" onclick="resetAll()">
+      🔄 Limpar Tudo
+    </button>
+  </div>
+
+</div>
+
+<!-- OVERLAY -->
+<div class="overlay" id="overlay">
+  <div class="overlay-card">
+    <div class="big-icon">🎉</div>
+    <h2>Debate Estruturado!</h2>
+    <p>Seu organizador de argumentos está completo. Veja o resumo abaixo.</p>
+
+    <div id="summaryContent"></div>
+
+    <br>
+    <button class="finish-btn primary" onclick="closeOverlay()">📋 OK, entendi!</button>
+    <br><br>
+    <button class="finish-btn secondary" onclick="closeOverlay(); resetAll();">🔄 Novo Debate</button>
+  </div>
+</div>
+
+<script>
+  // ===== STATE =====
+  let timerInterval = null;
+  let seconds = 0;
+  let timerRunning = false;
+
+  // ===== TIMER =====
+  function formatTime(s) {
+    const m = String(Math.floor(s / 60)).padStart(2, '0');
+    const sec = String(s % 60).padStart(2, '0');
+    return m + ':' + sec;
+  }
+
+  function updateTimerDisplay() {
+    document.getElementById('timerDisplay').textContent = formatTime(seconds);
+  }
+
+  function toggleTimer() {
+    if (timerRunning) {
+      clearInterval(timerInterval);
+      timerRunning = false;
+      document.getElementById('timerBtn').textContent = '▶️';
+    } else {
+      timerInterval = setInterval(function() {
+        seconds++;
+        updateTimerDisplay();
+      }, 1000);
+      timerRunning = true;
+      document.getElementById('timerBtn').textContent = '⏸️';
+    }
+  }
+
+  function resetTimer() {
+    clearInterval(timerInterval);
+    timerRunning = false;
+    seconds = 0;
+    updateTimerDisplay();
+    document.getElementById('timerBtn').textContent = '▶️';
+  }
+
+  // ===== STEPS =====
+  function scrollToSection(id) {
+    var el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  function updateSteps() {
+    var dots = document.querySelectorAll('.step-dot');
+    var fields = [
+      document.getElementById('temaInput').value.trim() !== '',
+      hasAnyArgument(),
+      document.querySelector('input[name="position"]:checked') !== null,
+      document.querySelector('.justification-section textarea').value.trim() !== ''
+    ];
+
+    dots.forEach(function(dot, i) {
+      dot.classList.remove('active', 'done');
+      if (i < 4) {
+        if (fields[i]) {
+          dot.classList.add('done');
+        }
+      }
+    });
+
+    // Mark the first undone step as active
+    var firstUndone = fields.indexOf(false);
+    if (firstUndone >= 0 && firstUndone < 4) {
+      dots[firstUndone].classList.add('active');
+    } else if (firstUndone === -1) {
+      dots[4].classList.add('done');
+    }
+  }
+
+  function hasAnyArgument() {
+    var cards = document.querySelectorAll('.arg-column');
+    var forHas = false, againstHas = false;
+    cards[0].querySelectorAll('textarea').forEach(function(t) { if (t.value.trim() !== '') forHas = true; });
+    cards[1].querySelectorAll('textarea').forEach(function(t) { if (t.value.trim() !== '') againstHas = true; });
+    return forHas && againstHas;
+  }
+
+  // ===== FIELD CHECKING =====
+  function checkFields() {
+    var tema = document.getElementById('temaInput').value.trim();
+    var justify = document.querySelector('.justification-section textarea').value.trim();
+    var pos = document.querySelector('input[name="position"]:checked') !== null;
+    var hasArgs = hasAnyArgument();
+
+    var allFilled = tema !== '' && hasArgs && pos && justify !== '';
+    document.getElementById('finishBtn').disabled = !allFilled;
+
+    updateSteps();
+  }
+
+  // ===== FINALIZE =====
+  function finalizar() {
+    var tema = document.getElementById('temaInput').value.trim();
+    var justify = document.querySelector('.justification-section textarea').value.trim();
+
+    // Gather arguments
+    var argCards = document.querySelectorAll('.arg-card textarea');
+    var forArgs = [];
+    var againstArgs = [];
+    for (var i = 0; i < 3; i++) { forArgs.push(argCards[i].value.trim()); }
+    for (var i = 3; i < 6; i++) { againstArgs.push(argCards[i].value.trim()); }
+
+    // Position
+    var posEl = document.querySelector('input[name="position"]:checked');
+    var posLabel = '';
+    var posIcon = '';
+    if (posEl) {
+      var val = posEl.value;
+      if (val === 'for') { posLabel = 'A Favor'; posIcon = '👍'; }
+      else if (val === 'against') { posLabel = 'Contra'; posIcon = '👎'; }
+      else if (val === 'mid') { posLabel = 'Intermediário(a)'; posIcon = '🤔'; }
+    }
+
+    var timerText = formatTime(seconds);
+
+    // Build summary HTML
+    var html = '';
+    html += '<table class="summary-table">';
+    html += '<tr><th colspan="2">📌 Tema</th></tr>';
+    html += '<tr><td colspan="2" style="font-weight:600;text-align:center;">' + escapeHtml(tema) + '</td></tr>';
+
+    html += '<tr><th class="for-cell">✅ A Favor</th><th class="against-cell">❌ Contra</th></tr>';
+    var maxLen = Math.max(forArgs.length, againstArgs.length);
+    for (var i = 0; i < maxLen; i++) {
+      html += '<tr>';
+      html += '<td class="for-cell">' + (forArgs[i] ? (i + 1) + '. ' + escapeHtml(forArgs[i]) : '') + '</td>';
+      html += '<td class="against-cell">' + (againstArgs[i] ? (i + 1) + '. ' + escapeHtml(againstArgs[i]) : '') + '</td>';
+      html += '</tr>';
+    }
+
+    html += '<tr><th colspan="2">🎯 Posição</th></tr>';
+    html += '<tr><td colspan="2" style="text-align:center;font-weight:700;font-size:1.1rem;">' + posIcon + ' ' + posLabel + '</td></tr>';
+
+    html += '<tr><th colspan="2">✍️ Justificativa</th></tr>';
+    html += '<tr><td colspan="2">' + escapeHtml(justify) + '</td></tr>';
+
+    html += '<tr><th colspan="2">⏱️ Tempo</th></tr>';
+    html += '<tr><td colspan="2" style="text-align:center;color:#5a5a7a;">' + timerText + '</td></tr>';
+
+    html += '</table>';
+
+    document.getElementById('summaryContent').innerHTML = html;
+    document.getElementById('overlay').classList.add('show');
+
+    // Stop timer
+    if (timerRunning) toggleTimer();
+  }
+
+  function closeOverlay() {
+    document.getElementById('overlay').classList.remove('show');
+  }
+
+  function escapeHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  // ===== RESET =====
+  function resetAll() {
+    document.getElementById('temaInput').value = '';
+    var textareas = document.querySelectorAll('.arg-card textarea, .justification-section textarea');
+    textareas.forEach(function(t) { t.value = ''; });
+
+    var radios = document.querySelectorAll('input[name="position"]');
+    radios.forEach(function(r) { r.checked = false; });
+
+    resetTimer();
+    checkFields();
+    document.getElementById('overlay').classList.remove('show');
+  }
+
+  // ===== KEYBOARD SHORTCUT =====
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && e.ctrlKey) {
+      var btn = document.getElementById('finishBtn');
+      if (!btn.disabled) finalizar();
+    }
+  });
+</script>
+
+<script src="ia_api.js"></script>
+<script>IAApi.injectWidget({ context: 'Atividade de debate argumentativo em História. Sugira argumentos e contra-argumentos com base histórica.' });</script>
+</body>
+</html>

@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jogo das Eras — História (BNCC 6º–9º ano)</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<style>
+/* ═══════════════════════════════════════════════════════════
+   TEMA — "eras" da História: pedra/ocre/terracota sobre pergaminho
+   ═══════════════════════════════════════════════════════════ */
+:root{
+  --tinta:#33261a;
+  --ocre:#b8892e;
+  --terracota:#a05a3c;
+  --pedra:#5f6f52;
+  --pergaminho:#f6ecd8;
+  --pergaminho-2:#e9d9b8;
+  --azul:#1a237e;
+  --azul-claro:#e8eaf6;
+  --ouro:#caa14b;
+  --verde:#2e7d32;
+  --verde-claro:#e8f5e9;
+  --vermelho:#c62828;
+  --vermelho-claro:#ffebee;
+  --texto:#3b2f2a;
+  --borda:#b8a88a;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
+  background:
+    radial-gradient(ellipse at top,#fff8e7 0%,rgba(255,248,231,0) 60%),
+    linear-gradient(160deg,var(--pergaminho),var(--pergaminho-2) 65%,#dfcfaa);
+  color:var(--texto);
+  min-height:100vh;
+  padding:1rem;
+}
+.game{max-width:1000px;margin:0 auto}
+
+h1{
+  font-family:Georgia,'Times New Roman',serif;
+  color:var(--terracota);
+  text-align:center;
+  font-size:1.5rem;
+  letter-spacing:-.3px;
+  margin-bottom:.2rem;
+}
+.subtitle{
+  text-align:center;
+  color:var(--marrom,#8a5a3b);
+  font-size:.85rem;
+  margin-bottom:1rem;
+  font-style:italic;
+}
+h1 .contador{
+  display:inline-block;
+  background:var(--terracota);
+  color:#fff;
+  font-size:.62rem;
+  border-radius:20px;
+  padding:.15rem .6rem;
+  vertical-align:middle;
+  margin-left:.4rem;
+  font-family:'Segoe UI',sans-serif;
+}
+
+/* ─── Controles ─── */
+.controls{
+  background:rgba(255,255,255,.55);
+  border:1px solid var(--borda);
+  border-radius:12px;
+  padding:.9rem 1rem;
+  margin-bottom:.8rem;
+  box-shadow:0 2px 8px rgba(51,38,26,.08);
+}
+.level-row{display:flex;align-items:center;justify-content:space-between;gap:.75rem;flex-wrap:wrap}
+.levels{display:flex;gap:.5rem;flex-wrap:wrap;border:none}
+.levels legend{
+  font-size:.72rem;font-weight:700;color:var(--marrom,#8a5a3b);
+  text-transform:uppercase;letter-spacing:.5px;padding:0 4px;
+}
+.level-opt{
+  display:flex;align-items:center;gap:.4rem;
+  background:var(--azul-claro);border:1.5px solid #c5cae9;
+  border-radius:8px;padding:.45rem .7rem;font-size:.82rem;font-weight:600;
+  cursor:pointer;transition:all .18s;color:var(--azul);
+}
+.level-opt:hover{border-color:var(--azul);transform:translateY(-1px)}
+.level-opt:has(input:checked){background:var(--azul);border-color:var(--azul);color:#fff}
+.level-opt input{accent-color:var(--azul)}
+.ctrl-btns{display:flex;gap:.5rem;flex-wrap:wrap}
+
+.btn{
+  border:none;border-radius:8px;padding:.55rem 1.1rem;
+  font-size:.88rem;font-weight:700;cursor:pointer;
+  transition:background .2s,transform .12s,box-shadow .2s;font-family:inherit;
+}
+.btn:active:not(:disabled){transform:scale(.97)}
+.btn:disabled{background:#cfc4b2;color:#8d8478;cursor:not-allowed}
+.btn-start{background:var(--verde);color:#fff;box-shadow:0 2px 6px rgba(46,125,50,.3)}
+.btn-start:hover:not(:disabled){background:#1b5e20}
+.btn-restart{background:var(--azul);color:#fff;box-shadow:0 2px 6px rgba(26,35,126,.3)}
+.btn-restart:hover:not(:disabled){background:#283593}
+.btn-hint{background:var(--ouro);color:#3e2723;box-shadow:0 2px 6px rgba(202,161,75,.35)}
+.btn-hint:hover:not(:disabled){background:#b8902f}
+.sound-toggle{
+  background:rgba(255,255,255,.8);border:1px solid var(--borda);
+  border-radius:8px;padding:.5rem .7rem;font-size:.9rem;cursor:pointer;transition:all .2s;
+}
+.sound-toggle:hover{border-color:var(--ouro)}
+.sound-toggle.muted{opacity:.5;filter:grayscale(1)}
+
+/* ─── Estatísticas ─── */
+.stats{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr));
+  gap:.5rem;margin-bottom:.7rem;
+}
+.stat{
+  background:rgba(255,255,255,.7);border:1px solid var(--borda);
+  border-radius:10px;padding:.45rem .4rem;text-align:center;
+  box-shadow:0 1px 3px rgba(51,38,26,.06);
+}
+.stat .num{font-size:1.15rem;font-weight:800;color:var(--azul);font-variant-numeric:tabular-nums}
+.stat .label{font-size:.62rem;color:var(--marrom,#8a5a3b);text-transform:uppercase;letter-spacing:.4px}
+.stat.record .num{color:var(--ouro)}
+.stat.cards .num{color:var(--terracota)}
+
+/* ─── Status ─── */
+.status{
+  text-align:center;font-size:.9rem;color:var(--marrom,#8a5a3b);
+  min-height:1.5em;margin-bottom:.7rem;padding:.35rem .5rem;border-radius:8px;
+  background:rgba(255,255,255,.45);transition:background .3s,color .3s;
+}
+.status.ok{color:var(--verde);font-weight:700}
+.status.erro{color:var(--vermelho);font-weight:700}
+.status.dica{color:#8a6d1a;font-weight:700}
+
+/* ─── Legenda de períodos ─── */
+.legend{display:flex;gap:.4rem;justify-content:center;flex-wrap:wrap;margin-bottom:.7rem}
+.legend-item{
+  display:flex;align-items:center;gap:.3rem;font-size:.68rem;
+  padding:.2rem .55rem;border-radius:6px;background:rgba(255,255,255,.6);
+  border:1px solid var(--borda);
+}
+.legend-dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+
+/* ─── Tabuleiro ─── */
+.board{
+  display:grid;grid-template-columns:1fr;gap:.9rem;margin-bottom:1rem;
+}
+@media(min-width:880px){.board{grid-template-columns:1fr 1fr;gap:1.1rem}}
+.column{
+  background:rgba(255,255,255,.4);border:1px solid var(--borda);
+  border-radius:12px;padding:.8rem;
+}
+.column h2{
+  font-family:Georgia,serif;font-size:.95rem;text-align:center;
+  color:var(--tinta);margin-bottom:.7rem;letter-spacing:.5px;
+}
+.column h2 .count{color:var(--marrom,#8a5a3b);font-size:.75rem;font-weight:400}
+.tiles{display:grid;gap:8px;grid-template-columns:1fr}
+@media(min-width:560px){.col-perguntas .tiles{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:880px){.col-respostas .tiles{grid-template-columns:repeat(2,1fr)}}
+
+/* ─── Peças ─── */
+.tile{
+  position:relative;display:block;width:100%;text-align:left;
+  border-radius:9px;cursor:pointer;font-family:inherit;
+  transition:transform .18s,box-shadow .18s,border-color .18s,background .18s,opacity .25s;
+  box-shadow:0 2px 5px rgba(51,38,26,.14);overflow:hidden;
+}
+.tile:focus-visible{outline:3px solid var(--ouro);outline-offset:2px}
+.tile:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 4px 10px rgba(51,38,26,.2)}
+.tile .inner{padding:.55rem .6rem;display:flex;align-items:flex-start;gap:.5rem}
+
+.tile-pergunta{background:#fdfaf2;border:1.5px solid var(--borda)}
+.tile-pergunta .inner{border-left:5px solid #bbb}
+.tile-pergunta .q{
+  font-weight:700;color:var(--tinta);font-size:.8rem;line-height:1.25;flex:1;
+}
+.tile-resposta{background:#fbf6ec;border:1.5px solid var(--borda)}
+.tile-resposta .inner{border-left:5px solid #bbb}
+.tile-resposta .a{
+  font-size:.78rem;color:var(--tinta);line-height:1.3;flex:1;
+}
+
+/* Cores de categoria (do banco: red/yellow/green/blue) */
+.cor-red .inner{border-left-color:#c62828}
+.cor-yellow .inner{border-left-color:#f9a825}
+.cor-green .inner{border-left-color:#2e7d32}
+.cor-blue .inner{border-left-color:#1976d2}
+
+/* Badges */
+.badge-periodo{
+  display:inline-block;font-size:.58rem;font-weight:800;letter-spacing:.3px;
+  padding:.1rem .45rem;border-radius:10px;color:#fff;margin-bottom:.3rem;
+}
+.badge-pontos{
+  flex-shrink:0;background:var(--terracota);color:#fff;font-weight:800;
+  font-size:.68rem;border-radius:8px;padding:.15rem .45rem;align-self:center;
+}
+
+/* Estado selecionado */
+.tile.selected{
+  border-color:var(--ouro);
+  box-shadow:0 0 0 2px var(--ouro),0 4px 10px rgba(51,38,26,.2);
+  transform:translateY(-2px);
+}
+.tile.selected .inner{background:rgba(255,213,79,.14)}
+
+/* Combinado */
+.tile.matched{
+  pointer-events:none;opacity:.6;border-color:var(--verde);
+}
+.tile.matched .inner{background:var(--verde-claro)}
+.tile.matched .check{margin-left:auto;color:var(--verde);font-size:1rem;animation:popIn .3s ease both}
+@keyframes matchGlow{
+  0%{box-shadow:0 0 0 0 rgba(46,125,50,.7)}
+  100%{box-shadow:0 0 0 10px rgba(46,125,50,0)}
+}
+.tile.just-matched{animation:matchGlow .6s ease}
+@keyframes popIn{0%{transform:scale(.4);opacity:0}100%{transform:scale(1);opacity:1}}
+
+/* Erro */
+@keyframes shake{
+  10%,90%{transform:translateX(-2px)}
+  20%,80%{transform:translateX(4px)}
+  30%,50%,70%{transform:translateX(-6px)}
+  40%,60%{transform:translateX(6px)}
+}
+.tile.wrong{
+  animation:shake .5s ease;
+  border-color:var(--vermelho)!important;
+  box-shadow:0 0 0 2px rgba(198,40,40,.5)!important;
+}
+.tile.wrong .inner{background:var(--vermelho-claro)}
+
+/* Dica */
+@keyframes hintPulse{
+  0%,100%{box-shadow:0 0 0 2px var(--ouro-claro,#ffd54f)}
+  50%{box-shadow:0 0 0 6px var(--ouro)}
+}
+.tile.hint-flash{
+  animation:hintPulse .8s ease-in-out infinite;
+  border-color:var(--ouro)!important;
+}
+.tile.hint-flash .inner{background:rgba(255,213,79,.2)}
+
+/* Placeholder do menu */
+.board-placeholder{
+  grid-column:1/-1;text-align:center;padding:2.5rem 1rem;
+  color:var(--marrom,#8a5a3b);font-size:.95rem;
+  border:2px dashed var(--borda);border-radius:12px;background:rgba(255,255,255,.35);
+}
+.board-placeholder .icon{font-size:2.2rem;display:block;margin-bottom:.5rem}
+
+/* ─── Overlay de vitória ─── */
+.win-overlay{
+  display:none;position:fixed;inset:0;background:rgba(51,38,26,.5);
+  backdrop-filter:blur(3px);z-index:100;align-items:center;justify-content:center;padding:1rem;
+}
+.win-overlay.show{display:flex}
+.win-box{
+  background:var(--pergaminho);border:2px solid var(--ouro);border-radius:14px;
+  padding:1.8rem;text-align:center;max-width:400px;width:100%;
+  box-shadow:0 12px 40px rgba(0,0,0,.3);animation:winPop .45s ease both;
+  max-height:90vh;overflow-y:auto;
+}
+@keyframes winPop{0%{opacity:0;transform:scale(.85)}100%{opacity:1;transform:scale(1)}}
+.win-box h2{font-family:Georgia,serif;color:var(--azul);font-size:1.4rem;margin-bottom:.3rem}
+.win-box .final-score{font-size:2rem;font-weight:800;color:var(--verde);margin:.4rem 0}
+.win-box .record-badge{
+  display:inline-block;background:var(--ouro);color:#3e2723;font-weight:800;
+  font-size:.8rem;padding:.25rem .7rem;border-radius:20px;margin-bottom:.6rem;
+  animation:popIn .4s ease .3s both;
+}
+.win-stats{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin:1rem 0}
+.win-stat{
+  background:rgba(255,255,255,.65);border:1px solid var(--borda);
+  border-radius:8px;padding:.5rem;
+}
+.win-stat .w-num{font-size:1.05rem;font-weight:800;color:var(--azul)}
+.win-stat .w-label{font-size:.62rem;color:var(--marrom,#8a5a3b);text-transform:uppercase;letter-spacing:.4px}
+.win-box .btn{margin:.35rem .2rem}
+
+footer{text-align:center;margin-top:1rem;padding-bottom:.5rem;font-size:.7rem;color:var(--marrom-claro,#a1887f)}
+
+@media(max-width:480px){
+  h1{font-size:1.2rem}
+  .tile-pergunta .q{font-size:.74rem}
+  .tile-resposta .a{font-size:.72rem}
+}
+</style>
+</head>
+<body>
+<div class="game">
+  <h1>🏛️ Jogo das Eras — História<span class="contador" id="hTotal">40</span></h1>
+  <p class="subtitle">Ligue cada pergunta à resposta correta — Pré-História à Contemporânea (BNCC 6º–9º)</p>
+
+  <!-- ─── Controles ─── -->
+  <section class="controls" aria-label="Controles do jogo">
+    <div class="level-row">
+      <fieldset class="levels" id="levelGroup">
+        <legend>Modo</legend>
+        <label class="level-opt"><input type="radio" name="nivel" value="facil" checked> 🟢 Fácil · 10</label>
+        <label class="level-opt"><input type="radio" name="nivel" value="medio"> 🟡 Médio · 20</label>
+        <label class="level-opt"><input type="radio" name="nivel" value="completo"> 🔴 Completo · todas</label>
+      </fieldset>
+      <div class="ctrl-btns">
+        <button class="btn btn-start" id="startBtn">▶ Iniciar Jogo</button>
+        <button class="btn btn-restart" id="restartBtn" disabled>🔄 Reiniciar</button>
+        <button class="btn btn-hint" id="hintBtn" disabled>💡 Dica (−5 pts)</button>
+        <button class="sound-toggle" id="soundToggle" title="Ativar/desativar som" aria-label="Ativar ou desativar sons">🔊</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── Estatísticas ─── -->
+  <section class="stats" aria-label="Estatísticas da partida">
+    <div class="stat cards"><div class="num"><span id="stCards">40</span>/<span id="stTotal">40</span></div><div class="label">🃏 Cartas</div></div>
+    <div class="stat"><div class="num" id="stTimer">00:00</div><div class="label">⏱ Tempo</div></div>
+    <div class="stat"><div class="num" id="stScore">0</div><div class="label">⭐ Pontos</div></div>
+    <div class="stat"><div class="num" id="stErrors">0</div><div class="label">❌ Erros</div></div>
+    <div class="stat"><div class="num" id="stHints">–</div><div class="label">💡 Dicas</div></div>
+    <div class="stat record"><div class="num" id="stRecord">–</div><div class="label">🏆 Recorde</div></div>
+  </section>
+
+  <!-- ─── Legenda de períodos ─── -->
+  <div class="legend" aria-label="Legenda dos períodos históricos" id="legend"></div>
+
+  <!-- ─── Status (acessível) ─── -->
+  <p class="status" id="status" role="status" aria-live="polite">
+    Escolha um modo e clique em <strong>Iniciar Jogo</strong>.
+  </p>
+
+  <!-- ─── Tabuleiro ─── -->
+  <section class="board" id="board" aria-label="Tabuleiro do jogo: perguntas e respostas"></section>
+
+  <footer>Profº Flávio Alexandre · História · BNCC 6º–9º ano</footer>
+</div>
+
+<!-- ─── Overlay de vitória ─── -->
+<div class="win-overlay" id="winOverlay" role="dialog" aria-modal="true" aria-labelledby="winTitle">
+  <div class="win-box">
+    <h2 id="winTitle">🎉 Jogo Completo!</h2>
+    <div class="final-score" id="winScore">0 pts</div>
+    <div class="record-badge" id="winRecordBadge" style="display:none">🏆 NOVO RECORDE!</div>
+    <div class="win-stats">
+      <div class="win-stat"><div class="w-num" id="winTime">00:00</div><div class="w-label">⏱ Tempo</div></div>
+      <div class="win-stat"><div class="w-num" id="winErrors">0</div><div class="w-label">❌ Erros</div></div>
+      <div class="win-stat"><div class="w-num" id="winHints">0</div><div class="w-label">💡 Dicas usadas</div></div>
+      <div class="win-stat"><div class="w-num" id="winAccuracy">100%</div><div class="w-label">🎯 Precisão</div></div>
+    </div>
+    <button class="btn btn-restart" id="winAgainBtn">🔄 Jogar Novamente</button>
+    <button class="btn btn-start" id="winMenuBtn">🏠 Menu</button>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ═══════════════════════════════════════════════════════════
+   ENGENHO DE SOM (Web Audio API — sem arquivos externos)
+   ═══════════════════════════════════════════════════════════ */
+const SoundFX = (() => {
+  let ctx = null;
+  let enabled = true;
+  try { enabled = localStorage.getItem("jogoErasSom") !== "0"; } catch (e) { /* ignore */ }
+  function getCtx() {
+    if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
+    if (ctx.state === "suspended") ctx.resume();
+    return ctx;
+  }
+  function tone(freq, dur, type, vol) {
+    if (!enabled) return;
+    try {
+      const c = getCtx(), o = c.createOscillator(), g = c.createGain();
+      o.type = type || "sine";
+      o.frequency.setValueAtTime(freq, c.currentTime);
+      g.gain.setValueAtTime(vol || 0.12, c.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + dur);
+      o.connect(g); g.connect(c.destination);
+      o.start(c.currentTime); o.stop(c.currentTime + dur);
+    } catch (e) { /* silencioso */ }
+  }
+  return {
+    get enabled() { return enabled; },
+    set enabled(v) {
+      enabled = v;
+      try { localStorage.setItem("jogoErasSom", v ? "1" : "0"); } catch (e) { /* ignore */ }
+    },
+    flip() { tone(720, 0.07, "sine", 0.08); },
+    match() {
+      tone(523, 0.18, "sine", 0.14);
+      setTimeout(() => tone(659, 0.18, "sine", 0.14), 90);
+      setTimeout(() => tone(784, 0.25, "sine", 0.16), 180);
+    },
+    error() {
+      tone(220, 0.16, "triangle", 0.12);
+      setTimeout(() => tone(160, 0.22, "triangle", 0.1), 120);
+    },
+    hint() { tone(880, 0.1, "sine", 0.1); setTimeout(() => tone(1100, 0.12, "sine", 0.1), 90); },
+    win() { [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => tone(f, 0.38, "sine", 0.16), i * 140)); },
+    click() { tone(440, 0.06, "sine", 0.06); }
+  };
+})();
+
+/* ═══════════════════════════════════════════════════════════
+   BANCO DE DADOS — por matéria (estrutura pronta para expansão)
+   Contagem de História: 40 pares (4+7+5+10+14)
+   ═══════════════════════════════════════════════════════════ */
+const BANCOS = {
+  historia: [
+    // ── Pré-História ──
+    { question: "Como se chama o período em que o ser humano começou a usar ferramentas de pedra?", answer: "Idade da Pedra", number: 2, color: "red", periodo: "Pré-História" },
+    { question: "O que caracteriza o Período Paleolítico?", answer: "Nomadismo e caça e coleta", number: 3, color: "yellow", periodo: "Pré-História" },
+    { question: "O que marcou o início do Período Neolítico?", answer: "Surgimento da agricultura", number: 4, color: "green", periodo: "Pré-História" },
+    { question: "Como eram chamados os primeiros registros de arte humana em cavernas?", answer: "Pinturas rupestres", number: 5, color: "blue", periodo: "Pré-História" },
+    // ── Idade Antiga ──
+    { question: "Qual civilização construiu as pirâmides do Egito?", answer: "Egípcios", number: 4, color: "blue", periodo: "Idade Antiga" },
+    { question: "Qual rio foi essencial para a civilização egípcia?", answer: "Rio Nilo", number: 6, color: "red", periodo: "Idade Antiga" },
+    { question: "Qual era o sistema de escrita dos egípcios?", answer: "Hieróglifos", number: 7, color: "yellow", periodo: "Idade Antiga" },
+    { question: "Qual civilização criou a democracia?", answer: "Grécia Antiga", number: 8, color: "green", periodo: "Idade Antiga" },
+    { question: "Qual foi o principal império da Antiguidade que dominou o Mediterrâneo?", answer: "Império Romano", number: 9, color: "blue", periodo: "Idade Antiga" },
+    { question: "O que eram os gladiadores em Roma?", answer: "Lutadores que se enfrentavam em arenas", number: 3, color: "red", periodo: "Idade Antiga" },
+    { question: "Qual filósofo grego foi mestre de Alexandre, o Grande?", answer: "Aristóteles", number: 2, color: "yellow", periodo: "Idade Antiga" },
+    // ── Idade Média ──
+    { question: "Qual sistema social e econômico predominou na Idade Média?", answer: "Feudalismo", number: 5, color: "green", periodo: "Idade Média" },
+    { question: "O que eram as Cruzadas?", answer: "Expedições militares religiosas cristãs", number: 6, color: "blue", periodo: "Idade Média" },
+    { question: "O que caracterizava a relação entre servo e senhor feudal?", answer: "Trabalho em troca de proteção", number: 7, color: "red", periodo: "Idade Média" },
+    { question: "Qual instituição teve grande poder político e religioso na Idade Média?", answer: "Igreja Católica", number: 8, color: "yellow", periodo: "Idade Média" },
+    { question: "O que foi a Peste Negra?", answer: "Epidemia que dizimou parte da população europeia", number: 9, color: "green", periodo: "Idade Média" },
+    // ── Idade Moderna ──
+    { question: "Quem foi o navegador que dobrou o Cabo da Boa Esperança?", answer: "Bartolomeu Dias", number: 6, color: "red", periodo: "Idade Moderna" },
+    { question: "Qual foi a primeira cidade conquistada pelos portugueses na África?", answer: "Ceuta", number: 5, color: "yellow", periodo: "Idade Moderna" },
+    { question: "Em que século começou a expansão marítima portuguesa?", answer: "Século XV", number: 9, color: "blue", periodo: "Idade Moderna" },
+    { question: "Que produto foi mais explorado no período africano?", answer: "Ouro e escravos", number: 8, color: "green", periodo: "Idade Moderna" },
+    { question: "Quem chegou ao Brasil em 1500?", answer: "Pedro Álvares Cabral", number: 3, color: "red", periodo: "Idade Moderna" },
+    { question: "Qual foi o principal ciclo econômico colonial mineiro?", answer: "Ciclo do ouro", number: 5, color: "green", periodo: "Idade Moderna" },
+    { question: "Qual foi o sistema de trabalho predominante na colônia?", answer: "Escravidão", number: 6, color: "red", periodo: "Idade Moderna" },
+    { question: "Quem foi Zumbi dos Palmares?", answer: "Líder do Quilombo dos Palmares", number: 4, color: "yellow", periodo: "Idade Moderna" },
+    { question: "Que movimento religioso do século XVI dividiu a Igreja Católica?", answer: "Reforma Protestante", number: 7, color: "blue", periodo: "Idade Moderna" },
+    { question: "Quem liderou a Reforma Protestante?", answer: "Martinho Lutero", number: 2, color: "green", periodo: "Idade Moderna" },
+    // ── Idade Contemporânea ──
+    { question: "Que revolução iniciou em 1789 na França?", answer: "Revolução Francesa", number: 7, color: "green", periodo: "Idade Contemporânea" },
+    { question: "Qual era o lema da Revolução Francesa?", answer: "Liberdade, Igualdade, Fraternidade", number: 8, color: "yellow", periodo: "Idade Contemporânea" },
+    { question: "Quem proclamou a independência do Brasil?", answer: "Dom Pedro I", number: 2, color: "yellow", periodo: "Idade Contemporânea" },
+    { question: "Em que ano foi proclamada a independência do Brasil?", answer: "1822", number: 4, color: "blue", periodo: "Idade Contemporânea" },
+    { question: "Em que ano ocorreu a Proclamação da República no Brasil?", answer: "1889", number: 8, color: "blue", periodo: "Idade Contemporânea" },
+    { question: "Qual revolução transformou os meios de produção a partir do século XVIII?", answer: "Revolução Industrial", number: 9, color: "red", periodo: "Idade Contemporânea" },
+    { question: "Qual guerra mundial terminou em 1945?", answer: "Segunda Guerra Mundial", number: 9, color: "red", periodo: "Idade Contemporânea" },
+    { question: "Quem foi o ditador da Alemanha nazista?", answer: "Adolf Hitler", number: 3, color: "green", periodo: "Idade Contemporânea" },
+    { question: "Que muro foi derrubado em 1989?", answer: "Muro de Berlim", number: 3, color: "blue", periodo: "Idade Contemporânea" },
+    { question: "Qual conflito dividiu o mundo entre EUA e URSS após 1945?", answer: "Guerra Fria", number: 6, color: "yellow", periodo: "Idade Contemporânea" },
+    { question: "Qual foi o nome do período de ditadura militar no Brasil (1964-1985)?", answer: "Ditadura Militar", number: 7, color: "green", periodo: "Idade Contemporânea" },
+    { question: "Em que ano foi promulgada a Constituição Cidadã brasileira?", answer: "1988", number: 5, color: "red", periodo: "Idade Contemporânea" },
+    { question: "Qual foi o processo de retomada da democracia no Brasil após a ditadura?", answer: "Redemocratização", number: 2, color: "blue", periodo: "Idade Contemporânea" },
+    { question: "Quem foi o líder sul-africano que lutou contra o apartheid?", answer: "Nelson Mandela", number: 8, color: "green", periodo: "Idade Contemporânea" }
+  ]
+  // ── Expansão futura: geografia: [...], filosofia: [...], etc.
+};
+
+/* ═══════════════════════════════════════════════════════════
+   CONFIGURAÇÃO
+   ═══════════════════════════════════════════════════════════ */
+const NIVEIS = {
+  facil:    { cartas: 10,  dicas: 2 },
+  medio:    { cartas: 20,  dicas: 3 },
+  completo: { cartas: null, dicas: 5 }  // null = todas as cartas do banco
+};
+const PENALIDADE_ERRO = 2;
+const CUSTO_DICA = 5;
+const RECORD_KEY = "jogoErasRecorde";
+const CORES_PERIODO = {
+  "Pré-História": "#795548",
+  "Idade Antiga": "#1976d2",
+  "Idade Média": "#6a1b9a",
+  "Idade Moderna": "#f9a825",
+  "Idade Contemporânea": "#c62828"
+};
+const NOME_NIVEL = { facil: "Fácil", medio: "Médio", completo: "Completo" };
+
+/* ═══════════════════════════════════════════════════════════
+   ESTADO
+   ═══════════════════════════════════════════════════════════ */
+let S = null;
+
+function novoEstado(nivel) {
+  return {
+    nivel,
+    ativo: false,
+    perguntas: [],     // [{id, text, number, color, periodo}]
+    respostas: [],     // [{id, text, color, periodo}]
+    selecaoP: null,
+    selecaoR: null,
+    combinados: new Set(),
+    erros: 0,
+    tentativas: 0,
+    dicasRestantes: NIVEIS[nivel].dicas,
+    dicasUsadas: 0,
+    pontos: 0,
+    segundos: 0,
+    cronometro: null,
+    bloqueado: false
+  };
+}
+
+/* ═══════════════════════════════════════════════════════════
+   CONTAGEM AUTOMÁTICA — cardsLeft e totais derivados do banco
+   (nunca hardcodados; se o banco crescer, tudo se ajusta)
+   ═══════════════════════════════════════════════════════════ */
+function totalDoBanco() {
+  let n = 0;
+  Object.keys(BANCOS).forEach((k) => { n += BANCOS[k].length; });
+  return n;
+}
+function cartasDoNivel(nivel) {
+  const cfg = NIVEIS[nivel];
+  if (cfg.cartas === null) return totalDoBanco(); // modo "todas"
+  return Math.min(cfg.cartas, totalDoBanco());
+}
+
+/* ═══════════════════════════════════════════════════════════
+   RECORDE (localStorage por nível)
+   ═══════════════════════════════════════════════════════════ */
+function lerRecordes() {
+  try { return JSON.parse(localStorage.getItem(RECORD_KEY)) || {}; }
+  catch (e) { return {}; }
+}
+function registrarRecorde(nivel, pontos, segundos) {
+  const r = lerRecordes();
+  const anterior = r[nivel];
+  const ehRecorde = !anterior || pontos > anterior.pontos;
+  if (ehRecorde) {
+    r[nivel] = { pontos, tempo: segundos, data: new Date().toISOString() };
+    try { localStorage.setItem(RECORD_KEY, JSON.stringify(r)); } catch (e) { /* ignore */ }
+  }
+  return ehRecorde;
+}
+function atualizarExibicaoRecorde() {
+  const el = document.getElementById("stRecord");
+  if (!S) { el.textContent = "–"; return; }
+  const r = lerRecordes()[S.nivel];
+  el.textContent = r ? r.pontos + " pts" : "–";
+}
+
+/* ═══════════════════════════════════════════════════════════
+   DOM
+   ═══════════════════════════════════════════════════════════ */
+const $ = (id) => document.getElementById(id);
+const boardEl = $("board");
+const statusEl = $("status");
+const startBtn = $("startBtn");
+const restartBtn = $("restartBtn");
+const hintBtn = $("hintBtn");
+const soundToggle = $("soundToggle");
+const winOverlay = $("winOverlay");
+
+/* ═══════════════════════════════════════════════════════════
+   UTILITÁRIOS
+   ═══════════════════════════════════════════════════════════ */
+function embaralhar(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+function formatarTempo(s) {
+  const m = String(Math.floor(s / 60)).padStart(2, "0");
+  return m + ":" + String(s % 60).padStart(2, "0");
+}
+function statusMsg(texto, classe) {
+  statusEl.textContent = texto;
+  statusEl.className = "status" + (classe ? " " + classe : "");
+}
+
+/* ═══════════════════════════════════════════════════════════
+   CRONÔMETRO
+   ═══════════════════════════════════════════════════════════ */
+function iniciarCronometro() {
+  pararCronometro();
+  S.cronometro = setInterval(() => {
+    S.segundos++;
+    $("stTimer").textContent = formatarTempo(S.segundos);
+  }, 1000);
+}
+function pararCronometro() {
+  if (S && S.cronometro) { clearInterval(S.cronometro); S.cronometro = null; }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   LEGENDA DE PERÍODOS
+   ═══════════════════════════════════════════════════════════ */
+function renderizarLegenda() {
+  const legendEl = $("legend");
+  legendEl.innerHTML = "";
+  Object.keys(CORES_PERIODO).forEach((p) => {
+    const item = document.createElement("span");
+    item.className = "legend-item";
+    item.innerHTML = "<span class='legend-dot' style='background:" + CORES_PERIODO[p] + "'></span>" + p;
+    legendEl.appendChild(item);
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════
+   RENDERIZAÇÃO
+   ═══════════════════════════════════════════════════════════ */
+function renderizarTabuleiro() {
+  boardEl.innerHTML = "";
+  const colP = document.createElement("section");
+  colP.className = "column col-perguntas";
+  colP.setAttribute("aria-label", "Coluna de perguntas");
+  const colR = document.createElement("section");
+  colR.className = "column col-respostas";
+  colR.setAttribute("aria-label", "Coluna de respostas");
+
+  colP.innerHTML = "<h2>❓ Perguntas <span class='count'>" + S.perguntas.length + " cartas</span></h2><div class='tiles' id='tilesP'></div>";
+  colR.innerHTML = "<h2>✅ Respostas <span class='count'>" + S.respostas.length + " cartas</span></h2><div class='tiles' id='tilesR'></div>";
+  boardEl.appendChild(colP);
+  boardEl.appendChild(colR);
+
+  const tilesP = $("tilesP");
+  const tilesR = $("tilesR");
+
+  S.perguntas.forEach((p) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "tile tile-pergunta cor-" + p.color;
+    btn.dataset.tipo = "pergunta";
+    btn.dataset.id = p.id;
+    btn.setAttribute("aria-label", "Pergunta " + p.number + " pontos: " + p.text);
+    btn.innerHTML =
+      "<span class='inner'>" +
+      "<span class='q'><span class='badge-periodo' style='background:" + CORES_PERIODO[p.periodo] + "'>" + p.periodo + "</span><br>" + p.text + "</span>" +
+      "<span class='badge-pontos'>⭐" + p.number + "</span>" +
+      "</span>";
+    tilesP.appendChild(btn);
+  });
+  S.respostas.forEach((r) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "tile tile-resposta cor-" + r.color;
+    btn.dataset.tipo = "resposta";
+    btn.dataset.id = r.id;
+    btn.setAttribute("aria-label", "Resposta: " + r.text);
+    btn.innerHTML =
+      "<span class='inner'>" +
+      "<span class='a'><span class='badge-periodo' style='background:" + CORES_PERIODO[r.periodo] + "'>" + r.periodo + "</span><br>" + r.text + "</span>" +
+      "</span>";
+    tilesR.appendChild(btn);
+  });
+}
+
+function renderizarMenu() {
+  boardEl.innerHTML =
+    "<div class='board-placeholder'><span class='icon'>🏛️</span>" +
+    "Escolha um modo acima e clique em <strong>Iniciar Jogo</strong>.<br>" +
+    "<small>Clique em uma <strong>pergunta</strong> e depois na <strong>resposta</strong> correspondente.</small></div>";
+}
+
+/* ═══════════════════════════════════════════════════════════
+   INTERAÇÃO — delegação de eventos
+   ═══════════════════════════════════════════════════════════ */
+function onTabuleiroClick(e) {
+  const tile = e.target.closest(".tile");
+  if (!tile) return;
+  processarClique(tile);
+}
+// Teclado: os tiles são <button> nativos — Tab alcança e Enter/Espaço
+// disparam o evento click automaticamente (sem handler redundante).
+
+function processarClique(tile) {
+  if (!S || !S.ativo || S.bloqueado) return;
+  if (tile.classList.contains("matched") || tile.classList.contains("wrong")) return;
+  SoundFX.flip();
+
+  const tipo = tile.dataset.tipo;
+  const id = parseInt(tile.dataset.id, 10);
+
+  if (tipo === "pergunta") {
+    if (S.selecaoP === id && !S.selecaoR) {
+      S.selecaoP = null;
+      limparSelecao(tile);
+      return;
+    }
+    S.selecaoP = id;
+    marcarSelecao(".tile-pergunta", tile);
+  } else {
+    if (S.selecaoR === id && !S.selecaoP) {
+      S.selecaoR = null;
+      limparSelecao(tile);
+      return;
+    }
+    S.selecaoR = id;
+    marcarSelecao(".tile-resposta", tile);
+  }
+
+  if (S.selecaoP !== null && S.selecaoR !== null) {
+    S.bloqueado = true; // trava anti-race durante a avaliação
+    setTimeout(avaliarPar, 350);
+  }
+}
+
+function marcarSelecao(seletor, tile) {
+  boardEl.querySelectorAll(seletor + ".selected").forEach((t) => t.classList.remove("selected"));
+  tile.classList.add("selected");
+}
+function limparSelecao(tile) {
+  tile.classList.remove("selected");
+}
+
+/* ═══════════════════════════════════════════════════════════
+   AVALIAÇÃO DO PAR
+   ═══════════════════════════════════════════════════════════ */
+function avaliarPar() {
+  if (S.selecaoP === null || S.selecaoR === null) { S.bloqueado = false; return; }
+  S.tentativas++;
+  const acerto = S.selecaoP === S.selecaoR;
+  const info = S.perguntas.find((p) => p.id === S.selecaoP);
+  const tileP = pegarTile(".tile-pergunta", S.selecaoP);
+  const tileR = pegarTile(".tile-resposta", S.selecaoR);
+
+  if (acerto) {
+    S.combinados.add(S.selecaoP);
+    S.pontos += info.number;
+    SoundFX.match();
+
+    [tileP, tileR].forEach((t) => {
+      t.classList.remove("selected");
+      t.classList.add("matched", "just-matched");
+      const check = document.createElement("span");
+      check.className = "check";
+      check.setAttribute("aria-hidden", "true");
+      check.textContent = "✓";
+      t.querySelector(".inner").appendChild(check);
+      t.setAttribute("aria-label", t.getAttribute("aria-label") + " — combinado");
+      t.disabled = true;
+    });
+    setTimeout(() => {
+      tileP.classList.remove("just-matched");
+      tileR.classList.remove("just-matched");
+    }, 650);
+
+    // Acessibilidade: se o foco estava numa peça recém-combinada, move para a próxima ativa
+    const focada = document.activeElement;
+    if (focada && focada.classList && focada.classList.contains("tile")) {
+      const proxima = boardEl.querySelector(".tile:not(.matched):not(:disabled)");
+      if (proxima) proxima.focus();
+    }
+
+    S.selecaoP = S.selecaoR = null;
+    S.bloqueado = false;
+    atualizarStats();
+    statusMsg("✅ Par encontrado! (+" + info.number + " pts)", "ok");
+
+    if (S.combinados.size === S.perguntas.length) finalizarVitoria();
+  } else {
+    S.erros++;
+    S.pontos = Math.max(0, S.pontos - PENALIDADE_ERRO);
+    SoundFX.error();
+
+    [tileP, tileR].forEach((t) => {
+      t.classList.remove("selected");
+      t.classList.add("wrong");
+    });
+    S.selecaoP = S.selecaoR = null;
+    atualizarStats();
+    statusMsg("❌ Não é o par... (−" + PENALIDADE_ERRO + " pts)", "erro");
+
+    setTimeout(() => {
+      [tileP, tileR].forEach((t) => t.classList.remove("wrong"));
+      S.bloqueado = false;
+    }, 550);
+  }
+}
+
+function pegarTile(seletor, id) {
+  return boardEl.querySelector(seletor + '[data-id="' + id + '"]');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   ESTATÍSTICAS
+   ═══════════════════════════════════════════════════════════ */
+function atualizarStats() {
+  const restantes = S.perguntas.length - S.combinados.size; // cardsLeft automático
+  $("stCards").textContent = restantes;
+  $("stScore").textContent = S.pontos;
+  $("stErrors").textContent = S.erros;
+  $("stHints").textContent = S.dicasRestantes > 0 ? "restam " + S.dicasRestantes : "sem dicas";
+  hintBtn.disabled = !S.ativo || S.dicasRestantes <= 0;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   DICA — revela um par aleatório restante (custa pontos)
+   ═══════════════════════════════════════════════════════════ */
+function usarDica() {
+  if (!S || !S.ativo || S.bloqueado || S.dicasRestantes <= 0) return;
+  const restantes = S.perguntas.filter((p) => !S.combinados.has(p.id));
+  if (restantes.length === 0) return;
+
+  const alvo = restantes[Math.floor(Math.random() * restantes.length)];
+  S.dicasRestantes--;
+  S.dicasUsadas++;
+  S.pontos = Math.max(0, S.pontos - CUSTO_DICA);
+  SoundFX.hint();
+
+  const tileP = pegarTile(".tile-pergunta", alvo.id);
+  const tileR = pegarTile(".tile-resposta", alvo.id);
+  [tileP, tileR].forEach((t) => t.classList.add("hint-flash"));
+  setTimeout(() => [tileP, tileR].forEach((t) => t.classList.remove("hint-flash")), 2200);
+
+  atualizarStats();
+  statusMsg("💡 Dica: " + alvo.text + " (" + CUSTO_DICA + " pts)", "dica");
+}
+
+/* ═══════════════════════════════════════════════════════════
+   FLUXO DO JOGO
+   ═══════════════════════════════════════════════════════════ */
+function iniciarJogo(nivel) {
+  pararCronometro();
+  S = novoEstado(nivel);
+  S.ativo = true;
+
+  const total = cartasDoNivel(nivel);
+  // Sorteia as cartas de TODAS as matérias do banco (unificado)
+  let todas = [];
+  Object.keys(BANCOS).forEach((k) => {
+    BANCOS[k].forEach((item) => {
+      todas.push({
+        id: todas.length,
+        text: item.question,
+        answer: item.answer,
+        number: item.number,
+        color: item.color,
+        periodo: item.periodo
+      });
+    });
+  });
+  const sorteadas = embaralhar(todas).slice(0, total);
+  S.perguntas = embaralhar(sorteadas.map((p) => ({ id: p.id, text: p.text, number: p.number, color: p.color, periodo: p.periodo })));
+  S.respostas = embaralhar(sorteadas.map((p) => ({ id: p.id, text: p.answer, color: p.color, periodo: p.periodo })));
+
+  // Contadores 100% derivados do banco — nada hardcodado
+  $("hTotal").textContent = totalDoBanco();
+  $("stTotal").textContent = S.perguntas.length;
+  $("stCards").textContent = S.perguntas.length;
+  $("stTimer").textContent = "00:00";
+  $("stScore").textContent = "0";
+  $("stErrors").textContent = "0";
+  atualizarExibicaoRecorde();
+  atualizarStats();
+
+  renderizarTabuleiro();
+  iniciarCronometro();
+
+  startBtn.disabled = true;
+  restartBtn.disabled = false;
+  document.querySelectorAll("#levelGroup input").forEach((r) => (r.disabled = true));
+  statusMsg("Clique em uma pergunta e depois na resposta correspondente. Boa sorte! 🍀");
+}
+
+function reiniciarJogo() {
+  if (!S) return;
+  SoundFX.click();
+  winOverlay.classList.remove("show");
+  iniciarJogo(S.nivel);
+}
+
+function irParaMenu() {
+  pararCronometro();
+  winOverlay.classList.remove("show");
+  S = null;
+  renderizarMenu();
+  $("stCards").textContent = totalDoBanco();
+  $("stTotal").textContent = totalDoBanco();
+  $("stTimer").textContent = "00:00";
+  $("stScore").textContent = "0";
+  $("stErrors").textContent = "0";
+  $("stHints").textContent = "–";
+  $("stRecord").textContent = "–";
+  startBtn.disabled = false;
+  restartBtn.disabled = true;
+  hintBtn.disabled = true;
+  document.querySelectorAll("#levelGroup input").forEach((r) => (r.disabled = false));
+  statusMsg("Escolha um modo e clique em Iniciar Jogo.");
+}
+
+function finalizarVitoria() {
+  pararCronometro();
+  S.ativo = false;
+  SoundFX.win();
+  hintBtn.disabled = true;
+
+  const ehRecorde = registrarRecorde(S.nivel, S.pontos, S.segundos);
+  atualizarExibicaoRecorde();
+
+  const precisao = S.tentativas > 0 ? Math.round((S.combinados.size / S.tentativas) * 100) : 100;
+
+  $("winScore").textContent = S.pontos + " pts";
+  $("winTime").textContent = formatarTempo(S.segundos);
+  $("winErrors").textContent = S.erros;
+  $("winHints").textContent = S.dicasUsadas;
+  $("winAccuracy").textContent = precisao + "%";
+  $("winRecordBadge").style.display = ehRecorde ? "inline-block" : "none";
+  document.getElementById("winTitle").textContent = "🎉 Jogo Completo! (" + NOME_NIVEL[S.nivel] + ")";
+
+  winOverlay.classList.add("show");
+  $("winAgainBtn").focus();
+  statusMsg("🏆 Partida concluída! Você combinou todas as " + S.combinados.size + " cartas.", "ok");
+}
+
+/* ═══════════════════════════════════════════════════════════
+   INICIALIZAÇÃO
+   ═══════════════════════════════════════════════════════════ */
+startBtn.addEventListener("click", () => {
+  const nivel = document.querySelector("#levelGroup input:checked").value;
+  SoundFX.click();
+  iniciarJogo(nivel);
+});
+restartBtn.addEventListener("click", reiniciarJogo);
+hintBtn.addEventListener("click", usarDica);
+$("winAgainBtn").addEventListener("click", reiniciarJogo);
+$("winMenuBtn").addEventListener("click", irParaMenu);
+soundToggle.addEventListener("click", () => {
+  SoundFX.enabled = !SoundFX.enabled;
+  soundToggle.classList.toggle("muted", !SoundFX.enabled);
+  soundToggle.textContent = SoundFX.enabled ? "🔊" : "🔇";
+  if (SoundFX.enabled) SoundFX.click();
+});
+if (!SoundFX.enabled) {
+  soundToggle.classList.add("muted");
+  soundToggle.textContent = "🔇";
+}
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && winOverlay.classList.contains("show")) irParaMenu();
+});
+
+// Listeners do tabuleiro registrados UMA única vez (o board nunca é
+// substituído no DOM — apenas seu conteúdo), evitando acúmulo entre partidas.
+boardEl.addEventListener("click", onTabuleiroClick);
+
+// Estado inicial — contadores já derivados do banco real
+renderizarLegenda();
+renderizarMenu();
+$("hTotal").textContent = totalDoBanco();
+$("stTotal").textContent = totalDoBanco();
+$("stCards").textContent = totalDoBanco();
+atualizarExibicaoRecorde();
+</script>
+<script src="ia_api.js"></script>
+<script>IAApi.injectWidget({ context: 'Jogo de perguntas e respostas de História por período (BNCC 6º–9º ano). Ajude os alunos a entender os temas.' });</script>
+</body>
+</html>

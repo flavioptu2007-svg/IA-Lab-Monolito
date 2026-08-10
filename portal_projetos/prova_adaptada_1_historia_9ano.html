@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Prova Adaptada — História — Prova 1</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📝</text></svg>">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  @page { margin: 2.5cm 2cm; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+    background: #f5f7fa;
+    color: #1a1a2e;
+    padding: 40px 20px;
+    line-height: 1.5;
+  }
+  .page {
+    max-width: 800px;
+    margin: 0 auto 40px;
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.06);
+    padding: 48px 40px;
+  }
+
+  /* HEADER */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 3px solid #2563eb;
+    padding-bottom: 16px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .header .school { font-size: 1.1rem; font-weight: 700; color: #2563eb; }
+  .header .info { font-size: 0.85rem; color: #64748b; }
+  .header .info span { display: inline-block; margin-left: 12px; }
+
+  /* TITLE BOX */
+  .title-box {
+    background: linear-gradient(135deg, #eff6ff, #dbeafe);
+    border: 2px solid #93c5fd;
+    border-radius: 12px;
+    padding: 24px 28px;
+    margin-bottom: 28px;
+    text-align: center;
+  }
+  .title-box h1 { font-size: 1.4rem; color: #1e40af; margin-bottom: 6px; letter-spacing: -0.02em; }
+  .title-box p { font-size: 0.9rem; color: #3b82f6; }
+
+  /* STUDENT INFO */
+  .student-info {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 28px;
+    padding: 16px 20px;
+    background: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    border-radius: 10px;
+  }
+  .student-info label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .student-info input {
+    border: none;
+    border-bottom: 2px solid #cbd5e1;
+    background: transparent;
+    font-size: 1rem;
+    padding: 4px 0;
+    width: 200px;
+    font-family: inherit;
+  }
+  .student-info input:focus { outline: none; border-color: #2563eb; }
+
+  /* INSTRUCTIONS */
+  .instructions {
+    background: #f0fdf4;
+    border: 2px solid #86efac;
+    border-radius: 12px;
+    padding: 18px 22px;
+    margin-bottom: 28px;
+  }
+  .instructions .title {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #16a34a;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 8px;
+  }
+  .instructions ul {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+  }
+  .instructions ul li {
+    font-size: 0.85rem;
+    color: #166534;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .instructions ul li::before {
+    content: '✓';
+    color: #22c55e;
+    font-weight: 700;
+  }
+
+  /* QUESTION */
+  .question {
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 20px;
+    transition: border-color 0.2s;
+    page-break-inside: avoid;
+  }
+  .question:hover { border-color: #93c5fd; }
+
+  .question .q-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .question .q-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: #2563eb;
+    color: #fff;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+  }
+  .question .q-icon { font-size: 1.2rem; }
+  .question .q-type {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #64748b;
+    font-weight: 600;
+  }
+  .question .q-type span {
+    background: #f1f5f9;
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+
+  .question .q-text {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 12px;
+    color: #1e293b;
+    font-weight: 500;
+  }
+
+  /* IMAGE / CHARGE BOX */
+  .charge-box {
+    background: #fafafa;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 16px;
+    margin: 12px 0;
+    text-align: center;
+  }
+  .charge-box svg { max-width: 100%; height: auto; }
+  .charge-box .caption {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    margin-top: 8px;
+    font-style: italic;
+  }
+  .charge-box .caption::before { content: '🖼️ '; }
+
+  /* MULTIPLE CHOICE */
+  .options {
+    list-style: none;
+    padding: 0;
+    margin: 10px 0;
+  }
+  .options li {
+    padding: 8px 12px 8px 36px;
+    margin: 4px 0;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.15s;
+    position: relative;
+  }
+  .options li:hover { background: #f8fafc; border-color: #93c5fd; }
+  .options li::before {
+    content: '○';
+    position: absolute;
+    left: 12px;
+    color: #2563eb;
+    font-size: 1.1rem;
+  }
+
+  /* V/F */
+  .vf-row {
+    display: flex;
+    gap: 12px;
+    margin: 8px 0;
+  }
+  .vf-btn {
+    padding: 8px 24px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.85rem;
+    transition: all 0.15s;
+    background: #fff;
+  }
+  .vf-btn:hover { border-color: #2563eb; }
+  .vf-btn.v { color: #16a34a; }
+  .vf-btn.v:hover { border-color: #16a34a; background: #f0fdf4; }
+  .vf-btn.f { color: #dc2626; }
+  .vf-btn.f:hover { border-color: #dc2626; background: #fef2f2; }
+
+  /* ANSWER SPACE */
+  .answer-space {
+    margin-top: 10px;
+    padding: 10px;
+    border: 1px dashed #cbd5e1;
+    border-radius: 8px;
+    min-height: 60px;
+    font-size: 0.85rem;
+    color: #94a3b8;
+  }
+
+  /* SCORE */
+  .q-score {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    text-align: right;
+    margin-top: 8px;
+  }
+
+  /* TABLE */
+  .match-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 6px;
+    margin: 10px 0;
+  }
+  .match-table td {
+    padding: 10px 14px;
+    border: 1px solid #e2e8f0;
+    font-size: 0.85rem;
+  }
+  .match-table td:first-child {
+    background: #f8fafc;
+    font-weight: 600;
+    width: 40%;
+    border-radius: 8px 0 0 8px;
+  }
+  .match-table td:last-child {
+    border-radius: 0 8px 8px 0;
+    color: #94a3b8;
+  }
+  .match-table td .blank {
+    display: inline-block;
+    width: 80px;
+    border-bottom: 2px solid #cbd5e1;
+    margin: 0 6px;
+  }
+
+  /* GABARITO */
+  .gabarito-page {
+    page-break-before: always;
+    margin-top: 40px;
+    padding-top: 32px;
+    border-top: 3px dashed #e2e8f0;
+  }
+  .gabarito-page h2 {
+    font-size: 1.1rem;
+    color: #16a34a;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .gabarito-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 8px;
+  }
+  .gabarito-grid .g-item {
+    padding: 6px 10px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    font-size: 0.8rem;
+  }
+  .gabarito-grid .g-item strong { color: #2563eb; }
+
+  @media print {
+    body { background: #fff; padding: 0; }
+    .page { box-shadow: none; border-radius: 0; padding: 40px; margin: 0; }
+    .question:hover { border-color: #e2e8f0; }
+    .vf-btn, .options li { cursor: default; }
+  }
+  @media (max-width: 600px) {
+    .page { padding: 24px 16px; }
+    .question { padding: 16px; }
+    .student-info { flex-direction: column; }
+    .student-info input { width: 100%; }
+    .match-table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="school">🏫 ESCOLA — PROVA ADAPTADA</div>
+    <div class="info">
+      <span>📅 ___/___/______</span>
+      <span>📚 História — 9º Ano</span>
+    </div>
+  </div>
+
+  <!-- TITLE -->
+  <div class="title-box">
+    <h1>📝 Prova de História — República Velha e Início do Século XX</h1>
+    <p>adaptado para Neurodiversidade · Nível 1 de Suporte</p>
+  </div>
+
+  <!-- STUDENT INFO -->
+  <div class="student-info">
+    <div>
+      <label>Nome do(a) Aluno(a)</label>
+      <input type="text" placeholder="Digite seu nome aqui...">
+    </div>
+    <div>
+      <label>Turma</label>
+      <input type="text" placeholder="Turma">
+    </div>
+    <div>
+      <label>Data</label>
+      <input type="text" placeholder="__/__/____">
+    </div>
+  </div>
+
+  <!-- INSTRUCTIONS -->
+  <div class="instructions">
+    <div class="title">📌 Orientações</div>
+    <ul>
+      <li>Leia cada questão com calma</li>
+      <li>Responda no espaço indicado</li>
+      <li>Você pode usar o rascunho ao final</li>
+      <li>Não se preocupe com o tempo</li>
+      <li>Vá no seu ritmo 😊</li>
+    </ul>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- Q1 — Múltipla Escolha · Historiografia + Charge -->
+  <!-- ============================================================ -->
+  <div class="question">
+    <div class="q-header">
+      <span class="q-number">1</span>
+      <span class="q-icon">📝</span>
+      <span class="q-type"><span>Múltipla Escolha</span></span>
+    </div>
+    <div class="q-text">
+      <p>A <strong>Historiografia</strong> é o estudo de como a História é escrita e interpretada. Observe a charge abaixo e responda:</p>
+    </div>
+    <div class="charge-box">
+      <svg viewBox="0 0 400 200" width="400" height="200">
+        <rect x="0" y="0" width="400" height="200" fill="#fef3c7" rx="8"/>
+        <!-- Personagem 1: Historiador tradicional -->
+        <circle cx="120" cy="80" r="20" fill="#93c5fd" stroke="#2563eb" stroke-width="2"/>
+        <rect x="100" y="100" width="40" height="35" fill="#bfdbfe" rx="4"/>
+        <line x1="100" y1="115" x2="80" y2="145" stroke="#60a5fa" stroke-width="2.5"/>
+        <line x1="140" y1="115" x2="160" y2="145" stroke="#60a5fa" stroke-width="2.5"/>
+        <circle cx="120" cy="78" r="3" fill="#1e3a8a"/>
+        <circle cx="112" cy="75" r="3" fill="#1e3a8a"/>
+        <circle cx="128" cy="75" r="3" fill="#1e3a8a"/>
+        <!-- Livro na mão -->
+        <rect x="75" y="130" width="18" height="22" fill="#f59e0b" rx="2"/>
+        <!-- Balão de fala -->
+        <path d="M145 65 Q200 40 220 65 Q240 90 220 100 Q200 110 155 100 L145 110 L150 98 Q130 95 130 80 Q130 65 145 65Z" fill="#fff" stroke="#2563eb" stroke-width="1.5"/>
+        <text x="155" y="82" font-size="10" fill="#1e3a8a" font-weight="600">"O passado</text>
+        <text x="155" y="95" font-size="10" fill="#1e3a8a" font-weight="600">é uma terra</text>
+        <text x="155" y="108" font-size="10" fill="#1e3a8a" font-weight="600">estrangeira"</text>
+        <!-- Personagem 2: outro historiador -->
+        <circle cx="300" cy="90" r="18" fill="#fca5a5" stroke="#dc2626" stroke-width="2"/>
+        <rect x="282" y="108" width="36" height="30" fill="#fecaca" rx="4"/>
+        <line x1="282" y1="120" x2="265" y2="148" stroke="#f87171" stroke-width="2.5"/>
+        <line x1="318" y1="120" x2="335" y2="148" stroke="#f87171" stroke-width="2.5"/>
+        <circle cx="300" cy="88" r="2.5" fill="#7f1d1d"/>
+        <circle cx="293" cy="85" r="2.5" fill="#7f1d1d"/>
+        <circle cx="307" cy="85" r="2.5" fill="#7f1d1d"/>
+        <!-- Lupa -->
+        <circle cx="315" cy="100" r="10" fill="none" stroke="#f59e0b" stroke-width="2.5"/>
+        <line x1="322" y1="107" x2="330" y2="115" stroke="#f59e0b" stroke-width="2.5"/>
+        <!-- Texto inferior -->
+        <text x="200" y="175" font-size="11" fill="#78716c" text-anchor="middle" font-style="italic">Dois historiadores podem interpretar o mesmo fato de formas diferentes.</text>
+      </svg>
+      <div class="caption">Charge ilustrativa: diferentes olhares sobre o passado</div>
+    </div>
+    <div class="q-text">
+      <p>Qual das alternativas abaixo explica corretamente o conceito de <strong>Historiografia</strong>?</p>
+    </div>
+    <ul class="options">
+      <li>A) A lista de datas e nomes importantes da História</li>
+      <li>B) O estudo de como os historiadores pesquisam, interpretam e escrevem a História</li>
+      <li>C) O conjunto de todas as batalhas da história da humanidade</li>
+      <li>D) A história contada apenas pelos vencedores das guerras</li>
+    </ul>
+    <div class="q-score">Valor: 1,0 ponto</div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- Q2 — Análise de Charge · República Velha / Coronelismo -->
+  <!-- ============================================================ -->
+  <div class="question">
+    <div class="q-header">
+      <span class="q-number">2</span>
+      <span class="q-icon">🔍</span>
+      <span class="q-type"><span>Análise de Imagem</span></span>
+    </div>
+    <div class="charge-box">
+      <svg viewBox="0 0 400 190" width="400" height="190">
+        <rect x="0" y="0" width="400" height="190" fill="#fefce8" rx="8"/>
+        <!-- Coroneu (gordo, de terno, charuto) -->
+        <circle cx="130" cy="60" r="22" fill="#fed7aa" stroke="#c2410c" stroke-width="2"/>
+        <ellipse cx="130" cy="82" rx="32" ry="28" fill="#fde68a" stroke="#d97706" stroke-width="1.5"/>
+        <circle cx="130" cy="58" r="2.5" fill="#7c2d12"/>
+        <circle cx="122" cy="55" r="2.5" fill="#7c2d12"/>
+        <circle cx="138" cy="55" r="2.5" fill="#7c2d12"/>
+        <!-- Bigode -->
+        <path d="M118 68 Q125 72 130 68 Q135 72 142 68" fill="none" stroke="#92400e" stroke-width="2.5"/>
+        <!-- Charuto -->
+        <line x1="145" y1="70" x2="170" y2="65" stroke="#78350f" stroke-width="4"/>
+        <circle cx="170" cy="65" r="3" fill="#ef4444"/>
+        <!-- Braço grande apontando -->
+        <line x1="155" y1="85" x2="220" y2="90" stroke="#d97706" stroke-width="3"/>
+        <!-- Voto de cabresto (pessoa pequena) -->
+        <circle cx="260" cy="85" r="10" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1.5"/>
+        <rect x="250" y="95" width="20" height="22" fill="#f1f5f9" rx="3"/>
+        <text x="253" y="106" font-size="7" fill="#475569">VOTO</text>
+        <!-- Saco de dinheiro -->
+        <ellipse cx="115" cy="110" rx="15" ry="10" fill="#fbbf24" stroke="#d97706" stroke-width="1.5"/>
+        <text x="105" y="114" font-size="8" fill="#92400e">$$$</text>
+        <!-- Balão -->
+        <path d="M210 30 Q280 15 310 30 Q330 55 300 75 Q270 90 220 80 L210 95 L215 78 Q195 72 195 55 Q195 30 210 30Z" fill="#fff" stroke="#c2410c" stroke-width="1.5"/>
+        <text x="215" y="52" font-size="9" fill="#9a3412" font-weight="600">"Na minha cidade,</text>
+        <text x="215" y="65" font-size="9" fill="#9a3412" font-weight="600">eu mando!"</text>
+        <text x="200" y="145" font-size="11" fill="#78716c" text-anchor="middle" font-style="italic">Coronelismo na República Velha: poder local dos coronéis</text>
+      </svg>
+      <div class="caption">Charge sobre a política dos coronéis na República Velha</div>
+    </div>
+    <div class="q-text">
+      <p>Observe a charge. Ela representa o poder dos <strong>coronéis</strong> durante a República Velha (1889–1930).</p>
+      <p>Marque a alternativa que melhor descreve o <strong>coronelismo</strong>:</p>
+    </div>
+    <ul class="options">
+      <li>A) Um sistema onde os chefes militares controlavam o governo federal</li>
+      <li>B) Uma prática de poder local onde grandes proprietários rurais controlavam votos e decisões políticas em suas regiões</li>
+      <li>C) Uma aliança entre o exército brasileiro e os cafeicultores paulistas</li>
+      <li>D) Um movimento de reforma agrária no sertão nordestino</li>
+    </ul>
+    <div class="q-score">Valor: 1,0 ponto</div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- Q3 — Tirinha + Interpretação · Guerra de Canudos -->
+  <!-- ============================================================ -->
+  <div class="question">
+    <div class="q-header">
+      <span class="q-number">3</span>
+      <span class="q-icon">🎨</span>
+      <span class="q-type"><span>Interpretação de Tirinha</span></span>
+    </div>
+    <div class="charge-box">
+      <svg viewBox="0 0 400 260" width="400" height="260">
+        <rect x="0" y="0" width="400" height="260" fill="#faf5ff" rx="8"/>
+        <!-- Quadrinho 1 -->
+        <rect x="10" y="10" width="180" height="110" fill="#fff" stroke="#d8b4fe" stroke-width="1.5" rx="6"/>
+        <text x="100" y="32" font-size="10" fill="#9333ea" text-anchor="middle" font-weight="600">1. SERTÃO — 1893</text>
+        <!-- Personagem 1: Antônio Conselheiro -->
+        <circle cx="60" cy="65" r="14" fill="#fdba74" stroke="#c2410c" stroke-width="1.5"/>
+        <rect x="46" y="79" width="28" height="30" fill="#92400e" rx="3"/>
+        <circle cx="60" cy="63" r="2" fill="#7c2d12"/>
+        <circle cx="54" cy="60" r="2" fill="#7c2d12"/>
+        <circle cx="66" cy="60" r="2" fill="#7c2d12"/>
+        <!-- Barba longa -->
+        <path d="M48 72 Q40 85 50 95 Q60 98 70 95 Q80 85 72 72" fill="#a16207" opacity="0.5"/>
+        <!-- Seguidor -->
+        <circle cx="130" cy="70" r="10" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1.5"/>
+        <rect x="120" y="80" width="20" height="24" fill="#e2e8f0" rx="2"/>
+        <text x="55" y="115" font-size="7" fill="#92400e" text-anchor="middle">"O povo sofre, Antônio!"</text>
+        <text x="105" y="105" font-size="7" fill="#4c1d95" text-anchor="middle">"Haverá um lugar</text>
+        <text x="105" y="114" font-size="7" fill="#4c1d95" text-anchor="middle">de justiça: Belo Monte"</text>
+
+        <!-- Quadrinho 2 -->
+        <rect x="210" y="10" width="180" height="110" fill="#fff" stroke="#d8b4fe" stroke-width="1.5" rx="6"/>
+        <text x="300" y="32" font-size="10" fill="#9333ea" text-anchor="middle" font-weight="600">2. CANUDOS — 1897</text>
+        <!-- Soldados -->
+        <circle cx="250" cy="65" r="10" fill="#bfdbfe" stroke="#2563eb" stroke-width="1.5"/>
+        <rect x="240" y="75" width="20" height="25" fill="#93c5fd" rx="2"/>
+        <line x1="260" y1="80" x2="275" y2="75" stroke="#2563eb" stroke-width="2"/>
+        <circle cx="310" cy="65" r="10" fill="#bfdbfe" stroke="#2563eb" stroke-width="1.5"/>
+        <rect x="300" y="75" width="20" height="25" fill="#93c5fd" rx="2"/>
+        <line x1="320" y1="80" x2="335" y2="75" stroke="#2563eb" stroke-width="2"/>
+        <!-- Fumaça/canhoes -->
+        <circle cx="280" cy="45" r="12" fill="#d1d5db" opacity="0.6"/>
+        <circle cx="285" cy="35" r="8" fill="#e5e7eb" opacity="0.4"/>
+        <text x="300" y="105" font-size="7" fill="#1e40af" text-anchor="middle">"O Exército contra Canudos"</text>
+
+        <!-- Quadrinho 3 -->
+        <rect x="10" y="135" width="180" height="115" fill="#fff" stroke="#d8b4fe" stroke-width="1.5" rx="6"/>
+        <text x="100" y="157" font-size="10" fill="#9333ea" text-anchor="middle" font-weight="600">3. FIM DE CANUDOS</text>
+        <!-- Ruínas -->
+        <rect x="40" y="175" width="30" height="25" fill="#a1a1aa" rx="2"/>
+        <rect x="60" y="185" width="20" height="15" fill="#d4d4d8" rx="2"/>
+        <rect x="30" y="190" width="25" height="10" fill="#a1a1aa" rx="2"/>
+        <text x="100" y="195" font-size="7" fill="#52525b" text-anchor="middle">Canudos foi destruída</text>
+        <text x="100" y="205" font-size="7" fill="#52525b" text-anchor="middle">em outubro de 1897</text>
+        <text x="100" y="220" font-size="7" fill="#78716c" text-anchor="middle" font-style="italic">Fim do arraial de Belo Monte</text>
+
+        <!-- Quadrinho 4 -->
+        <rect x="210" y="135" width="180" height="115" fill="#fff" stroke="#d8b4fe" stroke-width="1.5" rx="6"/>
+        <text x="300" y="157" font-size="10" fill="#9333ea" text-anchor="middle" font-weight="600">4. REFLEXÃO</text>
+        <!-- Pessoa pensando -->
+        <circle cx="290" cy="190" r="16" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1.5"/>
+        <rect x="276" y="206" width="28" height="30" fill="#f1f5f9" rx="3"/>
+        <circle cx="290" cy="188" r="2.5" fill="#475569"/>
+        <circle cx="284" cy="185" r="2.5" fill="#475569"/>
+        <circle cx="296" cy="185" r="2.5" fill="#475569"/>
+        <!-- Balão de pensamento -->
+        <circle cx="320" cy="175" r="6" fill="#fff" stroke="#94a3b8"/>
+        <circle cx="332" cy="165" r="8" fill="#fff" stroke="#94a3b8"/>
+        <ellipse cx="350" cy="150" rx="28" ry="18" fill="#fff" stroke="#94a3b8"/>
+        <text x="350" y="148" font-size="7" fill="#475569" text-anchor="middle">"E se houvesse</text>
+        <text x="350" y="157" font-size="7" fill="#475569" text-anchor="middle">diálogo?"</text>
+        <text x="300" y="243" font-size="10" fill="#78716c" text-anchor="middle" font-style="italic">O que aprendemos com Canudos?</text>
+      </svg>
+      <div class="caption">Tirinha: a Guerra de Canudos (1896–1897)</div>
+    </div>
+    <div class="q-text">
+      <p>A <strong>Guerra de Canudos</strong> aconteceu no interior da Bahia (1896–1897). O líder Antônio Conselheiro fundou o arraial de Belo Monte (Canudos), que cresceu rapidamente com sertanejos pobres em busca de melhores condições de vida.</p>
+      <p>Com base na tirinha, por que Canudos foi vista como uma <strong>ameaça</strong> pelo governo da República?</p>
+    </div>
+    <ul class="options">
+      <li>A) Porque Antônio Conselheiro queria se tornar imperador do Brasil</li>
+      <li>B) Porque Canudos representava um poder paralelo ao governo republicano, com liderança popular e organização própria</li>
+      <li>C) Porque Canudos era uma base de treinamento do exército argentino</li>
+      <li>D) Porque o governo queria transformar Canudos em uma estação de trem</li>
+    </ul>
+    <div class="q-score">Valor: 1,0 ponto</div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- Q4 — Análise de Charge · Revolta da Vacina -->
+  <!-- ============================================================ -->
+  <div class="question">
+    <div class="q-header">
+      <span class="q-number">4</span>
+      <span class="q-icon">🔬</span>
+      <span class="q-type"><span>Análise de Charge</span></span>
+    </div>
+    <div class="charge-box">
+      <svg viewBox="0 0 400 200" width="400" height="200">
+        <rect x="0" y="0" width="400" height="200" fill="#fff7ed" rx="8"/>
+        <!-- Oswaldo Cruz (figura central) -->
+        <circle cx="200" cy="55" r="18" fill="#fde68a" stroke="#d97706" stroke-width="2"/>
+        <rect x="184" y="73" width="32" height="30" fill="#fef3c7" rx="4"/>
+        <circle cx="200" cy="53" r="2.5" fill="#78350f"/>
+        <circle cx="193" cy="50" r="2.5" fill="#78350f"/>
+        <circle cx="207" cy="50" r="2.5" fill="#78350f"/>
+        <!-- Bigode -->
+        <path d="M190 62 Q195 66 200 62 Q205 66 210 62" fill="none" stroke="#92400e" stroke-width="2"/>
+        <!-- Seringa gigante -->
+        <line x1="215" y1="70" x2="280" y2="55" stroke="#dc2626" stroke-width="4"/>
+        <rect x="270" y="45" width="22" height="20" fill="#ef4444" rx="3"/>
+        <text x="276" y="60" font-size="8" fill="#fff" font-weight="700">VACINA</text>
+        <!-- Pessoas fugindo -->
+        <circle cx="85" cy="70" r="12" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1.5"/>
+        <rect x="75" y="82" width="20" height="22" fill="#f1f5f9" rx="3"/>
+        <line x1="75" y1="95" x2="65" y2="110" stroke="#94a3b8" stroke-width="2"/>
+        <line x1="95" y1="95" x2="105" y2="110" stroke="#94a3b8" stroke-width="2"/>
+        <text x="85" y="72" font-size="8" fill="#dc2626" font-weight="600">😰</text>
+
+        <circle cx="120" cy="85" r="10" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1.5"/>
+        <rect x="112" y="95" width="16" height="18" fill="#f1f5f9" rx="3"/>
+        <text x="120" y="87" font-size="7" fill="#dc2626" font-weight="600">😨</text>
+
+        <!-- Balão de Oswaldo -->
+        <path d="M170 25 Q200 5 245 20 Q270 40 240 55 L175 45 L170 55 L178 43 Q158 38 160 25 Q160 20 170 25Z" fill="#fff" stroke="#d97706" stroke-width="1.5"/>
+        <text x="190" y="32" font-size="9" fill="#92400e" font-weight="600">"Vacinação</text>
+        <text x="190" y="44" font-size="9" fill="#92400e" font-weight="600">obrigatória!"</text>
+
+        <text x="200" y="150" font-size="11" fill="#78716c" text-anchor="middle" font-style="italic">Revolta da Vacina (1904): a população reagiu com medo e desconfiança</text>
+        <!-- Casas ao fundo -->
+        <rect x="20" y="130" width="40" height="30" fill="#e5e7eb" rx="3"/>
+        <rect x="340" y="130" width="40" height="30" fill="#e5e7eb" rx="3"/>
+        <polygon points="20,130 40,115 60,130" fill="#d1d5db"/>
+        <polygon points="340,130 360,115 380,130" fill="#d1d5db"/>
+        <!-- Texto Povo -->
+        <text x="50" y="175" font-size="9" fill="#78716c" text-anchor="middle">"O governo quer invadir</text>
+        <text x="50" y="185" font-size="9" fill="#78716c" text-anchor="middle">nossas casas!"</text>
+        <text x="360" y="175" font-size="9" fill="#78716c" text-anchor="middle">"Não vamos tomar</text>
+        <text x="360" y="185" font-size="9" fill="#78716c" text-anchor="middle">vacina à força!"</text>
+      </svg>
+      <div class="caption">Charge histórica: a campanha de vacinação de Oswaldo Cruz (1904)</div>
+    </div>
+    <div class="q-text">
+      <p>A <strong>Revolta da Vacina</strong> (1904) foi uma reação popular contra a campanha de vacinação obrigatória liderada pelo médico <strong>Oswaldo Cruz</strong> no Rio de Janeiro.</p>
+      <p>Qual foi o principal <strong>motivo</strong> da revolta da população?</p>
+    </div>
+    <ul class="options">
+      <li>A) A vacina causava uma doença grave e comprovadamente letal</li>
+      <li>B) A forma autoritária como o governo impôs a vacinação, invadindo casas e forçando a aplicação, sem informação ou diálogo com a população</li>
+      <li>C) A população queria vacinas importadas da Europa, não as fabricadas no Brasil</li>
+      <li>D) A revolta foi organizada por coronéis do interior para desestabilizar o governo</li>
+    </ul>
+    <div class="q-score">Valor: 1,0 ponto</div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- Q5 — Questão Aberta com Apoio Visual · Revolta da Chibata -->
+  <!-- ============================================================ -->
+  <div class="question">
+    <div class="q-header">
+      <span class="q-number">5</span>
+      <span class="q-icon">✏️</span>
+      <span class="q-type"><span>Resposta Curta</span></span>
+    </div>
+    <div class="charge-box">
+      <svg viewBox="0 0 400 170" width="400" height="170">
+        <rect x="0" y="0" width="400" height="170" fill="#f0fdf4" rx="8"/>
+        <!-- Navio -->
+        <path d="M50 120 L100 80 L250 80 L300 120Z" fill="#64748b" stroke="#475569" stroke-width="2"/>
+        <rect x="130" y="50" width="80" height="30" fill="#818cf8" rx="4"/>
+        <line x1="170" y1="50" x2="170" y2="30" stroke="#6366f1" stroke-width="3"/>
+        <polygon points="165,30 170,20 175,30" fill="#ef4444"/>
+        <!-- Bandeira vermelha -->
+        <rect x="88" y="40" width="24" height="24" fill="#ef4444" rx="2"/>
+        <text x="100" y="55" font-size="8" fill="#fff" text-anchor="middle" font-weight="700">NÃO</text>
+        <text x="100" y="63" font-size="6" fill="#fff" text-anchor="middle">À CHIBATA</text>
+        <!-- Mar -->
+        <path d="M0 130 Q50 120 100 130 Q150 140 200 130 Q250 120 300 130 Q350 140 400 130 L400 170 L0 170Z" fill="#bbf7d0" opacity="0.5"/>
+        <!-- Personagem João Cândido -->
+        <circle cx="150" cy="75" r="10" fill="#fca5a5" stroke="#dc2626" stroke-width="1.5"/>
+        <rect x="142" y="85" width="16" height="18" fill="#fecaca" rx="2"/>
+        <text x="150" y="77" font-size="7" fill="#7f1d1d" font-weight="600">JC</text>
+        <text x="200" y="155" font-size="11" fill="#78716c" text-anchor="middle" font-style="italic">Revolta da Chibata (1910): marinheiros contra os castigos físicos</text>
+      </svg>
+      <div class="caption">João Cândido, líder da Revolta da Chibata</div>
+    </div>
+    <div class="q-text">
+      <p>A <strong>Revolta da Chibata</strong> (1910) foi liderada pelo marinheiro <strong>João Cândido</strong>. Os marinheiros protestavam contra os castigos físicos (chibatadas) que sofriam na Marinha brasileira.</p>
+      <p>👉 <strong>Explique com suas palavras:</strong> Por que os marinheiros se rebelaram e qual foi o resultado da revolta?</p>
+    </div>
+    <div class="answer-space">✏️ Escreva sua resposta aqui... (mínimo 3 linhas)</div>
+    <div class="q-score">Valor: 1,0 ponto</div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- Q6 — Verdadeiro ou Falso · Constituição Republicana de 1891 -->
+  <!-- ============================================================ -->
+  <div class="question">
+    <div class="q-header">
+      <span class="q-number">6</span>
+      <span class="q-icon">🔵🔴</span>
+      <span class="q-type"><span>Verdadeiro ou Falso</span></span>
+    </div>
+    <div class="charge-box">
+      <svg viewBox="0 0 400 120" width="400" height="120">
+        <rect x="0" y="0" width="400" height="120" fill="#f0f9ff" rx="8"/>
+        <!-- Livro Constituição -->
+        <rect x="140" y="25" width="120" height="80" fill="#1e40af" rx="6"/>
+        <text x="200" y="60" font-size="14" fill="#fbbf24" text-anchor="middle" font-weight="700">CONSTITUIÇÃO</text>
+        <text x="200" y="76" font-size="10" fill="#93c5fd" text-anchor="middle">REPÚBLICA DOS</text>
+        <text x="200" y="90" font-size="10" fill="#93c5fd" text-anchor="middle">ESTADOS UNIDOS DO BRASIL</text>
+        <text x="200" y="105" font-size="9" fill="#bfdbfe" text-anchor="middle">24 de fevereiro de 1891</text>
+        <!-- Estrelas decorativas -->
+        <circle cx="180" cy="110" r="2" fill="#fbbf24"/>
+        <circle cx="200" cy="112" r="2" fill="#fbbf24"/>
+        <circle cx="220" cy="110" r="2" fill="#fbbf24"/>
+      </svg>
+      <div class="caption">A primeira Constituição da República Brasileira</div>
+    </div>
+    <div class="q-text">
+      <p>A <strong>Constituição de 1891</strong> foi a primeira Constituição republicana do Brasil. Marque <strong>V</strong> (Verdadeiro) ou <strong>F</strong> (Falso) para cada afirmação:</p>
+    </div>
+    <div>
+      <p style="margin:8px 0;font-size:0.9rem;font-weight:500">(a) A Constituição de 1891 estabeleceu o Brasil como uma República Federativa.</p>
+      <div class="vf-row">
+        <div class="vf-btn v" onclick="void(0)">V — VERDADEIRO</div>
+        <div class="vf-btn f" onclick="void(0)">F — FALSO</div>
+      </div>
+    </div>
+    <div>
+      <p style="margin:8px 0;font-size:0.9rem;font-weight:500">(b) Apenas homens alfabetizados e maiores de 21 anos podiam votar.</p>
+      <div class="vf-row">
+        <div class="vf-btn v" onclick="void(0)">V — VERDADEIRO</div>
+        <div class="vf-btn f" onclick="void(0)">F — FALSO</div>
+      </div>
+    </div>
+    <div>
+      <p style="margin:8px 0;font-size:0.9rem;font-weight:500">(c) A Constituição de 1891 aboliu a propriedade privada no Brasil.</p>
+      <div class="vf-row">
+        <div class="vf-btn v" onclick="void(0)">V — VERDADEIRO</div>
+        <div class="vf-btn f" onclick="void(0)">F — FALSO</div>
+      </div>
+    </div>
+    <div>
+      <p style="margin:8px 0;font-size:0.9rem;font-weight:500">(d) O Brasil passou a se chamar Estados Unidos do Brasil.</p>
+      <div class="vf-row">
+        <div class="vf-btn v" onclick="void(0)">V — VERDADEIRO</div>
+        <div class="vf-btn f" onclick="void(0)">F — FALSO</div>
+      </div>
+    </div>
+    <div class="q-score">Valor: 1,0 ponto (0,25 cada)</div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- Q7 — Charge · Belle Époque e Desigualdade -->
+  <!-- ============================================================ -->
+  <div class="question">
+    <div class="q-header">
+      <span class="q-number">7</span>
+      <span class="q-icon">🏙️</span>
+      <span class="q-type"><span>Análise de Charge</span></span>
+    </div>
+    <div class="charge-box">
+      <svg viewBox="0 0 400 200" width="400" height="200">
+        <rect x="0" y="0" width="400" height="200" fill="#faf5ff" rx="8"/>
+        <!-- Lado rico (esquerda) -->
+        <rect x="10" y="10" width="180" height="180" fill="#fef3c7" rx="4"/>
+        <rect x="30" y="30" width="60" height="40" fill="#fde68a" rx="2"/>
+        <text x="60" y="55" font-size="8" fill="#92400e" text-anchor="middle">CASA RICA</text>
+        <!-- Boneco elegante -->
+        <circle cx="130" cy="55" r="14" fill="#fed7aa" stroke="#d97706" stroke-width="1.5"/>
+        <rect x="118" y="69" width="24" height="28" fill="#fbbf24" rx="3"/>
+        <text x="130" y="72" font-size="7" fill="#92400e" text-anchor="middle">🎩</text>
+        <!-- Carro -->
+        <rect x="30" y="100" width="80" height="25" fill="#2563eb" rx="4"/>
+        <circle cx="50" cy="125" r="8" fill="#475569"/>
+        <circle cx="90" cy="125" r="8" fill="#475569"/>
+        <text x="40" y="100" font-size="11" fill="#1e40af">CAFÉ</text>
+
+        <!-- Lado pobre (direita) -->
+        <rect x="210" y="10" width="180" height="180" fill="#fef2f2" rx="4"/>
+        <rect x="230" y="40" width="50" height="30" fill="#e5e7eb" rx="2"/>
+        <text x="255" y="60" font-size="8" fill="#78716c" text-anchor="middle">MOCAMBO</text>
+        <!-- Boneco pobre -->
+        <circle cx="310" cy="55" r="12" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1.5"/>
+        <rect x="300" y="67" width="20" height="22" fill="#f1f5f9" rx="2"/>
+        <!-- Fila de pessoas -->
+        <circle cx="240" cy="100" r="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1"/>
+        <rect x="234" y="108" width="12" height="14" fill="#f1f5f9" rx="2"/>
+        <circle cx="260" cy="105" r="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1"/>
+        <rect x="254" y="113" width="12" height="14" fill="#f1f5f9" rx="2"/>
+        <circle cx="345" cy="100" r="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1"/>
+        <rect x="339" y="108" width="12" height="14" fill="#f1f5f9" rx="2"/>
+        <text x="300" y="130" font-size="7" fill="#dc2626" text-anchor="middle">Fila por comida</text>
+
+        <!-- Texto central -->
+        <text x="200" y="175" font-size="10" fill="#78716c" text-anchor="middle" font-style="italic">A Belle Époque carioca: modernização e desigualdade lado a lado</text>
+      </svg>
+      <div class="caption">Contrastes sociais na Belle Époque brasileira</div>
+    </div>
+    <div class="q-text">
+      <p>A charge mostra dois lados do Rio de Janeiro durante a chamada <strong>Belle Époque</strong> (início do século XX). Enquanto a cidade passava por reformas inspiradas em Paris, grande parte da população vivia em condições precárias.</p>
+      <p>👉 <strong>Marque a alternativa correta:</strong></p>
+    </div>
+    <ul class="options">
+      <li>A) A Belle Époque beneficiou igualmente todas as classes sociais no Brasil</li>
+      <li>B) As reformas urbanas no Rio de Janeiro modernizaram a cidade, mas também aumentaram a desigualdade e expulsaram populações pobres dos centros</li>
+      <li>C) Durante a Belle Époque, o Brasil tornou-se uma potência industrial mundial</li>
+      <li>D) A Belle Époque foi um movimento exclusivamente cultural, sem impactos sociais</li>
+    </ul>
+    <div class="q-score">Valor: 1,0 ponto</div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- Q8 — Associação + Tirinha · Causas da 1ª Guerra Mundial -->
+  <!-- ============================================================ -->
+  <div class="question">
+    <div class="q-header">
+      <span class="q-number">8</span>
+      <span class="q-icon">🔗</span>
+      <span class="q-type"><span>Associação</span></span>
+    </div>
+    <div class="charge-box">
+      <svg viewBox="0 0 400 150" width="400" height="150">
+        <rect x="0" y="0" width="400" height="150" fill="#f0f9ff" rx="8"/>
+        <!-- Mapa simplificado Europa -->
+        <rect x="10" y="15" width="90" height="70" fill="#93c5fd" rx="6"/>
+        <text x="55" y="55" font-size="9" fill="#1e3a8a" text-anchor="middle" font-weight="700">FRANÇA</text>
+        <rect x="120" y="15" width="90" height="70" fill="#fca5a5" rx="6"/>
+        <text x="165" y="55" font-size="9" fill="#7f1d1d" text-anchor="middle" font-weight="700">ALEMANHA</text>
+        <rect x="230" y="15" width="70" height="70" fill="#bbf7d0" rx="6"/>
+        <text x="265" y="55" font-size="9" fill="#166534" text-anchor="middle" font-weight="700">GB</text>
+        <rect x="310" y="15" width="80" height="70" fill="#fed7aa" rx="6"/>
+        <text x="350" y="55" font-size="9" fill="#92400e" text-anchor="middle" font-weight="700">ÁUSTRIA</text>
+        <!-- Setas -->
+        <path d="M100 30 L120 30" stroke="#dc2626" stroke-width="2" marker-end="url(#arrow)"/>
+        <path d="M210 30 L230 30" stroke="#dc2626" stroke-width="2"/>
+        <path d="M300 30 L310 30" stroke="#dc2626" stroke-width="2"/>
+        <path d="M55 85 L55 105" stroke="#dc2626" stroke-width="2"/>
+        <path d="M165 85 L165 105" stroke="#dc2626" stroke-width="2"/>
+        <path d="M265 85 L265 105" stroke="#dc2626" stroke-width="2"/>
+        <path d="M350 85 L350 105" stroke="#dc2626" stroke-width="2"/>
+        <defs>
+          <marker id="arrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6Z" fill="#dc2626"/></marker>
+        </defs>
+        <!-- Rivalidades -->
+        <text x="55" y="120" font-size="7" fill="#78716c" text-anchor="middle">Revancismo</text>
+        <text x="165" y="120" font-size="7" fill="#78716c" text-anchor="middle">Nacionalismo</text>
+        <text x="265" y="120" font-size="7" fill="#78716c" text-anchor="middle">Alianças</text>
+        <text x="350" y="120" font-size="7" fill="#78716c" text-anchor="middle">Ultimato</text>
+        <text x="200" y="140" font-size="10" fill="#78716c" text-anchor="middle" font-style="italic">Rivalidades entre potências europeias antes de 1914</text>
+      </svg>
+      <div class="caption">As tensões que levaram à Grande Guerra (1914–1918)</div>
+    </div>
+    <div class="q-text">
+      <p>Relacione cada <strong>causa da Primeira Guerra Mundial</strong> com sua descrição. Escreva a letra (A–D) no espaço.</p>
+    </div>
+    <table class="match-table">
+      <tr>
+        <td><strong>1.</strong> Nacionalismo _____</td>
+        <td>A. Corrida armamentista entre as nações europeias</td>
+      </tr>
+      <tr>
+        <td><strong>2.</strong> Imperialismo _____</td>
+        <td>B. Disputa por colônias e mercados na África e Ásia</td>
+      </tr>
+      <tr>
+        <td><strong>3.</strong> Paz Armada _____</td>
+        <td>C. Sentimento de superioridade e união de cada nação</td>
+      </tr>
+      <tr>
+        <td><strong>4.</strong> Sistema de Alianças _____</td>
+        <td>D. Acordos militares entre países (Tríplice Entente × Tríplice Aliança)</td>
+      </tr>
+    </table>
+    <div class="answer-space" style="min-height:40px">✏️ Respostas: 1:___  2:___  3:___  4:___</div>
+    <div class="q-score">Valor: 1,0 ponto (0,25 cada)</div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- Q9 — Questão Aberta + Charge · Imperialismo -->
+  <!-- ============================================================ -->
+  <div class="question">
+    <div class="q-header">
+      <span class="q-number">9</span>
+      <span class="q-icon">🌍</span>
+      <span class="q-type"><span>Dissertativa Curta</span></span>
+    </div>
+    <div class="charge-box">
+      <svg viewBox="0 0 400 160" width="400" height="160">
+        <rect x="0" y="0" width="400" height="160" fill="#fefce8" rx="8"/>
+        <!-- Globo terrestre -->
+        <circle cx="150" cy="80" r="50" fill="#93c5fd" stroke="#2563eb" stroke-width="2"/>
+        <ellipse cx="150" cy="80" rx="50" ry="20" fill="none" stroke="#2563eb" stroke-width="1" opacity="0.4"/>
+        <!-- Continentes -->
+        <path d="M125 55 Q130 50 140 52 Q145 55 140 60 Q135 62 130 60Z" fill="#22c55e"/>
+        <path d="M110 65 Q115 60 125 62 Q130 65 125 70 Q115 68 110 65Z" fill="#22c55e"/>
+        <path d="M135 65 Q145 62 155 65 Q160 70 155 75 Q145 72 135 65Z" fill="#22c55e"/>
+        <path d="M115 75 Q125 72 135 78 Q130 85 120 82 Q112 80 115 75Z" fill="#22c55e"/>
+        <!-- Tentáculos / mãos pegando -->
+        <path d="M200 50 Q220 40 230 55" fill="none" stroke="#dc2626" stroke-width="3"/>
+        <path d="M200 60 Q230 55 245 70" fill="none" stroke="#dc2626" stroke-width="3"/>
+        <path d="M200 70 Q230 70 240 85" fill="none" stroke="#dc2626" stroke-width="3"/>
+        <path d="M200 80 Q225 85 235 100" fill="none" stroke="#dc2626" stroke-width="3"/>
+        <!-- Mão no final de cada tentáculo -->
+        <circle cx="232" cy="56" r="6" fill="#ef4444"/>
+        <circle cx="248" cy="70" r="6" fill="#ef4444"/>
+        <circle cx="243" cy="86" r="6" fill="#ef4444"/>
+        <circle cx="238" cy="101" r="6" fill="#ef4444"/>
+        <text x="200" y="145" font-size="11" fill="#78716c" text-anchor="middle" font-style="italic">Imperialismo: as potências europeias disputavam o controle de territórios</text>
+      </svg>
+      <div class="caption">Charge sobre a partilha imperialista</div>
+    </div>
+    <div class="q-text">
+      <p>O <strong>imperialismo</strong> foi uma das causas profundas da Primeira Guerra Mundial. As potências europeias disputavam colônias, mercados e matérias-primas na África e na Ásia.</p>
+      <p>👉 <strong>Responda:</strong> Como o imperialismo contribuiu para o início da Primeira Guerra Mundial?</p>
+    </div>
+    <div class="answer-space">✏️ Escreva sua resposta aqui... (3–5 linhas)</div>
+    <div class="q-score">Valor: 1,0 ponto</div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- Q10 — Reflexão + Tirinha · Memória Histórica -->
+  <!-- ============================================================ -->
+  <div class="question">
+    <div class="q-header">
+      <span class="q-number">10</span>
+      <span class="q-icon">💭</span>
+      <span class="q-type"><span>Reflexão</span></span>
+    </div>
+    <div class="charge-box">
+      <svg viewBox="0 0 400 180" width="400" height="180">
+        <rect x="0" y="0" width="400" height="180" fill="#fff7ed" rx="8"/>
+        <!-- Balão de memória grande -->
+        <path d="M50 90 Q40 40 100 20 Q160 0 220 20 Q280 40 280 90 Q280 140 220 155 Q160 170 100 155 Q40 140 50 90Z" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+        <!-- Cenas dentro do balão -->
+        <rect x="70" y="35" width="60" height="40" fill="#bfdbfe" rx="4"/>
+        <text x="100" y="55" font-size="7" fill="#1e40af" text-anchor="middle">CANUDOS</text>
+        <rect x="145" y="35" width="60" height="40" fill="#fecaca" rx="4"/>
+        <text x="175" y="55" font-size="7" fill="#7f1d1d" text-anchor="middle">VACINA</text>
+        <rect x="107" y="85" width="60" height="40" fill="#bbf7d0" rx="4"/>
+        <text x="137" y="105" font-size="7" fill="#166534" text-anchor="middle">CHIBATA</text>
+        <rect x="70" y="135" width="60" height="30" fill="#e2e8f0" rx="4"/>
+        <text x="100" y="152" font-size="7" fill="#475569" text-anchor="middle">CONSTITUIÇÃO</text>
+        <rect x="145" y="135" width="60" height="30" fill="#fde68a" rx="4"/>
+        <text x="175" y="152" font-size="7" fill="#92400e" text-anchor="middle">GRANDE GUERRA</text>
+        <!-- Pessoa ao lado -->
+        <circle cx="330" cy="90" r="18" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/>
+        <rect x="314" y="108" width="32" height="30" fill="#f1f5f9" rx="4"/>
+        <circle cx="330" cy="88" r="2.5" fill="#475569"/>
+        <circle cx="323" cy="85" r="2.5" fill="#475569"/>
+        <circle cx="337" cy="85" r="2.5" fill="#475569"/>
+        <!-- Braço para a memória -->
+        <line x1="330" y1="100" x2="280" y2="100" stroke="#94a3b8" stroke-width="2.5"/>
+        <text x="200" y="178" font-size="10" fill="#78716c" text-anchor="middle" font-style="italic">A História é feita de muitas histórias — todas merecem ser lembradas</text>
+      </svg>
+      <div class="caption">Reflexão sobre a memória histórica</div>
+    </div>
+    <div class="q-text">
+      <p>Ao longo desta prova, estudamos diferentes episódios da história brasileira e mundial. Cada um deles representa a luta de pessoas que buscavam algo: terra, dignidade, saúde, justiça.</p>
+      <p>👉 <strong>Reflita e responda:</strong> Na sua opinião, por que é importante estudar e lembrar desses acontecimentos históricos? Escolha <strong>um</strong> dos temas da prova e explique.</p>
+    </div>
+    <div class="answer-space" style="min-height:80px">✏️ Escreva sua reflexão aqui...</div>
+    <div class="q-score">Valor: 1,0 ponto</div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- GABARITO -->
+  <!-- ============================================================ -->
+  <div class="gabarito-page">
+    <h2>🔑 Gabarito — Prova Adaptada 1</h2>
+    <div class="gabarito-grid">
+      <div class="g-item"><strong>Q1:</strong> B</div>
+      <div class="g-item"><strong>Q2:</strong> B</div>
+      <div class="g-item"><strong>Q3:</strong> B</div>
+      <div class="g-item"><strong>Q4:</strong> B</div>
+      <div class="g-item"><strong>Q5:</strong> Resposta pessoal — Espera-se que mencione os castigos físicos (chibata) e a conquista do fim dos castigos</div>
+      <div class="g-item"><strong>Q6a:</strong> V</div>
+      <div class="g-item"><strong>Q6b:</strong> V</div>
+      <div class="g-item"><strong>Q6c:</strong> F</div>
+      <div class="g-item"><strong>Q6d:</strong> V</div>
+      <div class="g-item"><strong>Q7:</strong> B</div>
+      <div class="g-item"><strong>Q8:</strong> 1:C, 2:B, 3:A, 4:D</div>
+      <div class="g-item"><strong>Q9:</strong> Resposta pessoal — Espera-se que mencione a disputa por colônias e mercados</div>
+      <div class="g-item"><strong>Q10:</strong> Resposta pessoal — Análise sobre a importância da memória histórica</div>
+    </div>
+  </div>
+
+</div><!-- .page -->
+
+</body>
+</html>

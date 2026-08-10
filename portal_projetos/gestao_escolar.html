@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>📚 Gestão Escolar — Sistema Completo</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏫</text></svg>">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<style>
+/* ─── Reset & Base ─────────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --primary:#4f46e5;--primary-light:#818cf8;--primary-dark:#3730a3;
+  --success:#10b981;--warning:#f59e0b;--danger:#ef4444;--info:#3b82f6;
+  --bg:#f1f5f9;--card:#fff;--text:#1e293b;--text-light:#64748b;
+  --border:#e2e8f0;--radius:12px;--shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.06);
+  --shadow-lg:0 10px 25px rgba(0,0,0,.1);
+  --font:'Segoe UI',system-ui,-apple-system,sans-serif;
+  --transition:200ms ease;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh}
+h1,h2,h3,h4{font-weight:600;line-height:1.2}
+p{color:var(--text-light);line-height:1.6}
+
+/* ─── Top Bar ──────────────────────────────────────────────── */
+.topbar{
+  background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+  color:#fff;padding:1rem 2rem;display:flex;align-items:center;gap:1rem;
+  box-shadow:0 2px 10px rgba(79,70,229,.3);position:sticky;top:0;z-index:100
+}
+.topbar h1{font-size:1.25rem;letter-spacing:-.5px}
+.topbar h1 span{opacity:.7;font-weight:400}
+.topbar .badge{background:rgba(255,255,255,.2);padding:.25rem .75rem;border-radius:20px;font-size:.75rem}
+.topbar .actions{margin-left:auto;display:flex;gap:.5rem}
+.btn-white{
+  background:#fff;color:var(--primary);border:none;padding:.4rem 1rem;
+  border-radius:8px;font-weight:500;font-size:.85rem;cursor:pointer;
+  transition:var(--transition)
+}
+.btn-white:hover{transform:translateY(-1px);box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.btn-white-outline{
+  background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.5);
+  padding:.4rem 1rem;border-radius:8px;font-weight:500;font-size:.85rem;
+  cursor:pointer;transition:var(--transition)
+}
+.btn-white-outline:hover{border-color:#fff;background:rgba(255,255,255,.1)}
+
+/* ─── Tabs ─────────────────────────────────────────────────── */
+.tabs{
+  display:flex;gap:.5rem;padding:1.5rem 2rem 0;
+  overflow-x:auto;scrollbar-width:none
+}
+.tab{
+  padding:.65rem 1.25rem;border-radius:10px 10px 0 0;cursor:pointer;
+  font-weight:500;font-size:.9rem;white-space:nowrap;
+  background:transparent;color:var(--text-light);border:none;
+  transition:var(--transition);position:relative
+}
+.tab:hover{background:rgba(79,70,229,.08);color:var(--primary)}
+.tab.active{background:var(--card);color:var(--primary);box-shadow:0 -2px 6px rgba(0,0,0,.05)}
+.tab.active::after{content:'';position:absolute;bottom:0;left:20%;right:20%;height:3px;background:var(--primary);border-radius:3px 3px 0 0}
+.tab .icon{margin-right:.4rem}
+
+/* ─── Container ────────────────────────────────────────────── */
+.container{max-width:1400px;margin:0 auto;padding:1.5rem 2rem 3rem}
+.panel{display:none;animation:fadeIn .3s ease}
+.panel.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* ─── Cards ────────────────────────────────────────────────── */
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:1.5rem;margin-bottom:1.5rem}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem}
+.card-header h2{font-size:1.15rem}
+.card-header .actions{display:flex;gap:.5rem}
+
+/* ─── Grid ─────────────────────────────────────────────────── */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.5rem}
+.grid-4{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem}
+@media(max-width:900px){.grid-2,.grid-3{grid-template-columns:1fr}}
+
+/* ─── Stats ────────────────────────────────────────────────── */
+.stat-card{
+  background:var(--card);border-radius:var(--radius);padding:1.25rem;
+  box-shadow:var(--shadow);text-align:center;transition:var(--transition)
+}
+.stat-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg)}
+.stat-card .num{font-size:2rem;font-weight:700;color:var(--primary)}
+.stat-card .label{font-size:.8rem;color:var(--text-light);margin-top:.25rem}
+.stat-card .sub{font-size:.7rem;color:var(--text-light);margin-top:.15rem}
+
+/* ─── Weekly Grid ──────────────────────────────────────────── */
+.weekly-grid{display:grid;grid-template-columns:80px repeat(5,1fr);gap:6px}
+.weekly-grid .header{font-weight:600;text-align:center;padding:.5rem;font-size:.8rem;color:var(--text-light)}
+.time-slot{text-align:right;padding:.5rem .75rem;font-size:.75rem;color:var(--text-light)}
+.cell{
+  border-radius:8px;padding:.5rem .6rem;min-height:70px;cursor:pointer;
+  transition:var(--transition);font-size:.78rem;position:relative;
+  border:1.5px dashed transparent
+}
+.cell:hover{border-color:var(--primary-light);transform:scale(1.02)}
+.cell .subject{font-weight:600;font-size:.82rem}
+.cell .teacher{font-size:.68rem;color:var(--text-light);margin-top:2px}
+.cell .room{font-size:.65rem;background:rgba(255,255,255,.5);display:inline-block;padding:0 4px;border-radius:3px;margin-top:3px}
+.cell .grade{position:absolute;top:4px;right:4px;font-size:.65rem;padding:1px 5px;border-radius:4px;font-weight:600}
+.grade-A{background:#d1fae5;color:#065f46}
+.grade-B{background:#dbeafe;color:#1e40af}
+.grade-C{background:#fef3c7;color:#92400e}
+.grade-D{background:#fee2e2;color:#991b1b}
+.subject-math{background:#e0e7ff;border-color:#c7d2fe}
+.subject-port{background:#fce7f3;border-color:#fbcfe8}
+.subject-cien{background:#d1fae5;border-color:#a7f3d0}
+.subject-hist{background:#fef3c7;border-color:#fde68a}
+.subject-geo{background:#dbeafe;border-color:#bfdbfe}
+.subject-ing{background:#ede9fe;border-color:#ddd6fe}
+.subject-edf{background:#e0f2fe;border-color:#bae6fd}
+.subject-art{background:#f3e8ff;border-color:#e9d5ff}
+
+/* ─── Tables ───────────────────────────────────────────────── */
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.88rem}
+thead th{text-align:left;padding:.75rem 1rem;font-weight:600;font-size:.8rem;text-transform:uppercase;letter-spacing:.5px;color:var(--text-light);border-bottom:2px solid var(--border)}
+tbody td{padding:.7rem 1rem;border-bottom:1px solid var(--border)}
+tbody tr{transition:var(--transition)}
+tbody tr:hover{background:rgba(79,70,229,.03)}
+td .tag{
+  display:inline-block;padding:.15rem .6rem;border-radius:6px;
+  font-size:.75rem;font-weight:500
+}
+.tag-ok{background:#d1fae5;color:#065f46}
+.tag-warn{background:#fef3c7;color:#92400e}
+.tag-err{background:#fee2e2;color:#991b1b}
+
+/* ─── Filters ──────────────────────────────────────────────── */
+.filter-bar{display:flex;gap:.75rem;flex-wrap:wrap;margin-bottom:1rem}
+.filter-bar select,.filter-bar input{
+  padding:.5rem .85rem;border:1.5px solid var(--border);border-radius:8px;
+  font-size:.85rem;background:var(--card);color:var(--text);
+  outline:none;transition:var(--transition);min-width:160px
+}
+.filter-bar select:focus,.filter-bar input:focus{border-color:var(--primary-light);box-shadow:0 0 0 3px rgba(79,70,229,.1)}
+
+/* ─── Occupancy ────────────────────────────────────────────── */
+.occ-bar{
+  height:28px;border-radius:6px;background:#e2e8f0;overflow:hidden;position:relative;margin:.5rem 0
+}
+.occ-bar .fill{
+  height:100%;border-radius:6px;transition:width .6s ease;
+  background:linear-gradient(90deg,var(--success),#34d399)
+}
+.occ-bar .fill.medium{background:linear-gradient(90deg,var(--warning),#fbbf24)}
+.occ-bar .fill.high{background:linear-gradient(90deg,var(--danger),#f87171)}
+.occ-bar .label{position:absolute;top:0;left:0;right:0;height:100%;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:600;color:var(--text)}
+.room-card{
+  background:var(--card);border-radius:var(--radius);padding:1rem;
+  box-shadow:var(--shadow);border-left:4px solid var(--primary);
+  transition:var(--transition)
+}
+.room-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg)}
+.room-card .name{font-weight:600;font-size:.95rem}
+.room-card .info{font-size:.78rem;color:var(--text-light);margin-top:4px}
+
+/* ─── Backup ───────────────────────────────────────────────── */
+.backup-area{
+  border:2.5px dashed var(--border);border-radius:var(--radius);
+  padding:2.5rem;text-align:center;transition:var(--transition);cursor:pointer
+}
+.backup-area:hover{border-color:var(--primary-light);background:rgba(79,70,229,.03)}
+.backup-area.dragover{border-color:var(--primary);background:rgba(79,70,229,.08)}
+.backup-area .icon{font-size:3rem;margin-bottom:.5rem}
+.backup-actions{display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap;margin-top:1rem}
+
+/* ─── Buttons ──────────────────────────────────────────────── */
+.btn{
+  display:inline-flex;align-items:center;gap:.35rem;padding:.5rem 1.15rem;
+  border-radius:8px;font-weight:500;font-size:.85rem;cursor:pointer;
+  border:none;transition:var(--transition);text-decoration:none
+}
+.btn:hover{transform:translateY(-1px)}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-primary:hover{background:var(--primary-dark);box-shadow:0 2px 8px rgba(79,70,229,.4)}
+.btn-success{background:var(--success);color:#fff}
+.btn-success:hover{background:#059669}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-danger:hover{background:#dc2626}
+.btn-outline{background:transparent;border:1.5px solid var(--border);color:var(--text)}
+.btn-outline:hover{border-color:var(--primary);color:var(--primary)}
+.btn-sm{padding:.35rem .85rem;font-size:.78rem}
+
+/* ─── Modal ────────────────────────────────────────────────── */
+.modal-overlay{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);
+  backdrop-filter:blur(4px);z-index:200;align-items:center;justify-content:center
+}
+.modal-overlay.open{display:flex}
+.modal{
+  background:var(--card);border-radius:var(--radius);padding:2rem;
+  max-width:500px;width:90%;max-height:80vh;overflow-y:auto;
+  box-shadow:var(--shadow-lg);animation:modalIn .25s ease
+}
+@keyframes modalIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
+.modal h3{margin-bottom:1rem}
+.modal .field{margin-bottom:1rem}
+.modal .field label{display:block;font-size:.82rem;font-weight:500;margin-bottom:.3rem;color:var(--text-light)}
+.modal .field input,.modal .field select{
+  width:100%;padding:.55rem .75rem;border:1.5px solid var(--border);
+  border-radius:8px;font-size:.88rem;outline:none;transition:var(--transition)
+}
+.modal .field input:focus,.modal .field select:focus{border-color:var(--primary-light)}
+.modal .actions{display:flex;gap:.5rem;justify-content:flex-end;margin-top:1.25rem}
+
+/* ─── Toast ────────────────────────────────────────────────── */
+.toast{
+  position:fixed;bottom:2rem;right:2rem;padding:.75rem 1.5rem;
+  border-radius:10px;color:#fff;font-weight:500;font-size:.88rem;
+  box-shadow:var(--shadow-lg);z-index:300;
+  animation:slideUp .3s ease;max-width:400px
+}
+.toast.success{background:var(--success)}
+.toast.error{background:var(--danger)}
+.toast.info{background:var(--info)}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+/* ─── Responsive ───────────────────────────────────────────── */
+@media(max-width:768px){
+  .topbar{padding:.75rem 1rem;flex-wrap:wrap}
+  .topbar .actions{width:100%;justify-content:flex-end;margin-top:.5rem}
+  .tabs{padding:1rem 1rem 0;overflow-x:auto}
+  .container{padding:1rem}
+  .grid-2,.grid-3{grid-template-columns:1fr}
+  .weekly-grid{grid-template-columns:50px repeat(5,1fr);font-size:.72rem}
+  .time-slot{font-size:.65rem;padding:.3rem .4rem}
+  .cell{padding:.35rem;min-height:55px;font-size:.7rem}
+}
+
+/* ─── Misc ─────────────────────────────────────────────────── */
+.empty-state{text-align:center;padding:2.5rem;color:var(--text-light)}
+.empty-state .icon{font-size:3rem;margin-bottom:.5rem}
+.badge-num{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--primary);color:#fff;font-size:.7rem;font-weight:600}
+textarea.code-input{width:100%;min-height:200px;font-family:monospace;font-size:.82rem;padding:.75rem;border:1.5px solid var(--border);border-radius:8px;resize:vertical;outline:none}
+textarea.code-input:focus{border-color:var(--primary-light)}
+</style>
+</head>
+<body>
+
+<!-- ─── Top Bar ──────────────────────────────────────────── -->
+<div class="topbar">
+  <h1>📚 Gestão Escolar <span>• Sistema Completo</span></h1>
+  <span class="badge" id="timeDisplay">Carregando...</span>
+  <div class="actions">
+    <button class="btn-white" onclick="exportBackup()">⬇ Exportar</button>
+    <button class="btn-white-outline" onclick="document.getElementById('importFile').click()">⬆ Importar</button>
+    <input type="file" id="importFile" accept=".json" style="display:none" onchange="importBackup(event)">
+  </div>
+</div>
+
+<!-- ─── Tabs ─────────────────────────────────────────────── -->
+<div class="tabs" role="tablist">
+  <button class="tab active" data-tab="grade" onclick="switchTab('grade')"><span class="icon">📅</span> Grade Semanal</button>
+  <button class="tab" data-tab="relatorios" onclick="switchTab('relatorios')"><span class="icon">📊</span> Relatórios</button>
+  <button class="tab" data-tab="ocupacao" onclick="switchTab('ocupacao')"><span class="icon">🏛️</span> Ocupação</button>
+  <button class="tab" data-tab="backup" onclick="switchTab('backup')"><span class="icon">💾</span> Backup</button>
+  <button class="tab" data-tab="admin" onclick="switchTab('admin')"><span class="icon">⚙️</span> Admin</button>
+</div>
+
+<!-- ─── Container ────────────────────────────────────────── -->
+<div class="container">
+
+<!-- ═══ Panel: Grade Semanal ═══ -->
+<div class="panel active" id="panel-grade">
+  <div class="card">
+    <div class="card-header">
+      <h2>📅 Grade de Aulas — Semanal</h2>
+      <div class="actions">
+        <select id="weekClassFilter" onchange="renderGrade()" style="padding:.4rem .75rem;border:1.5px solid var(--border);border-radius:8px;font-size:.85rem">
+          <option value="all">Todas as turmas</option>
+        </select>
+        <button class="btn btn-primary btn-sm" onclick="openModal('aula')">+ Nova aula</button>
+      </div>
+    </div>
+    <div class="weekly-grid" id="weeklyGrid"></div>
+  </div>
+
+  <!-- Stats -->
+  <div class="grid-4" id="gradeStats"></div>
+</div>
+
+<!-- ═══ Panel: Relatórios ═══ -->
+<div class="panel" id="panel-relatorios">
+  <div class="card">
+    <div class="card-header">
+      <h2>📊 Relatórios</h2>
+      <div class="actions">
+        <button class="btn btn-outline btn-sm" onclick="exportReportCSV()">📥 Exportar CSV</button>
+      </div>
+    </div>
+    <div class="filter-bar">
+      <select id="reportType" onchange="renderReports()">
+        <option value="turma">Por Turma</option>
+        <option value="professor">Por Professor</option>
+      </select>
+      <select id="reportFilter" onchange="renderReports()"></select>
+      <input type="month" id="reportMonth" onchange="renderReports()">
+    </div>
+    <div class="table-wrap">
+      <table><thead id="reportHead"></thead><tbody id="reportBody"></tbody></table>
+    </div>
+  </div>
+  <div class="grid-2" id="reportCharts"></div>
+</div>
+
+<!-- ═══ Panel: Ocupação ═══ -->
+<div class="panel" id="panel-ocupacao">
+  <div class="card">
+    <div class="card-header">
+      <h2>🏛️ Painel de Ocupação por Espaço</h2>
+      <div class="actions">
+        <select id="occDay" onchange="renderOcupacao()" style="padding:.4rem .75rem;border:1.5px solid var(--border);border-radius:8px;font-size:.85rem"></select>
+        <button class="btn btn-primary btn-sm" onclick="openModal('espaco')">+ Novo espaço</button>
+      </div>
+    </div>
+    <div class="grid-3" id="occGrid"></div>
+  </div>
+  <div class="grid-2">
+    <div class="card"><h3 style="margin-bottom:.75rem;font-size:.9rem">📈 Ocupação Geral</h3><div id="occChart" style="height:200px"></div></div>
+    <div class="card"><h3 style="margin-bottom:.75rem;font-size:.9rem">📋 Resumo</h3><div id="occSummary"></div></div>
+  </div>
+</div>
+
+<!-- ═══ Panel: Backup ═══ -->
+<div class="panel" id="panel-backup">
+  <div class="card">
+    <div class="card-header"><h2>💾 Backup e Restauração</h2></div>
+    <div class="backup-area" id="dropArea" onclick="document.getElementById('importFile2').click()" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="handleDrop(event)">
+      <div class="icon">📦</div>
+      <p><strong>Arraste um arquivo JSON aqui</strong><br>ou clique para selecionar</p>
+      <input type="file" id="importFile2" accept=".json" style="display:none" onchange="importBackup(event)">
+    </div>
+    <div class="backup-actions">
+      <button class="btn btn-primary" onclick="exportBackup()">📥 Exportar dados (JSON)</button>
+      <button class="btn btn-success" onclick="exportBackupPretty()">📄 Exportar formatado</button>
+      <button class="btn btn-danger" onclick="if(confirm('Isso apagará TODOS os dados!')){resetData();showToast('Dados resetados','info')}">🔄 Resetar dados</button>
+    </div>
+  </div>
+  <div class="card">
+    <h3 style="margin-bottom:.75rem">📋 Últimos backups</h3>
+    <div id="backupHistory"><p class="empty-state" style="padding:1rem">Nenhum backup realizado nesta sessão.</p></div>
+  </div>
+</div>
+
+<!-- ═══ Panel: Admin ═══ -->
+<div class="panel" id="panel-admin">
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-header"><h2>👨‍🏫 Professores</h2><button class="btn btn-primary btn-sm" onclick="openModal('professor')">+</button></div>
+      <div id="profList"></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><h2>🏫 Turmas</h2><button class="btn btn-primary btn-sm" onclick="openModal('turma')">+</button></div>
+      <div id="turmaList"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header"><h2>📋 Visão Geral dos Dados</h2></div>
+    <div class="grid-2" id="dataOverview"></div>
+  </div>
+</div>
+
+</div><!-- /container -->
+
+<!-- ═══ Modal ═══ -->
+<div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal"><div id="modalContent"></div></div>
+</div>
+
+<!-- ═══ Script ═══ -->
+<script>
+// ─── Data Store ──────────────────────────────────────────
+const STORE_KEY = 'gestao_escolar_data';
+
+const DEFAULT = {
+  aulas: [
+    {id:1, disciplina:'Matemática', professor:'Carlos Silva', turma:'3º A', sala:'101', dia:'seg', horario:'07:30', duracao:2, cor:'subject-math'},
+    {id:2, disciplina:'Português', professor:'Ana Oliveira', turma:'3º A', sala:'102', dia:'seg', horario:'09:30', duracao:2, cor:'subject-port'},
+    {id:3, disciplina:'História', professor:'Pedro Santos', turma:'3º A', sala:'103', dia:'ter', horario:'07:30', duracao:2, cor:'subject-hist'},
+    {id:4, disciplina:'Ciências', professor:'Marina Costa', turma:'3º A', sala:'201', dia:'qua', horario:'07:30', duracao:2, cor:'subject-cien'},
+    {id:5, disciplina:'Geografia', professor:'Rafael Lima', turma:'3º A', dia:'qua', horario:'09:30', duracao:2, cor:'subject-geo'},
+    {id:6, disciplina:'Inglês', professor:'Julia Mendes', turma:'3º A', sala:'104', dia:'qui', horario:'07:30', duracao:2, cor:'subject-ing'},
+    {id:7, disciplina:'Educação Física', professor:'Marcos Paulo', turma:'3º A', sala:'Quadra', dia:'sex', horario:'07:30', duracao:2, cor:'subject-edf'},
+    {id:8, disciplina:'Artes', professor:'Clara Souza', turma:'3º A', sala:'105', dia:'sex', horario:'09:30', duracao:2, cor:'subject-art'},
+    {id:9, disciplina:'Matemática', professor:'Carlos Silva', turma:'3º B', sala:'101', dia:'seg', horario:'07:30', duracao:2, cor:'subject-math'},
+    {id:10, disciplina:'Português', professor:'Ana Oliveira', turma:'3º B', sala:'102', dia:'ter', horario:'07:30', duracao:2, cor:'subject-port'},
+    {id:11, disciplina:'História', professor:'Pedro Santos', turma:'3º B', sala:'103', dia:'qua', horario:'07:30', duracao:2, cor:'subject-hist'},
+  ],
+  professores:['Carlos Silva','Ana Oliveira','Pedro Santos','Marina Costa','Rafael Lima','Julia Mendes','Marcos Paulo','Clara Souza'],
+  turmas:['3º A','3º B','3º C','2º A','2º B','1º A'],
+  espacos:[
+    {id:1,nome:'Sala 101',tipo:'Sala de aula',capacidade:35},
+    {id:2,nome:'Sala 102',tipo:'Sala de aula',capacidade:30},
+    {id:3,nome:'Sala 103',tipo:'Laboratório',capacidade:25},
+    {id:4,nome:'Sala 104',tipo:'Sala de aula',capacidade:32},
+    {id:5,nome:'Sala 105',tipo:'Sala de aula',capacidade:28},
+    {id:6,nome:'Sala 201',tipo:'Laboratório',capacidade:24},
+    {id:7,nome:'Quadra',tipo:'Esportes',capacidade:60},
+    {id:8,nome:'Biblioteca',tipo:'Estudo',capacidade:20},
+  ],
+  _nextId:12
+};
+
+let data = loadData();
+let backupHistory = [];
+
+// ─── Persistence ─────────────────────────────────────────
+function loadData(){
+  try{
+    const raw = localStorage.getItem(STORE_KEY);
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  return JSON.parse(JSON.stringify(DEFAULT));
+}
+function saveData(){
+  localStorage.setItem(STORE_KEY, JSON.stringify(data));
+}
+function resetData(){
+  data = JSON.parse(JSON.stringify(DEFAULT));
+  saveData();renderAll();
+}
+
+// ─── Helpers ─────────────────────────────────────────────
+const DIAS = ['seg','ter','qua','qui','sex'];
+const DIAS_NOME = {seg:'Segunda',ter:'Terça',qua:'Quarta',qui:'Quinta',sex:'Sexta'};
+const HORARIOS = ['07:30','08:20','09:10','09:30','10:20','11:10','13:00','13:50','14:40'];
+
+function nextId(){return data._nextId++}
+function getAulas(){return data.aulas||[]}
+function getProf(){return data.professores||[]}
+function getTurmas(){return data.turmas||[]}
+function getEspacos(){return data.espacos||[]}
+
+function getGrade(disciplina){
+  const g = {'Matemática':'A','Português':'A','Ciências':'B','História':'B',
+    'Geografia':'C','Inglês':'A','Educação Física':'A','Artes':'B'};
+  return g[disciplina]||'B';
+}
+
+function timeToMinutes(t){
+  const [h,m]=t.split(':').map(Number);
+  return h*60+m;
+}
+
+function getWeekNumber(){
+  const now = new Date();
+  const start = new Date(now.getFullYear(),0,1);
+  return Math.ceil(((now-start)/86400000+start.getDay()+1)/7);
+}
+
+// ─── Toast ───────────────────────────────────────────────
+function showToast(msg,type='success'){
+  const t=document.createElement('div');
+  t.className=`toast ${type}`;t.textContent=msg;
+  document.body.appendChild(t);
+  setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity .3s';setTimeout(()=>t.remove(),300)},2500);
+}
+
+// ─── Tabs ────────────────────────────────────────────────
+function switchTab(name){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===name));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('active',p.id==='panel-'+name));
+  if(name==='grade') renderGrade();
+  if(name==='relatorios') renderReports();
+  if(name==='ocupacao') renderOcupacao();
+  if(name==='admin') renderAdmin();
+}
+
+// ─── Modal ───────────────────────────────────────────────
+function openModal(type,editData){
+  const m=document.getElementById('modalContent');
+  let html='';
+  if(type==='aula'){
+    const ed=editData||{};
+    html=`
+      <h3>${ed.id?'Editar':'Nova'} Aula</h3>
+      <div class="field"><label>Disciplina</label><input id="f_disc" value="${ed.disciplina||''}"></div>
+      <div class="field"><label>Professor</label>
+        <select id="f_prof"><option value="">Selecione...</option>
+          ${getProf().map(p=>`<option value="${p}" ${ed.professor===p?'selected':''}>${p}</option>`).join('')}
+        </select>
+      </div>
+      <div class="field"><label>Turma</label>
+        <select id="f_turma"><option value="">Selecione...</option>
+          ${getTurmas().map(t=>`<option value="${t}" ${ed.turma===t?'selected':''}>${t}</option>`).join('')}
+        </select>
+      </div>
+      <div class="field"><label>Sala</label><input id="f_sala" value="${ed.sala||''}"></div>
+      <div class="field"><label>Dia</label>
+        <select id="f_dia">${DIAS.map(d=>`<option value="${d}" ${ed.dia===d?'selected':''}>${DIAS_NOME[d]}</option>`).join('')}
+        </select>
+      </div>
+      <div class="field"><label>Horário</label>
+        <select id="f_horario">${HORARIOS.map(h=>`<option value="${h}" ${ed.horario===h?'selected':''}>${h}</option>`).join('')}
+        </select>
+      </div>
+      <div class="actions">
+        <button class="btn btn-outline" onclick="closeModal()">Cancelar</button>
+        <button class="btn btn-primary" onclick="saveAula('${ed.id||''}')">${ed.id?'Salvar':'Criar'}</button>
+      </div>`;
+  }else if(type==='professor'){
+    html=`
+      <h3>Novo Professor</h3>
+      <div class="field"><label>Nome</label><input id="f_nome_prof"></div>
+      <div class="actions">
+        <button class="btn btn-outline" onclick="closeModal()">Cancelar</button>
+        <button class="btn btn-primary" onclick="addProfessor()">Adicionar</button>
+      </div>`;
+  }else if(type==='turma'){
+    html=`
+      <h3>Nova Turma</h3>
+      <div class="field"><label>Nome da turma</label><input id="f_nome_turma"></div>
+      <div class="actions">
+        <button class="btn btn-outline" onclick="closeModal()">Cancelar</button>
+        <button class="btn btn-primary" onclick="addTurma()">Adicionar</button>
+      </div>`;
+  }else if(type==='espaco'){
+    html=`
+      <h3>Novo Espaço</h3>
+      <div class="field"><label>Nome</label><input id="f_esp_nome"></div>
+      <div class="field"><label>Tipo</label>
+        <select id="f_esp_tipo">
+          <option value="Sala de aula">Sala de aula</option>
+          <option value="Laboratório">Laboratório</option>
+          <option value="Esportes">Esportes</option>
+          <option value="Estudo">Estudo</option>
+        </select>
+      </div>
+      <div class="field"><label>Capacidade</label><input id="f_esp_cap" type="number" value="30"></div>
+      <div class="actions">
+        <button class="btn btn-outline" onclick="closeModal()">Cancelar</button>
+        <button class="btn btn-primary" onclick="addEspaco()">Adicionar</button>
+      </div>`;
+  }
+  m.innerHTML=html;
+  document.getElementById('modalOverlay').classList.add('open');
+}
+function closeModal(){
+  document.getElementById('modalOverlay').classList.remove('open');
+}
+
+function getColorForSubject(disc){
+  const map={'Matemática':'subject-math','Português':'subject-port','Ciências':'subject-cien','História':'subject-hist','Geografia':'subject-geo','Inglês':'subject-ing','Educação Física':'subject-edf','Artes':'subject-art'};
+  return map[disc]||['subject-math','subject-port','subject-cien','subject-hist','subject-geo','subject-ing','subject-edf','subject-art'][Math.floor(Math.random()*8)];
+}
+function saveAula(id){
+  const disc=document.getElementById('f_disc').value.trim();
+  const prof=document.getElementById('f_prof').value;
+  const turma=document.getElementById('f_turma').value;
+  const sala=document.getElementById('f_sala').value.trim();
+  const dia=document.getElementById('f_dia').value;
+  const horario=document.getElementById('f_horario').value;
+  if(!disc||!prof||!turma){showToast('Preencha disciplina, professor e turma','error');return}
+  const cor=getColorForSubject(disc);
+  if(id){
+    const idx=data.aulas.findIndex(a=>a.id==id);
+    if(idx>-1) Object.assign(data.aulas[idx],{disciplina:disc,professor:prof,turma,sala,dia,horario});
+  }else{
+    data.aulas.push({id:nextId(),disciplina:disc,professor:prof,turma,sala,dia,horario,duracao:2,cor});
+  }
+  saveData();closeModal();renderAll();showToast(`Aula ${id?'atualizada':'criada'} com sucesso!`);
+}
+
+function addProfessor(){
+  const n=document.getElementById('f_nome_prof').value.trim();
+  if(!n){showToast('Digite um nome','error');return}
+  if(data.professores.includes(n)){showToast('Professor já existe','error');return}
+  data.professores.push(n);saveData();closeModal();renderAll();showToast('Professor adicionado!');
+}
+function addTurma(){
+  const n=document.getElementById('f_nome_turma').value.trim();
+  if(!n){showToast('Digite o nome da turma','error');return}
+  if(data.turmas.includes(n)){showToast('Turma já existe','error');return}
+  data.turmas.push(n);saveData();closeModal();renderAll();showToast('Turma adicionada!');
+}
+function addEspaco(){
+  const n=document.getElementById('f_esp_nome').value.trim();
+  const t=document.getElementById('f_esp_tipo').value;
+  const c=parseInt(document.getElementById('f_esp_cap').value)||30;
+  if(!n){showToast('Digite o nome do espaço','error');return}
+  data.espacos.push({id:nextId(),nome:n,tipo:t,capacidade:c});
+  saveData();closeModal();renderAll();showToast('Espaço adicionado!');
+}
+function delItem(type,id){
+  if(type==='aula'){data.aulas=data.aulas.filter(a=>a.id!=id);showToast('Aula removida');}
+  else if(type==='professor'){data.professores=data.professores.filter(p=>p!==id);showToast('Professor removido');}
+  else if(type==='turma'){data.turmas=data.turmas.filter(t=>t!==id);showToast('Turma removida');}
+  else if(type==='espaco'){data.espacos=data.espacos.filter(e=>e.id!=id);showToast('Espaço removido');}
+  saveData();renderAll();
+}
+
+// ─── Render: Grade Semanal ────────────────────────────────
+function renderGrade(){
+  const filter=document.getElementById('weekClassFilter').value;
+  const aulas=filter==='all'?getAulas():getAulas().filter(a=>a.turma===filter);
+  const grid=document.getElementById('weeklyGrid');
+  const turmasSet=new Set(getAulas().map(a=>a.turma));
+  const sel=document.getElementById('weekClassFilter');
+  sel.innerHTML='<option value="all">Todas as turmas</option>'+[...turmasSet].sort().map(t=>`<option value="${t}" ${filter===t?'selected':''}>${t}</option>`).join('');
+
+  let html='<div class="header">Horário</div>'+DIAS.map(d=>`<div class="header">${DIAS_NOME[d]}</div>`).join('');
+
+  // Group aulas by time slot
+  const timeSlots=[...new Set(aulas.map(a=>a.horario))].sort();
+  const displayTimes=timeSlots.length>0?timeSlots:HORARIOS.slice(0,5);
+
+  displayTimes.forEach(h=>{
+    html+=`<div class="time-slot">${h}</div>`;
+    DIAS.forEach(d=>{
+      const aula=aulas.find(a=>a.dia===d&&a.horario===h);
+      if(aula){
+        const g=getGrade(aula.disciplina);
+        html+=`<div class="cell ${aula.cor||'subject-math'}" onclick="showToast('${aula.disciplina} • ${aula.professor} • ${aula.sala||'Sem sala'}')">
+          <div class="grade grade-${g}">${g}</div>
+          <div class="subject">${aula.disciplina}</div>
+          <div class="teacher">${aula.professor}</div>
+          ${aula.sala?`<div class="room">${aula.sala}</div>`:''}
+        </div>`;
+      }else{
+        html+=`<div class="cell" style="opacity:.3;border-style:dashed;min-height:50px;cursor:default"></div>`;
+      }
+    });
+  });
+  grid.innerHTML=html;
+
+  // Stats
+  const tot=aulas.length;
+  const profCount=new Set(aulas.map(a=>a.professor)).size;
+  const discCount=new Set(aulas.map(a=>a.disciplina)).size;
+  const turmaCount=filter==='all'?turmasSet.size:1;
+  document.getElementById('gradeStats').innerHTML=`
+    <div class="stat-card"><div class="num">${tot}</div><div class="label">Aulas</div></div>
+    <div class="stat-card"><div class="num">${profCount}</div><div class="label">Professores</div></div>
+    <div class="stat-card"><div class="num">${discCount}</div><div class="label">Disciplinas</div></div>
+    <div class="stat-card"><div class="num">${turmaCount}</div><div class="label">Turmas</div></div>`;
+}
+
+// ─── Render: Relatórios ──────────────────────────────────
+let reportDataCache = [];
+
+function renderReports(){
+  const type=document.getElementById('reportType').value;
+  const filter=document.getElementById('reportFilter').value;
+  const month=document.getElementById('reportMonth').value;
+
+  // Populate filter options
+  const fp=document.getElementById('reportFilter');
+  if(type==='turma'){
+    const turmas=getTurmas();
+    fp.innerHTML=turmas.map(t=>`<option value="${t}">${t}</option>`).join('');
+    if(!fp.value&&turmas.length>0) fp.value=turmas[0];
+  }else{
+    const profs=getProf();
+    fp.innerHTML=profs.map(p=>`<option value="${p}">${p}</option>`).join('');
+    if(!fp.value&&profs.length>0) fp.value=profs[0];
+  }
+
+  const selected=fp.value||filter;
+  let aulas=getAulas();
+  if(type==='turma') aulas=aulas.filter(a=>a.turma===selected);
+  else aulas=aulas.filter(a=>a.professor===selected);
+
+  // Report table
+  const head=document.getElementById('reportHead');
+  const body=document.getElementById('reportBody');
+  head.innerHTML='<tr><th>Disciplina</th><th>Professor</th><th>Turma</th><th>Dia</th><th>Horário</th><th>Sala</th><th>Desempenho</th></tr>';
+
+  if(aulas.length===0){
+    body.innerHTML='<tr><td colspan="7" class="empty-state">Nenhuma aula encontrada</td></tr>';
+  }else{
+    body.innerHTML=aulas.map(a=>{
+      const g=getGrade(a.disciplina);
+      const tagCls=g==='A'?'tag-ok':g==='B'?'tag-ok':g==='C'?'tag-warn':'tag-err';
+      return `<tr>
+        <td><strong>${a.disciplina}</strong></td>
+        <td>${a.professor}</td>
+        <td>${a.turma}</td>
+        <td>${DIAS_NOME[a.dia]||a.dia}</td>
+        <td>${a.horario}</td>
+        <td>${a.sala||'-'}</td>
+        <td><span class="tag ${tagCls}">${g}</span></td>
+      </tr>`;
+    }).join('');
+  }
+
+  reportDataCache = aulas;
+
+  // Charts
+  const charts=document.getElementById('reportCharts');
+  const discCount={};aulas.forEach(a=>{discCount[a.disciplina]=(discCount[a.disciplina]||0)+1});
+  const entries=Object.entries(discCount).sort((a,b)=>b[1]-a[1]);
+  const maxCount=Math.max(...entries.map(e=>e[1]),1);
+  const colors=['#4f46e5','#10b981','#f59e0b','#ef4444','#3b82f6','#8b5cf6','#ec4899','#14b8a6'];
+
+  charts.innerHTML=`
+    <div class="card">
+      <h3 style="margin-bottom:.75rem;font-size:.9rem">📊 Distribuição por Disciplina</h3>
+      ${entries.map(([d,c],i)=>`
+        <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem">
+          <span style="min-width:100px;font-size:.8rem">${d}</span>
+          <div style="flex:1;height:20px;background:#e2e8f0;border-radius:6px;overflow:hidden">
+            <div style="height:100%;width:${(c/maxCount)*100}%;background:${colors[i%colors.length]};border-radius:6px;transition:width .6s ease"></div>
+          </div>
+          <span style="font-size:.8rem;font-weight:600;min-width:30px">${c}</span>
+        </div>
+      `).join('')}
+    </div>
+    <div class="card">
+      <h3 style="margin-bottom:.75rem;font-size:.9rem">📈 Resumo ${type==='turma'?'da Turma':'do Professor'}</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
+        <div class="stat-card"><div class="num">${aulas.length}</div><div class="label">Aulas</div></div>
+        <div class="stat-card"><div class="num">${entries.length}</div><div class="label">Disciplinas</div></div>
+        <div class="stat-card"><div class="num">${new Set(aulas.map(a=>a.sala)).size}</div><div class="label">Salas</div></div>
+        <div class="stat-card"><div class="num">${new Set(aulas.map(a=>a.dia)).size}</div><div class="label">Dias</div></div>
+      </div>
+    </div>`;
+}
+
+function exportReportCSV(){
+  const aulas=reportDataCache;
+  if(!aulas||aulas.length===0){showToast('Sem dados para exportar','error');return}
+  const header='Disciplina,Professor,Turma,Dia,Horário,Sala,Desempenho\n';
+  const rows=aulas.map(a=>`${a.disciplina},${a.professor},${a.turma},${DIAS_NOME[a.dia]||a.dia},${a.horario},${a.sala||''},${getGrade(a.disciplina)}`).join('\n');
+  const blob=new Blob(['\uFEFF'+header+rows],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`relatorio_${Date.now()}.csv`;a.click();
+  showToast('CSV exportado!');
+}
+
+// ─── Render: Ocupação ────────────────────────────────────
+function renderOcupacao(){
+  const day=document.getElementById('occDay').value;
+  const sel=document.getElementById('occDay');
+  if(sel.options.length===0){
+    sel.innerHTML=DIAS.map(d=>`<option value="${d}">${DIAS_NOME[d]}</option>`).join('');
+  }
+  const d=day||DIAS[new Date().getDay()-1]||'seg';
+  sel.value=d;
+
+  const aulasDia=getAulas().filter(a=>a.dia===d);
+  const espacos=getEspacos();
+  const grid=document.getElementById('occGrid');
+
+  if(espacos.length===0){
+    grid.innerHTML='<p class="empty-state">Nenhum espaço cadastrado</p>';
+  }else{
+    grid.innerHTML=espacos.map(e=>{
+      const ocupadas=aulasDia.filter(a=>a.sala===e.nome).length;
+      const slotsDia = [...new Set(getAulas().filter(a=>a.dia===d).map(a=>a.horario))];
+      const totalSlots=Math.max(slotsDia.length,1);
+      const pct=Math.min((ocupadas/totalSlots)*100,100);
+      const cls=pct<40?'':pct<70?'medium':'high';
+      return `<div class="room-card">
+        <div class="name">${e.nome}</div>
+        <div class="info">${e.tipo} • Capacidade: ${e.capacidade}</div>
+        <div class="occ-bar">
+          <div class="fill ${cls}" style="width:${pct}%"></div>
+          <div class="label">${ocupadas}/${totalSlots} slots • ${Math.round(pct)}%</div>
+        </div>
+        ${ocupadas>0?`<div style="font-size:.72rem;color:var(--text-light);margin-top:.3rem">
+          ${aulasDia.filter(a=>a.sala===e.nome).map(a=>`${a.horario} ${a.disciplina} (${a.turma})`).join(' • ')}
+        </div>`:''}
+      </div>`;
+    }).join('');
+  }
+
+  // Overall occupancy chart
+  const chartBar=document.getElementById('occChart');
+  const maxAulas=getAulas().length;
+  chartBar.innerHTML=`
+    <div style="display:flex;align-items:flex-end;height:160px;gap:.5rem;padding-top:20px">
+      ${DIAS.map(dia=>{
+        const count=getAulas().filter(a=>a.dia===dia).length;
+        const maxAulas=getAulas().length;
+        const h=(maxAulas>0?(count/maxAulas)*100:0);
+        return `<div style="flex:1;display:flex;flex-direction:column;align-items:center">
+          <span style="font-size:.65rem;font-weight:600;margin-bottom:4px">${count}</span>
+          <div style="width:100%;height:${h}%;background:${dia===d?'var(--primary)':'var(--primary-light)'};border-radius:4px 4px 0 0;transition:height .6s ease;min-height:4px"></div>
+          <span style="font-size:.65rem;margin-top:4px;color:var(--text-light)">${DIAS_NOME[dia].slice(0,3)}</span>
+        </div>`;
+      }).join('')}
+    </div>`;
+
+  // Summary
+  const totAulasSemana=getAulas().length;
+  const espacosUsados=new Set(getAulas().map(a=>a.sala).filter(Boolean)).size;
+  document.getElementById('occSummary').innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
+      <div class="stat-card"><div class="num">${aulasDia.length}</div><div class="label">Aulas hoje</div><div class="sub">${DIAS_NOME[d]}</div></div>
+      <div class="stat-card"><div class="num">${totAulasSemana}</div><div class="label">Aulas na semana</div></div>
+      <div class="stat-card"><div class="num">${espacos.length}</div><div class="label">Espaços</div></div>
+      <div class="stat-card"><div class="num">${espacosUsados}</div><div class="label">Espaços em uso</div></div>
+    </div>`;
+}
+
+// ─── Render: Admin ───────────────────────────────────────
+function renderAdmin(){
+  const pl=document.getElementById('profList');
+  pl.innerHTML=getProf().map(p=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:.5rem 0;border-bottom:1px solid var(--border)">
+    <span>👨‍🏫 ${p}</span>
+    <button class="btn btn-sm btn-outline" onclick="delItem('professor','${p}')">✕</button>
+  </div>`).join('')||'<p class="empty-state">Nenhum professor</p>';
+
+  const tl=document.getElementById('turmaList');
+  tl.innerHTML=getTurmas().map(t=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:.5rem 0;border-bottom:1px solid var(--border)">
+    <span>🏫 ${t}</span>
+    <button class="btn btn-sm btn-outline" onclick="delItem('turma','${t}')">✕</button>
+  </div>`).join('')||'<p class="empty-state">Nenhuma turma</p>';
+
+  document.getElementById('dataOverview').innerHTML=`
+    <div class="stat-card"><div class="num">${getAulas().length}</div><div class="label">Aulas cadastradas</div></div>
+    <div class="stat-card"><div class="num">${getProf().length}</div><div class="label">Professores</div></div>
+    <div class="stat-card"><div class="num">${getTurmas().length}</div><div class="label">Turmas</div></div>
+    <div class="stat-card"><div class="num">${getEspacos().length}</div><div class="label">Espaços</div></div>`;
+}
+
+// ─── Backup / Restore ────────────────────────────────────
+function exportBackup(){
+  const blob=new Blob([JSON.stringify(data)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`backup_gestao_${new Date().toISOString().slice(0,10)}.json`;a.click();
+  backupHistory.push({date:new Date().toLocaleString(),size:(blob.size/1024).toFixed(1)+'KB'});
+  updateBackupHistory();
+  showToast('Backup exportado!');
+}
+function exportBackupPretty(){
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`backup_gestao_${new Date().toISOString().slice(0,10)}_formatado.json`;a.click();
+  showToast('Backup formatado exportado!');
+}
+function importBackup(event){
+  const file=event.target.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      const imported=JSON.parse(e.target.result);
+      if(!imported.aulas||!imported.professores){showToast('Arquivo inválido','error');return}
+      if(!confirm('⚠️ Importar substituirá TODOS os dados atuais. Continuar?')) return;
+      data=imported;
+      // Recalculate nextId to avoid conflicts
+      data._nextId = Math.max(...data.aulas.map(a=>a.id), 0) + 1;
+      saveData();renderAll();
+      showToast(`${file.name} importado com sucesso! (${getAulas().length} aulas)`);
+    }catch(err){showToast('Erro ao ler arquivo: '+err.message,'error')}
+  };
+  reader.readAsText(file);
+  event.target.value='';
+}
+function handleDrop(event){
+  event.preventDefault();
+  document.getElementById('dropArea').classList.remove('dragover');
+  const file=event.dataTransfer.files[0];
+  if(file){
+    const input=document.getElementById('importFile2');
+    const dt=new DataTransfer();dt.items.add(file);input.files=dt.files;
+    importBackup({target:input});
+  }
+}
+function updateBackupHistory(){
+  const el=document.getElementById('backupHistory');
+  if(backupHistory.length===0){
+    el.innerHTML='<p class="empty-state" style="padding:1rem">Nenhum backup realizado nesta sessão.</p>';
+  }else{
+    el.innerHTML=backupHistory.map(b=>`<div style="display:flex;justify-content:space-between;padding:.4rem 0;border-bottom:1px solid var(--border);font-size:.85rem">
+      <span>📦 Backup • ${b.date}</span><span style="color:var(--text-light)">${b.size}</span>
+    </div>`).join('');
+  }
+}
+
+// ─── Render All ──────────────────────────────────────────
+function renderAll(){
+  renderGrade();renderReports();renderOcupacao();renderAdmin();
+  if(document.querySelector('.tab.active')) switchTab(document.querySelector('.tab.active').dataset.tab);
+  saveData();
+}
+
+// ─── Time Display ────────────────────────────────────────
+function updateTime(){
+  const now=new Date();
+  document.getElementById('timeDisplay').textContent=`${now.toLocaleDateString('pt-BR')} • Semana ${getWeekNumber()} • ${now.toLocaleTimeString('pt-BR')}`;
+}
+setInterval(updateTime,1000);updateTime();
+
+// ─── Init ────────────────────────────────────────────────
+renderAll();
+</script>
+</body>
+</html>

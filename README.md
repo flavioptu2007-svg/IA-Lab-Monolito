@@ -628,6 +628,26 @@ python3 OpenManus/agente_ollama.py "pesquise sobre o 7 de setembro de 1822"
 
 ---
 
+### Microsoft Office no Linux (Wine)
+
+Executar o Office (Word/Excel/PowerPoint) no Linux via Wine num **prefixo isolado**, sem afetar os demais ambientes do sistema (Docker, Python, Node, Ollama, ComfyUI…).
+
+| Ferramenta | O que faz |
+|------------|-----------|
+| [`scripts/diagnose_office_linux.sh`](scripts/diagnose_office_linux.sh) | Diagnóstico **somente leitura** (SO, kernel, CPU, RAM, disco, Wine, Winetricks, CUPS, locale, prefixos e instaladores do Office) — nada é instalado ou alterado |
+| [`docs/microsoft-office-linux-wine.md`](docs/microsoft-office-linux-wine.md) | Guia completo em 8 etapas: diagnóstico → recomendação → autorização → instalação → configuração → testes → correções → relatório |
+
+> ⚠️ Execute **a partir da raiz do repositório** ou por **caminho absoluto**:
+>
+> ```bash
+> cd /home/flavio   # raiz deste repositório
+> ./scripts/diagnose_office_linux.sh
+> ```
+>
+> O script **não depende do diretório** — `bash /caminho/absoluto/scripts/diagnose_office_linux.sh` funciona de qualquer pasta. O erro `Ficheiro ou pasta inexistente` ocorre quando se roda `./scripts/...` fora da raiz do projeto.
+
+---
+
 ## Troubleshooting
 
 ### `ImportError: openvino not found`

@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
+<title>Labirinto da Aldeia Indígena</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌀</text></svg>">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
+    background:#f5f2eb;color:#2d2a24;
+    padding:24px 16px;min-height:100vh;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .card{
+    max-width:820px;width:100%;margin:0 auto;
+    background:#fff;border-radius:20px;
+    box-shadow:0 4px 24px rgba(0,0,0,0.06);
+    padding:32px 28px;
+    border:1px solid #e5ddd3;
+  }
+
+  .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:8px}
+  .header h1{font-size:1.35rem;font-weight:700;color:#4a3728;display:flex;align-items:center;gap:8px}
+  .header h1 span{font-size:1.4rem}
+  .header .timer{
+    font-size:0.85rem;color:#8b7355;
+    display:flex;align-items:center;gap:4px;
+    font-family:monospace;letter-spacing:0.05em;
+  }
+
+  .student-row{
+    display:flex;gap:12px;flex-wrap:wrap;
+    margin-bottom:20px;padding:12px 16px;
+    background:#faf8f5;border:1px solid #e5ddd3;border-radius:10px;
+  }
+  .student-row label{font-size:0.72rem;font-weight:600;color:#8b7355;text-transform:uppercase;letter-spacing:0.04em}
+  .student-row input{
+    border:none;border-bottom:2px solid #ddd3c8;
+    background:transparent;font-size:1rem;padding:3px 0;width:180px;font-family:inherit;
+  }
+  .student-row input:focus{outline:none;border-color:#c49a6c}
+
+  .steps{
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));
+    gap:8px;margin-bottom:20px;
+  }
+  .step{
+    display:flex;align-items:center;gap:8px;
+    padding:8px 10px;background:#faf8f5;
+    border:1px solid #e5ddd3;border-radius:10px;
+    font-size:0.72rem;font-weight:500;color:#5a4a3a;
+    cursor:pointer;transition:all 0.2s;user-select:none;
+    line-height:1.2;
+  }
+  .step:hover{border-color:#c49a6c;background:#f5efe8}
+  .step .s-num{
+    width:22px;height:22px;border-radius:50%;
+    background:#c49a6c;color:#fff;display:flex;
+    align-items:center;justify-content:center;
+    font-size:0.68rem;font-weight:700;flex-shrink:0;
+    transition:all 0.3s;
+  }
+  .step.done{border-color:#7cb87c;background:#f0f7ef}
+  .step.done .s-num{background:#7cb87c}
+  .step.done .s-check{color:#7cb87c;font-size:0.85rem}
+  .step .s-check{margin-left:auto}
+
+  .maze-area{
+    position:relative;
+    background:#fcf9f6;
+    border:2px solid #e5ddd3;
+    border-radius:14px;
+    padding:16px 16px 0;
+    margin-bottom:4px;
+    overflow:hidden;
+  }
+  .maze-area canvas{
+    display:block;width:100%;height:auto;max-width:620px;margin:0 auto;
+    touch-action:none;aspect-ratio:620/440;
+  }
+  .maze-legend{
+    display:flex;gap:10px;justify-content:center;flex-wrap:wrap;
+    padding:8px 0 14px;
+  }
+  .maze-legend .ml-item{
+    display:flex;align-items:center;gap:5px;
+    font-size:0.68rem;color:#7a6a5a;
+  }
+  .maze-legend .ml-sq{
+    width:14px;height:14px;border-radius:4px;border:1px solid #ddd3c8;
+  }
+
+  .trace-tools{
+    display:flex;gap:8px;justify-content:center;flex-wrap:wrap;
+    padding:6px 0 14px;
+  }
+  .trace-tools button{
+    padding:6px 14px;border:1px solid #ddd3c8;border-radius:8px;
+    background:#faf8f5;font-size:0.72rem;cursor:pointer;
+    transition:all 0.15s;font-family:inherit;color:#5a4a3a;
+  }
+  .trace-tools button:hover{border-color:#c49a6c;background:#f5efe8}
+  .trace-tools button.active{background:#c49a6c;color:#fff;border-color:#c49a6c}
+
+  .goal-area{
+    display:flex;align-items:center;justify-content:center;
+    gap:12px;padding:16px;margin-bottom:16px;
+    background:#f0f7ef;border:2px dashed #7cb87c;
+    border-radius:12px;flex-wrap:wrap;
+  }
+  .goal-area .g-icon{font-size:2rem}
+  .goal-area .g-text{font-size:0.85rem;color:#4a6b3a;line-height:1.4}
+  .goal-area .g-text strong{color:#2d5a1e}
+  .goal-btn{
+    display:inline-flex;align-items:center;gap:6px;
+    padding:10px 24px;background:#7cb87c;color:#fff;
+    border:none;border-radius:10px;font-size:1rem;font-weight:700;
+    cursor:pointer;transition:all 0.2s;
+  }
+  .goal-btn:hover{background:#5c9a5c;transform:translateY(-1px)}
+  .goal-btn:active{transform:scale(0.97)}
+  .goal-btn.done{background:#c49a6c}
+
+  .pause-area{
+    display:flex;align-items:center;gap:16px;
+    padding:16px 20px;margin-top:16px;
+    background:#f8f4f0;border:1px solid #e5ddd3;
+    border-radius:12px;
+  }
+  .pause-area .p-icon{font-size:1.8rem;flex-shrink:0}
+  .pause-area .p-text{font-size:0.82rem;color:#7a6a5a;line-height:1.5}
+  .pause-area .p-text strong{color:#4a3728}
+  .pause-area .p-breath-btn{
+    display:inline-flex;align-items:center;gap:6px;
+    margin-top:6px;padding:6px 16px;
+    background:#e8ddd0;border:none;border-radius:8px;
+    font-family:inherit;font-size:0.85rem;cursor:pointer;color:#4a3728;
+    transition:all 0.2s;
+  }
+  .pause-area .p-breath-btn:hover{background:#ddd3c8}
+  .pause-area .p-breath-btn.active{background:#7cb87c;color:#fff}
+  .pause-area .p-breath-count{
+    font-size:1.2rem;font-weight:700;color:#7cb87c;
+    min-width:24px;display:inline-block;text-align:center;
+  }
+
+  .reward-area{
+    display:flex;align-items:center;justify-content:space-between;
+    margin-top:20px;padding:14px 18px;
+    background:#fef7e6;border:1px solid #eddba8;
+    border-radius:12px;flex-wrap:wrap;gap:10px;
+  }
+  .reward-area .r-label{font-size:0.78rem;color:#8b7355;font-weight:600}
+  .reward-area .r-stickers{display:flex;gap:6px}
+  .reward-area .r-sticker{
+    font-size:1.5rem;cursor:pointer;transition:all 0.2s;
+    filter:grayscale(1);opacity:0.4;
+  }
+  .reward-area .r-sticker:hover{transform:scale(1.2)}
+  .reward-area .r-sticker.collected{filter:none;opacity:1;transform:scale(1.1)}
+
+  .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:100;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+  .overlay.open{display:flex}
+  .overlay-box{
+    background:#fff;border-radius:20px;padding:2.5rem;max-width:400px;width:90%;
+    text-align:center;box-shadow:0 24px 64px rgba(0,0,0,0.2);
+    animation:pop 0.4s ease;
+  }
+  @keyframes pop{0%{transform:scale(0.8);opacity:0}60%{transform:scale(1.05)}100%{transform:scale(1);opacity:1}}
+  .overlay-box .big-icon{font-size:3.5rem;margin-bottom:12px}
+  .overlay-box h2{font-size:1.4rem;color:#4a3728;margin-bottom:6px}
+  .overlay-box p{font-size:0.88rem;color:#7a6a5a;margin-bottom:1.25rem;line-height:1.5}
+  .overlay-box .btn{
+    padding:12px 28px;background:#7cb87c;color:#fff;
+    border:none;border-radius:10px;font-size:0.9rem;font-weight:600;cursor:pointer;
+  }
+  .overlay-box .btn:hover{background:#5c9a5c}
+
+  @media (max-width:600px){
+    .card{padding:20px 14px}
+    .steps{grid-template-columns:1fr 1fr}
+    .header h1{font-size:1.1rem}
+    .maze-area{padding:8px 8px 0}
+  }
+</style>
+</head>
+<body>
+
+<div class="card">
+
+  <div class="header">
+    <h1><span>🌳</span> Labirinto da Aldeia Indígena</h1>
+    <div class="timer">⏱️ <span id="timerDisplay">00:00</span></div>
+  </div>
+
+  <div class="student-row">
+    <div>
+      <label>🧑‍🎓 Nome</label>
+      <input type="text" id="studentName" placeholder="Seu nome..." style="width:220px">
+    </div>
+    <div>
+      <label>📅 Data</label>
+      <input type="text" id="studentDate" placeholder="__/__/____">
+    </div>
+  </div>
+
+  <!-- STEPS -->
+  <div class="steps">
+    <div class="step" onclick="toggleStep(0)" id="step0">
+      <span class="s-num">1</span>
+      <span class="s-text">Siga o caminho com o lápis</span>
+      <span class="s-check"></span>
+    </div>
+    <div class="step" onclick="toggleStep(1)" id="step1">
+      <span class="s-num">2</span>
+      <span class="s-text">Não ultrapasse as linhas</span>
+      <span class="s-check"></span>
+    </div>
+    <div class="step" onclick="toggleStep(2)" id="step2">
+      <span class="s-num">3</span>
+      <span class="s-text">Chegue até a oca do pajé</span>
+      <span class="s-check"></span>
+    </div>
+    <div class="step" onclick="toggleStep(3)" id="step3">
+      <span class="s-num">4</span>
+      <span class="s-text">Marque ✗ na oca do pajé</span>
+      <span class="s-check"></span>
+    </div>
+  </div>
+
+  <!-- MAZE + CANVAS -->
+  <div class="maze-area">
+    <canvas id="mazeCanvas" width="620" height="440"></canvas>
+    <div class="maze-legend">
+      <span class="ml-item"><span class="ml-sq" style="background:#fef7e6"></span> Zona 1</span>
+      <span class="ml-item"><span class="ml-sq" style="background:#e8f5e9"></span> Zona 2</span>
+      <span class="ml-item"><span class="ml-sq" style="background:#f3eef8"></span> Zona 3</span>
+    </div>
+    <div class="trace-tools">
+      <button onclick="setColor('#2d2a24')" class="active" id="toolPencil">✏️ Lápis</button>
+      <button onclick="setColor('#c49a6c')" id="toolMark">✗ Marcar</button>
+      <button onclick="clearCanvas()">🗑️ Apagar</button>
+    </div>
+  </div>
+
+  <!-- GOAL -->
+  <div class="goal-area">
+    <div class="g-icon">🏕️</div>
+    <div class="g-text">
+      <strong>TERMINOU?</strong> Marque <strong>X</strong> na oca do pajé para finalizar!
+    </div>
+    <button class="goal-btn" onclick="markGoal()" id="goalBtn">
+      <span>✗</span> Marcar X na Oca
+    </button>
+  </div>
+
+  <!-- PAUSE -->
+  <div class="pause-area">
+    <div class="p-icon">😌</div>
+    <div class="p-text">
+      <strong>Área de Pausa 🌬️</strong><br>
+      Respire fundo 3 vezes se precisar descansar:
+      <div style="margin-top:6px">
+        <button class="p-breath-btn" onclick="doBreathing()" id="breathBtn">
+          <span>🌬️</span> Inspirar <span class="p-breath-count" id="breathCount">0</span>/3
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- REWARD -->
+  <div class="reward-area">
+    <div>
+      <div class="r-label">🎁 RECOMPENSA — Escolha um adesivo</div>
+      <div style="font-size:0.68rem;color:#b8a898;margin-top:2px">Clique no adesivo que você ganhou!</div>
+    </div>
+    <div class="r-stickers">
+      <span class="r-sticker" onclick="collectSticker(this)">🐆</span>
+      <span class="r-sticker" onclick="collectSticker(this)">🦜</span>
+      <span class="r-sticker" onclick="collectSticker(this)">🐢</span>
+      <span class="r-sticker" onclick="collectSticker(this)">🦎</span>
+    </div>
+  </div>
+
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="overlay-box">
+    <div class="big-icon">🎉</div>
+    <h2>Parabéns! 🌟</h2>
+    <p>Você chegou até a oca do pajé!<br>Completou o labirinto da aldeia!</p>
+    <button class="btn" onclick="resetAll()">🔄 Fazer Novamente</button>
+  </div>
+</div>
+
+<script>
+// ── STATE ──
+let stepsDone = [false, false, false, false];
+let goalMarked = false;
+let timerInterval = null;
+let seconds = 0;
+let timerStarted = false;
+let breathCount = 0;
+let isBreathing = false;
+
+// ── TIMER ──
+function startTimer() {
+  if (timerStarted) return;
+  timerStarted = true;
+  timerInterval = setInterval(() => {
+    seconds++;
+    const m = String(Math.floor(seconds / 60)).padStart(2, '0');
+    const s = String(seconds % 60).padStart(2, '0');
+    document.getElementById('timerDisplay').textContent = m + ':' + s;
+  }, 1000);
+}
+
+// ── STEPS ──
+function toggleStep(idx) {
+  stepsDone[idx] = !stepsDone[idx];
+  const el = document.getElementById('step' + idx);
+  el.classList.toggle('done', stepsDone[idx]);
+  el.querySelector('.s-check').textContent = stepsDone[idx] ? '✓' : '';
+  if (stepsDone.some(s => s)) startTimer();
+}
+
+// ── CANVAS DRAWING ──
+const canvas = document.getElementById('mazeCanvas');
+const ctx = canvas.getContext('2d');
+let drawing = false;
+let currentColor = '#2d2a24';
+let currentSize = 3;
+
+function drawMaze() {
+  const W = 620, H = 440;
+
+  // Fundo neutro
+  ctx.fillStyle = '#fcf9f6';
+  ctx.fillRect(0, 0, W, H);
+
+  // Zonas coloridas (visíveis)
+  const zones = [
+    { x:20, y:80, w:110, h:55, color:'#fef7e6' },
+    { x:160, y:70, w:100, h:65, color:'#e8f5e9' },
+    { x:280, y:80, w:95, h:55, color:'#f3eef8' },
+    { x:25, y:152, w:150, h:55, color:'#fef7e6' },
+    { x:195, y:152, w:70, h:45, color:'#e8f5e9' },
+    { x:285, y:152, w:90, h:50, color:'#f3eef8' },
+    { x:10, y:225, w:170, h:45, color:'#fef7e6' },
+    { x:240, y:212, w:85, h:60, color:'#e8f5e9' },
+    { x:390, y:220, w:40, h:95, color:'#f3eef8' },
+    { x:105, y:285, w:110, h:50, color:'#fef7e6' },
+    { x:235, y:285, w:70, h:50, color:'#e8f5e9' },
+    { x:325, y:292, w:55, h:80, color:'#f3eef8' },
+  ];
+  zones.forEach(z => {
+    ctx.fillStyle = z.color;
+    ctx.globalAlpha = 0.5;
+    roundRect(ctx, z.x, z.y, z.w, z.h, 8);
+    ctx.globalAlpha = 1.0;
+  });
+
+  // INÍCIO
+  ctx.fillStyle = '#7cb87c';
+  roundRect(ctx, 10, 10, 90, 55, 8);
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 13px system-ui,sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('INÍCIO', 55, 38);
+  ctx.font = '9px system-ui,sans-serif';
+  ctx.fillStyle = '#e8f5e8';
+  ctx.fillText('🌿 entrada', 55, 52);
+
+  // OCA DO PAJÉ (FIM)
+  ctx.fillStyle = '#c49a6c';
+  roundRect(ctx, 390, 325, 96, 68, 10);
+  // Telhado da oca
+  ctx.fillStyle = '#8b6914';
+  ctx.beginPath();
+  ctx.moveTo(396, 290);
+  ctx.lineTo(438, 330);
+  ctx.lineTo(480, 290);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = '#a07828';
+  roundRect(ctx, 422, 330, 32, 24, 5);
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 12px system-ui,sans-serif';
+  ctx.fillText('🏕️ OCA', 438, 352);
+  ctx.font = '9px system-ui,sans-serif';
+  ctx.fillText('DO PAJÉ', 438, 368);
+  // X grande (decorativo)
+  ctx.font = '24px system-ui,sans-serif';
+  ctx.fillStyle = 'rgba(255,255,255,0.6)';
+  ctx.fillText('✗', 435, 320);
+
+  // PAREDES (labirinto)
+  function wall(x, y, w, h) {
+    ctx.fillStyle = '#4a3728';
+    roundRect(ctx, x, y, w, h, 3);
+  }
+
+  // Moldura externa
+  wall(5, 5, 610, 12);
+  wall(5, 423, 610, 12);
+  wall(5, 5, 12, 430);
+  wall(603, 5, 12, 430);
+
+  // Paredes horizontais internas
+  wall(10, 72, 130, 10);
+  wall(160, 62, 105, 10);
+  wall(290, 72, 85, 10);
+  wall(290, 135, 65, 10);
+  wall(10, 145, 105, 10);
+  wall(185, 145, 195, 10);
+  wall(10, 218, 165, 10);
+  wall(235, 205, 100, 10);
+  wall(365, 218, 110, 10);
+  wall(100, 278, 165, 10);
+  wall(320, 285, 75, 10);
+
+  // Paredes verticais internas
+  wall(148, 10, 10, 32);
+  wall(148, 82, 10, 63);
+  wall(275, 10, 10, 62);
+  wall(275, 145, 10, 60);
+  wall(185, 205, 10, 73);
+  wall(385, 62, 10, 73);
+  wall(385, 218, 10, 67);
+  wall(90, 288, 10, 55);
+  wall(225, 278, 10, 55);
+  wall(320, 285, 10, 55);
+  wall(445, 228, 10, 97);
+
+  // Setas de direção (suaves)
+  ctx.fillStyle = '#8b7355';
+  ctx.globalAlpha = 0.3;
+  function arrow(cx, cy) {
+    ctx.beginPath();
+    ctx.moveTo(cx-5, cy+4); ctx.lineTo(cx, cy-4); ctx.lineTo(cx+5, cy+4);
+    ctx.closePath();
+    ctx.fill();
+  }
+  arrow(85, 100); arrow(210, 100); arrow(330, 100);
+  arrow(60, 178); arrow(230, 178);
+  arrow(60, 245); arrow(160, 245); arrow(340, 250);
+  arrow(160, 310); arrow(270, 310); arrow(355, 335);
+  ctx.globalAlpha = 1.0;
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x+r, y);
+  ctx.lineTo(x+w-r, y);
+  ctx.quadraticCurveTo(x+w, y, x+w, y+r);
+  ctx.lineTo(x+w, y+h-r);
+  ctx.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
+  ctx.lineTo(x+r, y+h);
+  ctx.quadraticCurveTo(x, y+h, x, y+h-r);
+  ctx.lineTo(x, y+r);
+  ctx.quadraticCurveTo(x, y, x+r, y);
+  ctx.closePath();
+  ctx.fill();
+}
+
+// ── DRAWING ON CANVAS ──
+function getCanvasPos(e) {
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
+  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+  return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
+}
+
+function startDraw(e) {
+  e.preventDefault();
+  drawing = true;
+  const pos = getCanvasPos(e);
+  ctx.beginPath();
+  ctx.moveTo(pos.x, pos.y);
+  startTimer();
+}
+
+function draw(e) {
+  e.preventDefault();
+  if (!drawing) return;
+  const pos = getCanvasPos(e);
+  ctx.strokeStyle = currentColor;
+  ctx.lineWidth = currentSize;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.lineTo(pos.x, pos.y);
+  ctx.stroke();
+}
+
+function endDraw(e) {
+  e.preventDefault();
+  drawing = false;
+}
+
+canvas.addEventListener('mousedown', startDraw);
+canvas.addEventListener('mousemove', draw);
+canvas.addEventListener('mouseup', endDraw);
+canvas.addEventListener('mouseleave', endDraw);
+canvas.addEventListener('touchstart', startDraw, {passive:false});
+canvas.addEventListener('touchmove', draw, {passive:false});
+canvas.addEventListener('touchend', endDraw, {passive:false});
+
+function setColor(color) {
+  currentColor = color;
+  currentSize = color === '#c49a6c' ? 6 : 3;
+  document.querySelectorAll('.trace-tools button').forEach(b => b.classList.remove('active'));
+  if (color === '#2d2a24') document.getElementById('toolPencil').classList.add('active');
+  else if (color === '#c49a6c') document.getElementById('toolMark').classList.add('active');
+}
+
+function clearCanvas() {
+  drawMaze();
+}
+
+// ── GOAL ──
+function markGoal() {
+  if (goalMarked) return;
+  goalMarked = true;
+  document.getElementById('goalBtn').classList.add('done');
+  document.getElementById('goalBtn').innerHTML = '<span>✓</span> ✗ Marcado!';
+  startTimer();
+  // Auto-check step 4
+  if (!stepsDone[3]) toggleStep(3);
+  setTimeout(() => {
+    document.getElementById('overlay').classList.add('open');
+    if (timerInterval) clearInterval(timerInterval);
+  }, 500);
+}
+
+// ── BREATHING ──
+function doBreathing() {
+  if (isBreathing) return;
+  isBreathing = true;
+  const btn = document.getElementById('breathBtn');
+  const countEl = document.getElementById('breathCount');
+  btn.classList.add('active');
+
+  let i = 0;
+  function nextBreath() {
+    if (i >= 3) {
+      btn.classList.remove('active');
+      isBreathing = false;
+      return;
+    }
+    breathCount = i + 1;
+    countEl.textContent = breathCount;
+    btn.innerHTML = '<span>🌬️</span> Inspire ' + (i+1) + '/3 <span class="p-breath-count" id="breathCount">' + (i+1) + '</span>/3';
+    i++;
+    setTimeout(nextBreath, 2500);
+  }
+  nextBreath();
+}
+
+// ── STICKERS ──
+function collectSticker(el) {
+  el.classList.toggle('collected');
+}
+
+// ── RESET ──
+function resetAll() {
+  document.getElementById('overlay').classList.remove('open');
+  goalMarked = false;
+  stepsDone = [false, false, false, false];
+  seconds = 0; timerStarted = false;
+  breathCount = 0;
+  document.getElementById('timerDisplay').textContent = '00:00';
+  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+  const btn = document.getElementById('goalBtn');
+  btn.classList.remove('done');
+  btn.innerHTML = '<span>✗</span> Marcar X na Oca';
+  for (let i = 0; i < 4; i++) {
+    const el = document.getElementById('step' + i);
+    if (el) { el.classList.remove('done'); el.querySelector('.s-check').textContent = ''; }
+  }
+  document.querySelectorAll('.r-sticker').forEach(s => s.classList.remove('collected'));
+  const cb = document.getElementById('breathBtn');
+  cb.classList.remove('active');
+  cb.innerHTML = '<span>🌬️</span> Inspirar <span class="p-breath-count" id="breathCount">0</span>/3';
+  drawMaze();
+}
+
+// ── INIT ──
+drawMaze();
+</script>
+<script src="ia_api.js"></script>
+<script>IAApi.injectWidget({ context: 'Labirinto interativo sobre aldeia indígena. Ajude explicando os povos indígenas originários.' });</script>
+</body>
+</html>

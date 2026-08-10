@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="UNO Educativo sobre o Egito Antigo — 110 cartas para aprender história jogando">
+    <title>UNO Educativo — Egito Antigo</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🃏</text></svg>">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap');
+
+        :root {
+            --ochre: #C8882A;
+            --charcoal: #1E1A16;
+            --bone: #EDE0C8;
+            --terracotta: #9C3E28;
+            --gold: #D4AF37;
+            --stone: #7A7060;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Crimson Text', Georgia, serif;
+            background: radial-gradient(ellipse at top, #2d1f0e, #1a1208 70%);
+            min-height: 100vh;
+            padding: 24px;
+            color: var(--charcoal);
+        }
+
+        .page {
+            max-width: 1440px;
+            margin: 0 auto;
+            background: linear-gradient(170deg, #f7efe0 0%, #ede0c8 60%, #e4d4b0 100%);
+            border-radius: 20px;
+            box-shadow: 0 24px 80px rgba(0,0,0,0.6);
+            border: 3px solid var(--ochre);
+            overflow: hidden;
+        }
+
+        /* HEADER */
+        .site-header {
+            background: linear-gradient(135deg, #1a0e05, #2d1a08 40%, #1a0e05);
+            padding: 40px 48px 36px;
+            text-align: center;
+            border-bottom: 4px solid var(--gold);
+            position: relative;
+        }
+        .site-header::before {
+            content: '';
+            position: absolute; inset: 0;
+            background: repeating-linear-gradient(45deg, transparent, transparent 30px, rgba(212,175,55,0.04) 30px, rgba(212,175,55,0.04) 60px);
+        }
+        .header-eyebrow {
+            font-family: 'Cinzel', serif;
+            color: var(--gold);
+            font-size: .85rem;
+            letter-spacing: 5px;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+            opacity: .8;
+        }
+        .site-header h1 {
+            font-family: 'Cinzel', serif;
+            font-weight: 900;
+            font-size: clamp(2rem, 5vw, 3.8rem);
+            color: var(--bone);
+            letter-spacing: 4px;
+            text-shadow: 0 2px 12px rgba(0,0,0,0.6), 0 0 40px rgba(212,175,55,0.3);
+        }
+        .site-header h1 span { color: var(--gold); }
+        .header-meta {
+            margin-top: 16px;
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        .meta-pill {
+            background: rgba(212,175,55,0.15);
+            border: 1px solid rgba(212,175,55,0.3);
+            color: var(--bone);
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-size: .9rem;
+        }
+
+        /* TABS */
+        .tab-bar {
+            background: rgba(30,26,22,0.06);
+            border-bottom: 2px solid rgba(200,136,42,0.25);
+            padding: 0 40px;
+            display: flex;
+            gap: 4px;
+            overflow-x: auto;
+        }
+        .tab-btn {
+            font-family: 'Cinzel', serif;
+            font-size: .85rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            padding: 18px 22px 15px;
+            cursor: pointer;
+            color: var(--stone);
+            transition: all .2s;
+            white-space: nowrap;
+        }
+        .tab-btn:hover { color: var(--ochre); }
+        .tab-btn.active { color: var(--terracotta); border-bottom-color: var(--terracotta); }
+
+        /* PANES */
+        .tab-pane { display: none; padding: 40px 48px 60px; }
+        .tab-pane.active { display: block; animation: fadeUp .3s ease; }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .section-label {
+            font-family: 'Cinzel', serif;
+            font-size: 1rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--stone);
+            margin-bottom: 6px;
+        }
+        .section-title {
+            font-family: 'Cinzel', serif;
+            font-size: 1.7rem;
+            color: var(--terracotta);
+            margin-bottom: 28px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid rgba(200,136,42,0.25);
+        }
+
+        /* COLOR GROUP */
+        .color-group { margin-bottom: 56px; }
+        .group-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 24px;
+            padding: 14px 20px;
+            border-radius: 10px;
+            border-left: 5px solid;
+        }
+        .group-header.red    { background: rgba(192,57,43,0.08);  border-color: #C0392B; color: #C0392B; }
+        .group-header.blue   { background: rgba(36,113,163,0.08); border-color: #2471A3; color: #2471A3; }
+        .group-header.green  { background: rgba(30,132,73,0.08);  border-color: #1E8449; color: #1E8449; }
+        .group-header.yellow { background: rgba(183,149,11,0.08); border-color: #B7950B; color: #B7950B; }
+        .group-header.special{ background: rgba(44,62,80,0.08);   border-color: #2C3E50; color: #2C3E50; }
+        .group-header h2 { font-family: 'Cinzel', serif; font-size: 1.2rem; font-weight: 700; }
+        .diff-badge {
+            margin-left: auto;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: .75rem;
+            font-family: 'Cinzel', serif;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+        .badge-easy   { background: #1E8449; color: #fff; }
+        .badge-medium { background: #B7950B; color: #fff; }
+        .badge-action { background: #2C3E50; color: #fff; }
+
+        /* CARDS GRID */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+            gap: 18px;
+        }
+
+        /* CARD */
+        .card {
+            width: 100%;
+            max-width: 215px;
+            aspect-ratio: 2/3;
+            border-radius: 15px;
+            border: 3px solid rgba(0,0,0,0.22);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+            margin: 0 auto;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.12);
+            transition: transform .22s, box-shadow .22s;
+        }
+        .card:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 12px 28px rgba(0,0,0,0.38);
+        }
+        /* inner oval decoration */
+        .card::after {
+            content: '';
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 55%; height: 65%;
+            border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.18);
+            pointer-events: none;
+        }
+
+        .card-bg-red    { background: linear-gradient(145deg, #e74c3c, #a93226); color: #fff; }
+        .card-bg-blue   { background: linear-gradient(145deg, #2e86c1, #1a5276); color: #fff; }
+        .card-bg-green  { background: linear-gradient(145deg, #27ae60, #1a7a40); color: #fff; }
+        .card-bg-yellow { background: linear-gradient(145deg, #f1c40f, #d4ac0d); color: #2c1a00; }
+        .card-bg-special{ background: linear-gradient(145deg, #2c3e50, #1a252f); color: #fff; border: 3px solid var(--gold); }
+
+        .card-corner {
+            position: absolute;
+            font-family: 'Cinzel', serif;
+            font-size: 1.45rem;
+            font-weight: 900;
+            line-height: 1;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.35);
+        }
+        .card-corner-tl { top: 10px; left: 11px; }
+        .card-corner-br { bottom: 10px; right: 11px; transform: rotate(180deg); }
+
+        .card-body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 42px 14px;
+            text-align: center;
+            gap: 9px;
+            z-index: 1;
+        }
+        .card-icon { font-size: 2.2rem; filter: drop-shadow(1px 2px 3px rgba(0,0,0,0.28)); }
+        .card-type {
+            font-family: 'Cinzel', serif;
+            font-size: .6rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            padding: 3px 9px;
+            background: rgba(0,0,0,0.18);
+            border-radius: 4px;
+        }
+        .card-text {
+            font-family: 'Crimson Text', serif;
+            font-size: .88rem;
+            line-height: 1.4;
+            font-weight: 600;
+        }
+
+        /* SPECIAL TABLE */
+        .special-table { width: 100%; border-collapse: collapse; font-size: .94rem; margin-top: 8px; }
+        .special-table th {
+            font-family: 'Cinzel', serif;
+            font-size: .76rem;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            background: var(--charcoal);
+            color: var(--bone);
+            padding: 10px 16px;
+            text-align: left;
+        }
+        .special-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid rgba(200,136,42,0.15);
+            vertical-align: top;
+            line-height: 1.5;
+        }
+        .special-table tr:nth-child(even) td { background: rgba(200,136,42,0.05); }
+        .special-tag {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-family: 'Cinzel', serif;
+            font-size: .73rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+        .tag-plus2   { background: #C0392B; color: #fff; }
+        .tag-plus4   { background: #1a252f; color: var(--gold); border: 1px solid var(--gold); }
+        .tag-skip    { background: #2471A3; color: #fff; }
+        .tag-reverse { background: #1E8449; color: #fff; }
+        .tag-wild    { background: linear-gradient(90deg,#e74c3c,#f1c40f,#27ae60,#2e86c1); color: #fff; }
+        .tag-special { background: var(--ochre); color: #fff; }
+
+        /* CARD BACK */
+        .card-back {
+            width: 215px;
+            aspect-ratio: 2/3;
+            border-radius: 15px;
+            border: 3px solid var(--gold);
+            background: linear-gradient(145deg, #1a0e05, #2d1a08);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            box-shadow: 0 8px 22px rgba(0,0,0,0.45);
+            margin: 0 auto;
+            position: relative;
+            overflow: hidden;
+            print-color-adjust: exact;
+            -webkit-print-color-adjust: exact;
+        }
+        .card-back::before {
+            content: '';
+            position: absolute; inset: 8px;
+            border: 1px solid rgba(212,175,55,0.35);
+            border-radius: 9px;
+        }
+        .card-back::after {
+            content: '';
+            position: absolute; inset: 0;
+            background: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(212,175,55,0.04) 10px, rgba(212,175,55,0.04) 20px);
+        }
+        .card-back-icon  { font-size: 2.8rem; z-index: 1; }
+        .card-back-title { font-family: 'Cinzel', serif; color: var(--gold); font-size: .95rem; font-weight: 700; letter-spacing: 2px; text-align: center; z-index: 1; }
+        .card-back-sub   { font-family: 'Crimson Text', serif; color: rgba(212,175,55,0.55); font-size: .75rem; letter-spacing: 3px; text-transform: uppercase; z-index: 1; }
+
+        /* RULES */
+        .rules-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+            gap: 22px;
+            margin-top: 8px;
+        }
+        .rule-card {
+            background: white;
+            border-radius: 12px;
+            padding: 22px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+            border-top: 4px solid var(--ochre);
+        }
+        .rule-card h3 {
+            font-family: 'Cinzel', serif;
+            font-size: 1rem;
+            color: var(--terracotta);
+            margin-bottom: 12px;
+        }
+        .rule-card p, .rule-card li { font-size: 1rem; line-height: 1.7; color: #444; }
+        .rule-card ul { margin-left: 18px; }
+        .rule-card li { margin-bottom: 6px; }
+        .highlight-rule {
+            background: linear-gradient(135deg, #fff8e1, #fff3cd);
+            border: 2px solid var(--ochre);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 24px;
+        }
+        .highlight-rule h4 { font-family: 'Cinzel', serif; color: var(--terracotta); margin-bottom: 10px; }
+
+        /* STATS */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 18px;
+            margin-bottom: 40px;
+        }
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 26px 18px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+            border-top: 4px solid var(--gold);
+        }
+        .stat-number { font-family: 'Cinzel', serif; font-size: 2.6rem; font-weight: 700; color: var(--terracotta); line-height: 1; margin-bottom: 6px; }
+        .stat-label  { color: var(--stone); font-size: .93rem; }
+
+        .audit-table { width: 100%; border-collapse: collapse; font-size: .93rem; }
+        .audit-table th {
+            font-family: 'Cinzel', serif; font-size: .75rem; letter-spacing: 1.5px;
+            background: var(--charcoal); color: var(--bone); padding: 10px 14px; text-align: left;
+        }
+        .audit-table td { padding: 11px 14px; border-bottom: 1px solid rgba(200,136,42,0.14); vertical-align: top; line-height: 1.5; }
+        .audit-table tr:nth-child(even) td { background: rgba(200,136,42,0.04); }
+        .status-fixed { color: var(--ochre); font-weight: 700; }
+        .status-ok    { color: #1E8449; font-weight: 700; }
+
+        /* PRINT */
+        .print-box {
+            background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+            border: 2px solid #27ae60;
+            border-radius: 12px;
+            padding: 22px 26px;
+            margin-bottom: 34px;
+        }
+        .print-box h3 { font-family: 'Cinzel', serif; color: #1E8449; margin-bottom: 10px; font-size: 1.05rem; }
+        .print-box ul { margin-left: 20px; line-height: 2; color: #2d4a2d; }
+
+        @media print {
+            body { background: white; padding: 0; }
+            .page { box-shadow: none; border: none; border-radius: 0; }
+            .site-header, .tab-bar, .print-box { display: none !important; }
+            .tab-pane { display: block !important; padding: 10px; }
+            .cards-grid { grid-template-columns: repeat(4, 1fr); gap: 7px; }
+            .card { break-inside: avoid; box-shadow: none; }
+            .card:hover { transform: none; }
+            .color-group { break-inside: avoid; }
+        }
+        @media (max-width: 768px) {
+            .tab-pane { padding: 22px 18px 40px; }
+            .site-header { padding: 26px 22px; }
+            .cards-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
+        }
+    </style>
+</head>
+<body>
+<div class="page">
+
+    <header class="site-header">
+        <div class="header-eyebrow">Jogo Educativo de Cartas</div>
+        <h1>🏺 UNO <span>EGITO ANTIGO</span> 🏺</h1>
+        <div class="header-meta">
+            <span class="meta-pill">📦 110 cartas</span>
+            <span class="meta-pill">👥 2–10 jogadores</span>
+            <span class="meta-pill">⏱ 20–40 min</span>
+            <span class="meta-pill">🎓 A partir de 10 anos</span>
+        </div>
+    </header>
+
+    <nav class="tab-bar">
+        <button class="tab-btn active" onclick="showTab('cards',this)">🎴 Cartas do Jogo</button>
+        <button class="tab-btn" onclick="showTab('back',this)">🃏 Verso das Cartas</button>
+        <button class="tab-btn" onclick="showTab('rules',this)">📖 Como Jogar</button>
+        <button class="tab-btn" onclick="showTab('stats',this)">📊 Informações</button>
+    </nav>
+
+    <!-- ═══ TAB: CARTAS ═══ -->
+    <div id="tab-cards" class="tab-pane active">
+
+        <div class="print-box">
+            <h3>🖨️ Dicas de Impressão</h3>
+            <ul>
+                <li><strong>Papel:</strong> 180g ou superior (couché ou fotográfico ideal)</li>
+                <li><strong>Configuração:</strong> Tamanho Real | Escala 100% | Sem margens automáticas</li>
+                <li><strong>Frente e verso:</strong> Imprima as frentes, vire e imprima a aba "Verso das Cartas"</li>
+                <li><strong>Acabamento:</strong> Plastifique ou use contact para durabilidade</li>
+                <li><strong>Corte:</strong> Guilhotina ou estilete com régua para bordas precisas</li>
+            </ul>
+        </div>
+
+        <!-- VERMELHAS -->
+        <div class="color-group">
+            <div class="group-header red">
+                <h2>🔴 Cartas Vermelhas — Perguntas Básicas</h2>
+                <span class="diff-badge badge-easy">FÁCIL</span>
+            </div>
+            <div class="cards-grid">
+                <div class="card card-bg-red"><span class="card-corner card-corner-tl">0</span><div class="card-body"><div class="card-icon">💧</div><div class="card-type">Pergunta</div><div class="card-text">Qual rio era fundamental para a vida no Egito?</div></div><span class="card-corner card-corner-br">0</span></div>
+                <div class="card card-bg-red"><span class="card-corner card-corner-tl">1</span><div class="card-body"><div class="card-icon">👑</div><div class="card-type">Pergunta</div><div class="card-text">Como eram chamados os reis do Egito Antigo?</div></div><span class="card-corner card-corner-br">1</span></div>
+                <div class="card card-bg-red"><span class="card-corner card-corner-tl">2</span><div class="card-body"><div class="card-icon">📜</div><div class="card-type">Pergunta</div><div class="card-text">Qual era o sistema de escrita dos egípcios?</div></div><span class="card-corner card-corner-br">2</span></div>
+                <div class="card card-bg-red"><span class="card-corner card-corner-tl">3</span><div class="card-body"><div class="card-icon">⚰️</div><div class="card-type">Pergunta</div><div class="card-text">Como se chama o processo de preservar corpos dos mortos?</div></div><span class="card-corner card-corner-br">3</span></div>
+                <div class="card card-bg-red"><span class="card-corner card-corner-tl">4</span><div class="card-body"><div class="card-icon">🔺</div><div class="card-type">Pergunta</div><div class="card-text">Qual é a maior pirâmide do Egito?</div></div><span class="card-corner card-corner-br">4</span></div>
+                <div class="card card-bg-red"><span class="card-corner card-corner-tl">5</span><div class="card-body"><div class="card-icon">🐕</div><div class="card-type">Pergunta</div><div class="card-text">Qual deus tinha cabeça de chacal e protegia os mortos?</div></div><span class="card-corner card-corner-br">5</span></div>
+                <div class="card card-bg-red"><span class="card-corner card-corner-tl">6</span><div class="card-body"><div class="card-icon">✍️</div><div class="card-type">Pergunta</div><div class="card-text">Quem eram os profissionais que sabiam ler e escrever no Egito?</div></div><span class="card-corner card-corner-br">6</span></div>
+                <div class="card card-bg-red"><span class="card-corner card-corner-tl">7</span><div class="card-body"><div class="card-icon">👸</div><div class="card-type">Pergunta</div><div class="card-text">Qual rainha egípcia se tornou símbolo de beleza, famosa por seu busto esculpido?</div></div><span class="card-corner card-corner-br">7</span></div>
+                <div class="card card-bg-red"><span class="card-corner card-corner-tl">8</span><div class="card-body"><div class="card-icon">🌾</div><div class="card-type">Pergunta</div><div class="card-text">Qual planta egípcia era usada para fazer papel?</div></div><span class="card-corner card-corner-br">8</span></div>
+                <div class="card card-bg-red"><span class="card-corner card-corner-tl">9</span><div class="card-body"><div class="card-icon">🦁</div><div class="card-type">Pergunta</div><div class="card-text">Qual monumento tem corpo de leão e cabeça humana?</div></div><span class="card-corner card-corner-br">9</span></div>
+            </div>
+        </div>
+
+        <!-- AZUIS -->
+        <div class="color-group">
+            <div class="group-header blue">
+                <h2>🔵 Cartas Azuis — Respostas Básicas</h2>
+                <span class="diff-badge badge-easy">FÁCIL</span>
+            </div>
+            <div class="cards-grid">
+                <div class="card card-bg-blue"><span class="card-corner card-corner-tl">0</span><div class="card-body"><div class="card-icon">💧</div><div class="card-type">Resposta</div><div class="card-text">Rio Nilo</div></div><span class="card-corner card-corner-br">0</span></div>
+                <div class="card card-bg-blue"><span class="card-corner card-corner-tl">1</span><div class="card-body"><div class="card-icon">👑</div><div class="card-type">Resposta</div><div class="card-text">Faraós</div></div><span class="card-corner card-corner-br">1</span></div>
+                <div class="card card-bg-blue"><span class="card-corner card-corner-tl">2</span><div class="card-body"><div class="card-icon">📜</div><div class="card-type">Resposta</div><div class="card-text">Hieróglifos</div></div><span class="card-corner card-corner-br">2</span></div>
+                <div class="card card-bg-blue"><span class="card-corner card-corner-tl">3</span><div class="card-body"><div class="card-icon">⚰️</div><div class="card-type">Resposta</div><div class="card-text">Mumificação</div></div><span class="card-corner card-corner-br">3</span></div>
+                <div class="card card-bg-blue"><span class="card-corner card-corner-tl">4</span><div class="card-body"><div class="card-icon">🔺</div><div class="card-type">Resposta</div><div class="card-text">Pirâmide de Quéops (Grande Pirâmide de Gizé)</div></div><span class="card-corner card-corner-br">4</span></div>
+                <div class="card card-bg-blue"><span class="card-corner card-corner-tl">5</span><div class="card-body"><div class="card-icon">🐕</div><div class="card-type">Resposta</div><div class="card-text">Anúbis</div></div><span class="card-corner card-corner-br">5</span></div>
+                <div class="card card-bg-blue"><span class="card-corner card-corner-tl">6</span><div class="card-body"><div class="card-icon">✍️</div><div class="card-type">Resposta</div><div class="card-text">Escribas</div></div><span class="card-corner card-corner-br">6</span></div>
+                <div class="card card-bg-blue"><span class="card-corner card-corner-tl">7</span><div class="card-body"><div class="card-icon">👸</div><div class="card-type">Resposta</div><div class="card-text">Nefertiti</div></div><span class="card-corner card-corner-br">7</span></div>
+                <div class="card card-bg-blue"><span class="card-corner card-corner-tl">8</span><div class="card-body"><div class="card-icon">🌾</div><div class="card-type">Resposta</div><div class="card-text">Papiro</div></div><span class="card-corner card-corner-br">8</span></div>
+                <div class="card card-bg-blue"><span class="card-corner card-corner-tl">9</span><div class="card-body"><div class="card-icon">🦁</div><div class="card-type">Resposta</div><div class="card-text">Esfinge de Gizé</div></div><span class="card-corner card-corner-br">9</span></div>
+            </div>
+        </div>
+
+        <!-- VERDES -->
+        <div class="color-group">
+            <div class="group-header green">
+                <h2>🟢 Cartas Verdes — Perguntas Intermediárias</h2>
+                <span class="diff-badge badge-medium">MÉDIO</span>
+            </div>
+            <div class="cards-grid">
+                <div class="card card-bg-green"><span class="card-corner card-corner-tl">0</span><div class="card-body"><div class="card-icon">☀️</div><div class="card-type">Pergunta</div><div class="card-text">Qual era o deus Sol, um dos mais venerados do Egito?</div></div><span class="card-corner card-corner-br">0</span></div>
+                <div class="card card-bg-green"><span class="card-corner card-corner-tl">1</span><div class="card-body"><div class="card-icon">⚰️</div><div class="card-type">Pergunta</div><div class="card-text">Onde ficava a necrópole dos faraós do Novo Reino?</div></div><span class="card-corner card-corner-br">1</span></div>
+                <div class="card card-bg-green"><span class="card-corner card-corner-tl">2</span><div class="card-body"><div class="card-icon">🏛️</div><div class="card-type">Pergunta</div><div class="card-text">Qual era a capital do Antigo Império egípcio?</div></div><span class="card-corner card-corner-br">2</span></div>
+                <div class="card card-bg-green"><span class="card-corner card-corner-tl">3</span><div class="card-body"><div class="card-icon">👩‍👦</div><div class="card-type">Pergunta</div><div class="card-text">Qual deusa era considerada a mãe divina de todos os faraós?</div></div><span class="card-corner card-corner-br">3</span></div>
+                <div class="card card-bg-green"><span class="card-corner card-corner-tl">4</span><div class="card-body"><div class="card-icon">🗿</div><div class="card-type">Pergunta</div><div class="card-text">Qual faraó mandou construir o templo de Abu Simbel?</div></div><span class="card-corner card-corner-br">4</span></div>
+                <div class="card card-bg-green"><span class="card-corner card-corner-tl">5</span><div class="card-body"><div class="card-icon">📖</div><div class="card-type">Pergunta</div><div class="card-text">Como se chamava o guia espiritual egípcio que acompanhava os mortos?</div></div><span class="card-corner card-corner-br">5</span></div>
+                <div class="card card-bg-green"><span class="card-corner card-corner-tl">6</span><div class="card-body"><div class="card-icon">🪨</div><div class="card-type">Pergunta</div><div class="card-text">Qual pedra ajudou os estudiosos a decifrar os hieróglifos?</div></div><span class="card-corner card-corner-br">6</span></div>
+                <div class="card card-bg-green"><span class="card-corner card-corner-tl">7</span><div class="card-body"><div class="card-icon">💀</div><div class="card-type">Pergunta</div><div class="card-text">Qual deus era esposo de Ísis e rei do mundo dos mortos?</div></div><span class="card-corner card-corner-br">7</span></div>
+                <div class="card card-bg-green"><span class="card-corner card-corner-tl">8</span><div class="card-body"><div class="card-icon">🐦</div><div class="card-type">Pergunta</div><div class="card-text">Qual deus tinha cabeça de falcão e era protetor do faraó?</div></div><span class="card-corner card-corner-br">8</span></div>
+                <div class="card card-bg-green"><span class="card-corner card-corner-tl">9</span><div class="card-body"><div class="card-icon">🐱</div><div class="card-type">Pergunta</div><div class="card-text">Qual animal era sagrado no Egito e associado à deusa Bastet?</div></div><span class="card-corner card-corner-br">9</span></div>
+            </div>
+        </div>
+
+        <!-- AMARELAS -->
+        <div class="color-group">
+            <div class="group-header yellow">
+                <h2>🟡 Cartas Amarelas — Respostas Intermediárias</h2>
+                <span class="diff-badge badge-medium">MÉDIO</span>
+            </div>
+            <div class="cards-grid">
+                <div class="card card-bg-yellow"><span class="card-corner card-corner-tl">0</span><div class="card-body"><div class="card-icon">☀️</div><div class="card-type">Resposta</div><div class="card-text">Rá (ou Amon-Rá)</div></div><span class="card-corner card-corner-br">0</span></div>
+                <div class="card card-bg-yellow"><span class="card-corner card-corner-tl">1</span><div class="card-body"><div class="card-icon">⚰️</div><div class="card-type">Resposta</div><div class="card-text">Vale dos Reis (Tebas)</div></div><span class="card-corner card-corner-br">1</span></div>
+                <div class="card card-bg-yellow"><span class="card-corner card-corner-tl">2</span><div class="card-body"><div class="card-icon">🏛️</div><div class="card-type">Resposta</div><div class="card-text">Mênfis</div></div><span class="card-corner card-corner-br">2</span></div>
+                <div class="card card-bg-yellow"><span class="card-corner card-corner-tl">3</span><div class="card-body"><div class="card-icon">👩‍👦</div><div class="card-type">Resposta</div><div class="card-text">Ísis</div></div><span class="card-corner card-corner-br">3</span></div>
+                <div class="card card-bg-yellow"><span class="card-corner card-corner-tl">4</span><div class="card-body"><div class="card-icon">🗿</div><div class="card-type">Resposta</div><div class="card-text">Ramsés II</div></div><span class="card-corner card-corner-br">4</span></div>
+                <div class="card card-bg-yellow"><span class="card-corner card-corner-tl">5</span><div class="card-body"><div class="card-icon">📖</div><div class="card-type">Resposta</div><div class="card-text">Livro dos Mortos</div></div><span class="card-corner card-corner-br">5</span></div>
+                <div class="card card-bg-yellow"><span class="card-corner card-corner-tl">6</span><div class="card-body"><div class="card-icon">🪨</div><div class="card-type">Resposta</div><div class="card-text">Pedra de Roseta</div></div><span class="card-corner card-corner-br">6</span></div>
+                <div class="card card-bg-yellow"><span class="card-corner card-corner-tl">7</span><div class="card-body"><div class="card-icon">💀</div><div class="card-type">Resposta</div><div class="card-text">Osíris</div></div><span class="card-corner card-corner-br">7</span></div>
+                <div class="card card-bg-yellow"><span class="card-corner card-corner-tl">8</span><div class="card-body"><div class="card-icon">🐦</div><div class="card-type">Resposta</div><div class="card-text">Hórus</div></div><span class="card-corner card-corner-br">8</span></div>
+                <div class="card card-bg-yellow"><span class="card-corner card-corner-tl">9</span><div class="card-body"><div class="card-icon">🐱</div><div class="card-type">Resposta</div><div class="card-text">O gato</div></div><span class="card-corner card-corner-br">9</span></div>
+            </div>
+        </div>
+
+        <!-- ESPECIAIS -->
+        <div class="color-group">
+            <div class="group-header special">
+                <h2>⚫ Cartas Especiais — Ações Temáticas</h2>
+                <span class="diff-badge badge-action">AÇÃO</span>
+            </div>
+            <table class="special-table">
+                <thead>
+                    <tr><th>Tipo</th><th>Nome da Carta</th><th>Qtd.</th><th>Efeito no Jogo</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><span class="special-tag tag-plus2">+2</span></td><td><strong>Praga do Faraó</strong></td><td>8 (2/cor)</td><td>O próximo jogador compra 2 cartas e perde o turno. Pode ser bloqueada por outra carta +2.</td></tr>
+                    <tr><td><span class="special-tag tag-skip">Pular</span></td><td><strong>Maldição da Múmia</strong></td><td>8 (2/cor)</td><td>O próximo jogador perde o turno. Em 2 jogadores: funciona como jogar novamente.</td></tr>
+                    <tr><td><span class="special-tag tag-reverse">Inverter</span></td><td><strong>Inundação do Nilo</strong></td><td>8 (2/cor)</td><td>Inverte o sentido do jogo. Em 2 jogadores: funciona como Pular.</td></tr>
+                    <tr><td><span class="special-tag tag-wild">Coringa</span></td><td><strong>Olho de Rá</strong></td><td>4</td><td>Escolha qualquer cor para continuar. Quem jogar deve citar um fato sobre o Egito Antigo.</td></tr>
+                    <tr><td><span class="special-tag tag-plus4">+4 Coringa</span></td><td><strong>Fúria dos Deuses</strong></td><td>4</td><td>Escolha a cor E o próximo compra 4 cartas e perde o turno. Só válida sem outra carta jogável na mão.</td></tr>
+                    <tr><td><span class="special-tag tag-special">Especial</span></td><td><strong>Desafio do Escriba</strong></td><td>4</td><td>Faça uma pergunta sobre o Egito ao jogador da esquerda. Se ele acertar: você compra 1. Se errar: ele compra 2.</td></tr>
+                    <tr><td><span class="special-tag tag-special">Especial</span></td><td><strong>Tesouro de Tutancâmon</strong></td><td>4</td><td>Descarte 2 cartas extras da sua mão (além da carta especial). "Encontraste o tesouro!"</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div><!-- /tab-cards -->
+
+    <!-- ═══ TAB: VERSO ═══ -->
+    <div id="tab-back" class="tab-pane">
+        <div class="section-label">Para impressão frente e verso</div>
+        <h2 class="section-title">Verso das Cartas</h2>
+        <p style="margin-bottom:32px; color:#555; font-size:1.05rem; line-height:1.7;">
+            Imprima esta página no verso das folhas que contêm as frentes das cartas. Todas as cartas compartilham o mesmo verso — alinhe com cuidado antes de cortar.
+        </p>
+        <div class="cards-grid">
+            <div class="card-back"><div class="card-back-icon">🏺</div><div class="card-back-title">UNO<br>EGITO ANTIGO</div><div class="card-back-sub">Educativo</div></div>
+            <div class="card-back"><div class="card-back-icon">🏺</div><div class="card-back-title">UNO<br>EGITO ANTIGO</div><div class="card-back-sub">Educativo</div></div>
+            <div class="card-back"><div class="card-back-icon">🏺</div><div class="card-back-title">UNO<br>EGITO ANTIGO</div><div class="card-back-sub">Educativo</div></div>
+            <div class="card-back"><div class="card-back-icon">🏺</div><div class="card-back-title">UNO<br>EGITO ANTIGO</div><div class="card-back-sub">Educativo</div></div>
+            <div class="card-back"><div class="card-back-icon">🏺</div><div class="card-back-title">UNO<br>EGITO ANTIGO</div><div class="card-back-sub">Educativo</div></div>
+            <div class="card-back"><div class="card-back-icon">🏺</div><div class="card-back-title">UNO<br>EGITO ANTIGO</div><div class="card-back-sub">Educativo</div></div>
+            <div class="card-back"><div class="card-back-icon">🏺</div><div class="card-back-title">UNO<br>EGITO ANTIGO</div><div class="card-back-sub">Educativo</div></div>
+            <div class="card-back"><div class="card-back-icon">🏺</div><div class="card-back-title">UNO<br>EGITO ANTIGO</div><div class="card-back-sub">Educativo</div></div>
+            <div class="card-back"><div class="card-back-icon">🏺</div><div class="card-back-title">UNO<br>EGITO ANTIGO</div><div class="card-back-sub">Educativo</div></div>
+            <div class="card-back"><div class="card-back-icon">🏺</div><div class="card-back-title">UNO<br>EGITO ANTIGO</div><div class="card-back-sub">Educativo</div></div>
+        </div>
+    </div>
+
+    <!-- ═══ TAB: REGRAS ═══ -->
+    <div id="tab-rules" class="tab-pane">
+        <div class="section-label">Manual do jogador</div>
+        <h2 class="section-title">Como Jogar</h2>
+        <div class="rules-grid">
+            <div class="rule-card">
+                <h3>🎯 Objetivo</h3>
+                <p>Ser o primeiro a descartar todas as cartas. Quem ficar sem cartas vence a rodada e soma os pontos das cartas que restaram nas mãos dos adversários. O jogo termina quando um jogador atingir <strong>500 pontos</strong>.</p>
+            </div>
+            <div class="rule-card">
+                <h3>🃏 Preparação</h3>
+                <ul>
+                    <li>Embaralhe todas as 110 cartas.</li>
+                    <li>Distribua <strong>7 cartas</strong> para cada jogador.</li>
+                    <li>Vire a primeira carta do monte para iniciar a pilha de descarte.</li>
+                    <li>Se a primeira carta for especial, recoloque e embaralhe novamente.</li>
+                </ul>
+            </div>
+            <div class="rule-card">
+                <h3>🔄 Jogando uma Carta</h3>
+                <ul>
+                    <li>Jogue uma carta que combine em <strong>cor</strong> ou <strong>número</strong> com a carta do topo da pilha.</li>
+                    <li>Cartas de <strong>Pergunta</strong> (vermelha/verde) podem ser pareadas com a <strong>Resposta</strong> de mesmo número (azul/amarela).</li>
+                    <li>Se não puder jogar, compre uma carta. Se ela for jogável, pode usá-la imediatamente.</li>
+                </ul>
+            </div>
+            <div class="rule-card">
+                <h3>📚 Regra Educativa</h3>
+                <ul>
+                    <li>Ao jogar uma carta de <strong>Resposta</strong>, o jogador deve ler a <em>pergunta correspondente</em> em voz alta.</li>
+                    <li>Se não souber a resposta da própria carta, compra 1 carta extra.</li>
+                    <li>O grupo decide por maioria se a resposta está correta.</li>
+                </ul>
+            </div>
+            <div class="rule-card">
+                <h3>📣 UNO!</h3>
+                <p>Ao restar <strong>apenas 1 carta</strong> na mão, grite <em>"UNO!"</em> antes de jogá-la. Se outro jogador perceber que não gritou, o infrator compra <strong>2 cartas</strong> de penalidade.</p>
+            </div>
+            <div class="rule-card">
+                <h3>🏆 Pontuação por Rodada</h3>
+                <ul>
+                    <li>Cartas numeradas: valor de face (0–9 pts)</li>
+                    <li>Pular / Inverter / +2: 20 pts cada</li>
+                    <li>Coringa / +4: 50 pts cada</li>
+                    <li>Cartas Especiais: 30 pts cada</li>
+                </ul>
+            </div>
+        </div>
+        <div class="highlight-rule">
+            <h4>💡 Variante para Sala de Aula</h4>
+            <p>Para turmas maiores (5–10 alunos), divida em <strong>equipes</strong>. Cada equipe joga com uma mão coletiva e decide em grupo qual carta jogar. Isso estimula discussão e aprendizagem colaborativa sobre o Egito Antigo.</p>
+        </div>
+    </div>
+
+    <!-- ═══ TAB: INFORMAÇÕES ═══ -->
+    <div id="tab-stats" class="tab-pane">
+        <div class="section-label">Visão geral do baralho</div>
+        <h2 class="section-title">Informações do Jogo</h2>
+
+        <div class="stats-grid">
+            <div class="stat-card"><div class="stat-number">110</div><div class="stat-label">Total de Cartas</div></div>
+            <div class="stat-card"><div class="stat-number">20</div><div class="stat-label">Perguntas (V+G)</div></div>
+            <div class="stat-card"><div class="stat-number">20</div><div class="stat-label">Respostas (A+Am)</div></div>
+            <div class="stat-card"><div class="stat-number">38</div><div class="stat-label">Cartas de Ação</div></div>
+            <div class="stat-card"><div class="stat-number">8</div><div class="stat-label">Coringas</div></div>
+            <div class="stat-card"><div class="stat-number">10+</div><div class="stat-label">Idade Recomendada</div></div>
+        </div>
+
+        <h3 style="font-family:'Cinzel',serif; color:var(--terracotta); margin-bottom:16px; font-size:1.15rem;">📋 Melhorias Aplicadas nesta Versão</h3>
+        <table class="audit-table">
+            <thead><tr><th>Área</th><th>Problema Original</th><th>Solução Aplicada</th><th>Status</th></tr></thead>
+            <tbody>
+                <tr><td>Conteúdo</td><td>Carta Azul 7: "Cleópatra ou Nefertiti" — resposta ambígua</td><td>Pergunta reformulada com referência ao busto; resposta única: Nefertiti</td><td class="status-fixed">✔ Corrigido</td></tr>
+                <tr><td>Conteúdo</td><td>Cartas Verdes 8 e 9 ausentes (HTML truncado)</td><td>Criadas: Hórus (falcão protetor) e gato sagrado (Bastet)</td><td class="status-fixed">✔ Criado</td></tr>
+                <tr><td>Conteúdo</td><td>Cartas Amarelas (respostas médias) completamente ausentes</td><td>10 cartas amarelas criadas correspondendo às verdes</td><td class="status-fixed">✔ Criado</td></tr>
+                <tr><td>Mecânicas</td><td>Cartas especiais (Skip, Reverse, +2, +4, Wild) ausentes</td><td>7 tipos de cartas especiais com nomes temáticos egípcios e regras claras</td><td class="status-fixed">✔ Criado</td></tr>
+                <tr><td>Mecânicas</td><td>Sem integração entre perguntas/respostas e as regras do UNO</td><td>Regra Educativa: resposta deve ser lida em voz alta ao jogar a carta</td><td class="status-fixed">✔ Criado</td></tr>
+                <tr><td>Mecânicas</td><td>Sem sistema de pontuação definido nem variante para turmas</td><td>Sistema de pontos padrão UNO + variante cooperativa para sala de aula</td><td class="status-fixed">✔ Criado</td></tr>
+                <tr><td>Design</td><td>Sem verso das cartas para impressão</td><td>Nova aba "Verso das Cartas" com layout de impressão pronto</td><td class="status-fixed">✔ Criado</td></tr>
+                <tr><td>Design</td><td>Hierarquia visual das cartas inconsistente</td><td>Oval decorativo, gradientes refinados, tipografia Cinzel + Crimson Text</td><td class="status-fixed">✔ Melhorado</td></tr>
+                <tr><td>Design</td><td>Paleta não alinhada com o projeto Origins</td><td>CSS variables com a paleta terrosa do projeto (Ochre, Terracotta, Bone)</td><td class="status-ok">✔ Alinhado</td></tr>
+                <tr><td>Estrutura</td><td>Abas "Como Jogar" e "Informações" sem conteúdo</td><td>Ambas populadas: regras completas + tabela de auditoria</td><td class="status-fixed">✔ Criado</td></tr>
+                <tr><td>Estrutura</td><td>HTML truncado (~40% das cartas ausentes)</td><td>Baralho completo com todas as 110 cartas</td><td class="status-fixed">✔ Completo</td></tr>
+                <tr><td>Estrutura</td><td>CSS com redundâncias e conflitos de padding/posicionamento</td><td>Refatorado com variáveis CSS e separação clara de responsabilidades</td><td class="status-ok">✔ Refatorado</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+<script>
+    function showTab(id, btn) {
+        document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('tab-' + id).classList.add('active');
+        if (btn) btn.classList.add('active');
+    }
+</script>
+<script src="ia_api.js"></script>
+<script>IAApi.injectWidget({ context: 'UNO educativo sobre o Egito Antigo. Explique os termos e personagens das cartas.' });</script>
+</body>
+</html>

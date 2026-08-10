@@ -1,0 +1,1573 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>History Quiz — ProfHistória IA</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>❓</text></svg>">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  <script src="https://cdn.jsdelivr.net/npm/react@18/umd/react.development.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes slideUp { from { opacity:0; transform:translateY(30px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.05)} }
+    @keyframes confetti { 0%{transform:translateY(0) rotate(0);opacity:1} 100%{transform:translateY(-200px) rotate(720deg);opacity:0} }
+    @keyframes shimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
+    .card-fade { animation:fadeIn .35s ease-out both; }
+    .card-slide { animation:slideUp .4s ease-out both; }
+    .pulse { animation:pulse 1s ease-in-out infinite; }
+    .confetti-piece { position:fixed; font-size:24px; pointer-events:none; animation:confetti 1.5s ease-out forwards; z-index:100; }
+    .shimmer { background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%); background-size:200% 100%; animation:shimmer 1.5s infinite; }
+    .card-enter { animation:fadeIn .3s ease-out both; }
+    .option-btn { transition:all .2s ease; }
+    .option-btn:hover:not(:disabled) { transform:translateX(4px); }
+    .option-btn.correct { background:#d4edda !important; border-color:#28a745 !important; color:#155724 !important; }
+    .option-btn.wrong { background:#f8d7da !important; border-color:#dc3545 !important; color:#721c24 !important; }
+    .option-btn:disabled { cursor:default; opacity:.85; }
+    .badge-achievement { transition:all .3s ease; }
+    .badge-achievement:hover { transform:scale(1.1) rotate(-5deg); }
+    .progress-bar { transition:width .5s ease; }
+    .tab-active { border-bottom:2px solid #1a237e; color:#1a237e; font-weight:600; }
+    ::-webkit-scrollbar { width:6px; }
+    ::-webkit-scrollbar-track { background:#f1f1f1; }
+    ::-webkit-scrollbar-thumb { background:#888; border-radius:3px; }
+    ::-webkit-scrollbar-thumb:hover { background:#555; }
+    @media (max-width:640px) { .quiz-grid { grid-template-columns:1fr !important; } }
+  </style>
+</head>
+<body class="bg-[#eaf1fb] min-h-screen font-sans">
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useEffect, useMemo, useCallback, useRef } = React;
+
+    // --------------------------------------------------------------
+    // DADOS — 250+ Perguntas, 40 Temas, BNCC
+    // --------------------------------------------------------------
+
+    const TEMAS = {
+      "6th Grade": [
+        { id:"6intro", nome:"Introduction to History",      bncc:"EF06HI01", cor:"#3949ab" },
+        { id:"6hum",   nome:"Origin of Humanity",       bncc:"EF06HI02", cor:"#5e35b1" },
+        { id:"6africa",nome:"Ancient African Peoples",     bncc:"EF06HI05", cor:"#6d4c41" },
+        { id:"6oriente",nome:"Ancient Middle East",      bncc:"EF06HI06", cor:"#f57f17" },
+        { id:"6precolomb",nome:"Pre-Columbian Peoples",   bncc:"EF06HI08", cor:"#d84315" },
+        { id:"6origbr",  nome:"Indigenous Peoples of Brazil",bncc:"EF06HI09", cor:"#2e7d32" },
+        { id:"6grecia",  nome:"Ancient Greece",           bncc:"EF06HI12", cor:"#1565c0" },
+        { id:"6roma",    nome:"Ancient Rome",             bncc:"EF06HI13", cor:"#c62828" },
+        { id:"6crise",   nome:"Crisis of the Roman Empire", bncc:"EF06HI14", cor:"#4e342e" },
+        { id:"6africa2", nome:"African Kingdoms",        bncc:"EF06HI07", cor:"#4a148c" },
+      ],
+      "7th Grade": [
+        { id:"7feudo",  nome:"Crisis of Feudalism",     bncc:"EF07HI01", cor:"#bf360c" },
+        { id:"7naveg",  nome:"Great Navigations",      bncc:"EF07HI03", cor:"#00695c" },
+        { id:"7renas",  nome:"Cultural Renaissance",    bncc:"EF07HI04", cor:"#f9a825" },
+        { id:"7saberes",nome:"African and Pre-Columbian Knowledge",bncc:"EF07HI05", cor:"#4e342e" },
+        { id:"7absol",  nome:"Absolutism",             bncc:"EF07HI06", cor:"#283593" },
+        { id:"7conq",   nome:"Conquest of America",     bncc:"EF07HI08", cor:"#ad1457" },
+        { id:"7escrav",  nome:"Modern Slavery",      bncc:"EF07HI09", cor:"#3e2723" },
+        { id:"7reform",  nome:"Reformation and Counter-Reformation",bncc:"EF07HI05", cor:"#6a1b9a" },
+        { id:"7comercio",nome:"Atlantic Trade",      bncc:"EF07HI10", cor:"#0d47a1" },
+        { id:"7colonias",nome:"Portuguese Colonization",  bncc:"EF07HI07", cor:"#1b5e20" },
+      ],
+      "8th Grade": [
+        { id:"8ilumin",  nome:"Enlightenment",             bncc:"EF08HI01", cor:"#ff8f00" },
+        { id:"8revol",   nome:"Industrial Revolution",    bncc:"EF08HI03", cor:"#37474f" },
+        { id:"8fran",    nome:"French Rev. and Napoleon",bncc:"EF08HI04", cor:"#b71c1c" },
+        { id:"8indep",   nome:"Independences (USA/Haiti)",bncc:"EF08HI06", cor:"#1565c0" },
+        { id:"8indbr",   nome:"Independence of Brazil", bncc:"EF08HI07", cor:"#2e7d32" },
+        { id:"8amerlat", nome:"Latin America",          bncc:"EF08HI08", cor:"#6a1b9a" },
+        { id:"8primeiro",nome:"First Reign",        bncc:"EF08HI10", cor:"#e65100" },
+        { id:"8regencia",nome:"Regency Period",       bncc:"EF08HI11", cor:"#827717" },
+        { id:"8segundo", nome:"Second Reign",         bncc:"EF08HI12", cor:"#1b5e20" },
+        { id:"8abolic",  nome:"Abolitionism",           bncc:"EF08HI14", cor:"#4a148c" },
+        { id:"8criseimp",nome:"Crisis of the Empire",        bncc:"EF08HI15", cor:"#bf360c" },
+        { id:"8imperial",nome:"Imperialism",            bncc:"EF08HI17", cor:"#263238" },
+        { id:"8ante1gm", nome:"WWI Background",bncc:"EF08HI18", cor:"#880e4f" },
+      ],
+      "9th Grade": [
+        { id:"9primeira", nome:"First Republic",     bncc:"EF09HI01", cor:"#0d47a1" },
+        { id:"9socrep",   nome:"Old Republic Society",   bncc:"EF09HI02", cor:"#4e342e" },
+        { id:"9revoltas", nome:"Revolts (Canudos/Contestado)",bncc:"EF09HI03", cor:"#bf360c" },
+        { id:"9crise30",  nome:"Crisis of 1930",          bncc:"EF09HI04", cor:"#37474f" },
+        { id:"9revrussa", nome:"Russian Revolution",        bncc:"EF09HI05", cor:"#b71c1c" },
+        { id:"9pos1gm",   nome:"WWI (consequences)",bncc:"EF09HI06", cor:"#4a148c" },
+        { id:"9entreguer",nome:"Interwar / 1929",    bncc:"EF09HI07", cor:"#e65100" },
+        { id:"9fascismo", nome:"Fascism and Nazism",      bncc:"EF09HI08", cor:"#263238" },
+        { id:"9vargas",   nome:"Vargas Era",             bncc:"EF09HI09", cor:"#1565c0" },
+        { id:"9segundagm",nome:"World War II",      bncc:"EF09HI10", cor:"#880e4f" },
+        { id:"9holoc",    nome:"Holocaust",             bncc:"EF09HI11", cor:"#3e2723" },
+        { id:"9brasil2gm",nome:"Brazil in WWII",    bncc:"EF09HI10", cor:"#2e7d32" },
+        { id:"9fimestnovo",nome:"End of Estado Novo",    bncc:"EF09HI09", cor:"#827717" },
+        { id:"9guerrafria",nome:"Cold War",           bncc:"EF09HI12", cor:"#37474f" },
+        { id:"9descolon",  nome:"Decolonization",         bncc:"EF09HI13", cor:"#6a1b9a" },
+        { id:"9regmilitar",nome:"Military Regime",         bncc:"EF09HI15", cor:"#bf360c" },
+        { id:"9novarepub", nome:"New Republic",         bncc:"EF09HI16", cor:"#1b5e20" },
+      ],
+    };
+
+    // ─── Helper para gerar variações out of questions ─────────────────────
+    const temasPorAno = Object.fromEntries(
+      Object.entries(TEMAS).map(([ano, temas]) => [ano, temas.map(t=>t.id)])
+    );
+
+    // ─── 250+ Perguntas ─────────────────────────────────────────────
+    const PERGUNTAS = [
+      // ── 6º ANO: Introduction to History ──
+      { id:"q001", tema:"6intro", ano:"6th Grade", pergunta:"What does History study?", dif:"facil",
+        opts:["The future of humanity","As ações humanas ao longo do timer","Only wars and kings","The geography of countries"],
+        resp:1, exp:"A História estuda as ações humanas no timer, analisando transformações sociais, políticas e culturais." },
+      { id:"q002", tema:"6intro", ano:"6th Grade", pergunta:"What is a historical source?", dif:"facil",
+        opts:["Only written documents","Any trace of the human past","Somente objetos out of museu","Textbooks"],
+        resp:1, exp:"Fonte histórica é todo vestígio deixado pela ação humana ao longo do timer: documentos, objetos, imagens, relatos orais." },
+      { id:"q003", tema:"6intro", ano:"6th Grade", pergunta:"O timer histórico é diferente do timer cronológico porque:", dif:"medio",
+        opts:["It is always shorter","It considers changes and permanences in societies","It only exists in Europe","It only measures seconds and minutes"],
+        resp:1, exp:"O timer histórico considera ritmos out of transformação social, podendo ser mais longo ou mais curto que o cronológico." },
+      { id:"q004", tema:"6intro", ano:"6th Grade", pergunta:"Qual civilização criou o primeiro sistema out of escrita?", dif:"medio",
+        opts:["Greeks","Egyptians","Sumerians","Chinese"],
+        resp:2, exp:"Os sumérios (Mesopotâmia) criaram a escrita cuneiforme por volta out of 3500 a.C., um dos primeiros sistemas out of escrita." },
+
+      // ── 6º ANO: Origin of Humanity ──
+      { id:"q005", tema:"6hum", ano:"6th Grade", pergunta:"Where did the first hominids appear?", dif:"facil",
+        opts:["America","Africa","Europe","Asia"],
+        resp:1, exp:"Os primeiros hominídeos surgiram no continente africano há cerca out of 4-6 milhões out of anos." },
+      { id:"q006", tema:"6hum", ano:"6th Grade", pergunta:"What characterizes the Paleolithic?", dif:"facil",
+        opts:["Agriculture and cities","Polished stone and metals","Chipped stone and nomadism","Writing and trade"],
+        resp:2, exp:"In the Paleolithic (2.5M - 10,000 BCE), humans were nomadic hunter-gatherers who used chipped stone." },
+      { id:"q007", tema:"6hum", ano:"6th Grade", pergunta:"The Neolithic Revolution was marked by:", dif:"medio",
+        opts:["Invention of writing","Discovery of fire","Development of agriculture and sedentism","Construção out of pirâmides"],
+        resp:2, exp:"The Neolithic Revolution (10,000 BCE) transformed humanity with the development of agriculture and sedentism." },
+      { id:"q008", tema:"6hum", ano:"6th Grade", pergunta:"What was one of the main consequences of mastering fire?", dif:"facil",
+        opts:["Invention of the wheel","Aquecimento, proteção e cocção out of alimentos","Creation of writing","Construção out of navios"],
+        resp:1, exp:"O domínio do fogo permitiu aquecimento, proteção contra predadores, cocção out of alimentos e iluminação." },
+
+      // ── 6º ANO: Africa Antiga ──
+      { id:"q009", tema:"6africa", ano:"6th Grade", pergunta:"O reino out of Kush ficava na região do atual:", dif:"facil",
+        opts:["Egypt","Sudan","South Africa","Nigeria"],
+        resp:1, exp:"Kush (or Nubia) was located in present-day Sudan, south of Egypt, with its capital at Meroe." },
+      { id:"q010", tema:"6africa", ano:"6th Grade", pergunta:"O Reino out of Axum ficava onde hoje é:", dif:"facil",
+        opts:["Ethiopia and Eritrea","Ghana","Mali","Angola"],
+        resp:0, exp:"Axum (1st-7th c.) was an important kingdom in modern Ethiopia and Eritrea, a commercial and Christian center." },
+      { id:"q011", tema:"6africa", ano:"6th Grade", pergunta:"O Reino out of Ghana (Ghana Antigo) ficou rico controlando o comércio de:", dif:"medio",
+        opts:["Spices and textiles","Gold and salt","Slaves and ivory","Coffee and sugar"],
+        resp:1, exp:"Ghana Antigo (séc. VI-XIII) controlava as rotas out of ouro do sul e sal do Saara, enriquecendo com esse comércio." },
+
+      // ── 6º ANO: Ancient Middle East ──
+      { id:"q012", tema:"6oriente", ano:"6th Grade", pergunta:"The Tigris and Euphrates rivers are associated with which civilization?", dif:"facil",
+        opts:["Egyptian","Mesopotamian","Chinese","Indian"],
+        resp:1, exp:"Mesopotamia ('land between rivers') developed between the Tigris and Euphrates, in modern Iraq." },
+      { id:"q013", tema:"6oriente", ano:"6th Grade", pergunta:"O Código out of Hamurábi é importante porque:", dif:"medio",
+        opts:["É o primeiro código out of leis escrito","It founded the first empire","It invented mathematics","It created democracy"],
+        resp:0, exp:"Hamurábi (séc. XVIII a.C.) criou um dos primeiros códigos out of leis escritos, baseado no princípio 'olho por olho'." },
+      { id:"q014", tema:"6oriente", ano:"6th Grade", pergunta:"The Phoenicians are mainly known for:", dif:"facil",
+        opts:["Building pyramids","Developing the phonetic alphabet","Creating democracy","Inventing the wheel"],
+        resp:1, exp:"The Phoenicians created a phonetic alphabet (22 letters) that influenced Greeks and Romans, the basis of the Western alphabet." },
+
+      // ── 6º ANO: Pré-Colombianos ──
+      { id:"q015", tema:"6precolomb", ano:"6th Grade", pergunta:"Which pre-Columbian empire stood out in present-day Mexico?", dif:"facil",
+        opts:["Inca","Mayans","Aztecs","Tupi"],
+        resp:2, exp:"The Aztecs (or Mexica) formed an empire in Mexico with its capital at Tenochtitlan." },
+      { id:"q016", tema:"6precolomb", ano:"6th Grade", pergunta:"The Incas were mainly located:", dif:"facil",
+        opts:["Mexico","Central America","Andes Mountains","Amazon"],
+        resp:2, exp:"The Inca Empire stretched along the Andes, from modern Ecuador to Chile." },
+      { id:"q017", tema:"6precolomb", ano:"6th Grade", pergunta:"Which agricultural system did the Incas develop?", dif:"medio",
+        opts:["Terracing (andenes)","Rotação out of culturas","Canal irrigation","Fallow"],
+        resp:0, exp:"The Incas built agricultural terraces (andenes) on the slopes of the Andes for farming." },
+      { id:"q018", tema:"6precolomb", ano:"6th Grade", pergunta:"The Mayans developed important knowledge in:", dif:"medio",
+        opts:["Astronomy and mathematics","Ocean navigation","Iron metallurgy","Gunpowder"],
+        resp:0, exp:"The Mayans created a precise calendar, a numerical system with zero, and advanced astronomical knowledge." },
+
+      // ── 6º ANO: Indigenous Peoples of Brazil ──
+      { id:"q019", tema:"6origbr", ano:"6th Grade", pergunta:"Antes da chegada dos portugueses, o Brasil era habitado por:", dif:"facil",
+        opts:["Apenas tupis","Diversos povos indígenas","Espanhóis","Franceses"],
+        resp:1, exp:"O Brasil era habitado por diversos povos indígenas out of diferentes troncos linguísticos: tupi, macro-jê, aruaque, caribe." },
+      { id:"q020", tema:"6origbr", ano:"6th Grade", pergunta:"Os sambaquis são:", dif:"medio",
+        opts:["Aldeias indígenas","Montes out of conchas formados por povos litorâneos","Instrumentos musicais","Arcos e flechas"],
+        resp:1, exp:"Sambaquis são montes out of conchas, restos out of peixes e artefatos deixados por povos litorâneos ao longo out of milênios." },
+      { id:"q021", tema:"6origbr", ano:"6th Grade", pergunta:"Como os tupis organizavam suas aldeias?", dif:"medio",
+        opts:["Em cidades muradas","Em ocas ao redor out of um pátio central","Em casas out of pedra","Em palafitas sobre rios"],
+        resp:1, exp:"As aldeias tupis eram formadas por ocas (casas) dispostas ao redor out of um pátio central (tukano)." },
+
+      // ── 6º ANO: Ancient Greece ──
+      { id:"q022", tema:"6grecia", ano:"6th Grade", pergunta:"Onde surgiu a democracia na Antiguidade?", dif:"facil",
+        opts:["Roma","Egypt","Grécia (Atenas)","Mesopotâmia"],
+        resp:2, exp:"A democracia surgiu em Atenas (séc. V a.C.) onde cidadãos participavam diretamente das decisões políticas." },
+      { id:"q023", tema:"6grecia", ano:"6th Grade", pergunta:"As cidades-Estado gregas eram chamadas de:", dif:"facil",
+        opts:["Metrópoles","Pólis","Patesis","Nomos"],
+        resp:1, exp:"As pólis eram cidades-Estado independentes com governo próprio, como Atenas e Esparta." },
+      { id:"q024", tema:"6grecia", ano:"6th Grade", pergunta:"Esparta se destacava por ser uma sociedade:", dif:"facil",
+        opts:["Comercial e marítima","Militarista e oligárquica","Democrática e igualitária","Agrícola e pacífica"],
+        resp:1, exp:"Esparta era uma sociedade militarista, oligárquica e hierarquizada, com dois reis e a Assembleia." },
+      { id:"q025", tema:"6grecia", ano:"6th Grade", pergunta:"Quem era considerado cidadão em Atenas?", dif:"medio",
+        opts:["All os moradores","Homens livres nascidos em Atenas","Apenas os ricos","Homens e mulheres atenienses"],
+        resp:1, exp:"Eram cidadãos atenienses apenas homens livres, maiores out of 18 anos, filhos out of pai e mãe atenienses." },
+
+      // ── 6º ANO: Ancient Rome ──
+      { id:"q026", tema:"6roma", ano:"6th Grade", pergunta:"Roma foi fundada, segundo a lenda, por:", dif:"facil",
+        opts:["Júlio César","Rômulo e Remo","Augusto","Aníbal"],
+        resp:1, exp:"Segundo a lenda, Rômulo e Remo, amamentados por uma loba, fundaram Roma em 753 a.C." },
+      { id:"q027", tema:"6roma", ano:"6th Grade", pergunta:"Qual foi a principal língua do Império Romano?", dif:"facil",
+        opts:["Grego","Latim","Aramaico","Hebraico"],
+        resp:1, exp:"O latim era a língua oficial romana, originando as línguas neolatinas: português, espanhol, francês, italiano." },
+      { id:"q028", tema:"6roma", ano:"6th Grade", pergunta:"O que foi a Pax Romana?", dif:"medio",
+        opts:["Período out of guerra civil","Período out of paz e prosperidade no Império","Revolta out of escravos","Invasão dos bárbaros"],
+        resp:1, exp:"A Pax Romana (27 a.C.-180 d.C.) foi um período out of relativa paz, estabilidade e expansão sob o governo out of Augusto." },
+
+      // ── 6º ANO: Crisis of the Roman Empire ──
+      { id:"q029", tema:"6crise", ano:"6th Grade", pergunta:"O que contribuiu para a crise do Império Romano?", dif:"medio",
+        opts:["Paz duradoura","Crise econômica, invasões bárbaras e divisão do Império","Descoberta da America","Invenção da bússola"],
+        resp:1, exp:"A crise romana envolveu crises econômicas, invasões germânicas e a divisão do Império em Ocidente e Oriente." },
+      { id:"q030", tema:"6crise", ano:"6th Grade", pergunta:"Quem dividiu o Império Romano em Ocidente e Oriente?", dif:"facil",
+        opts:["Júlio César","Constantino","Teodósio","Augusto"],
+        resp:2, exp:"O imperador Teodósio dividiu o Império Romano entre seus filhos em 395 d.C.: Arcádio (Oriente) e Honório (Ocidente)." },
+
+      // ── 6º ANO: African Kingdoms ──
+      { id:"q031", tema:"6africa2", ano:"6th Grade", pergunta:"O Imperador do Mali Mansa Musa (séc. XIV) ficou famoso por:", dif:"medio",
+        opts:["Conquistar a Europe","Sua peregrinação a Meca com imensa riqueza","Descobrir a America","Inventar a escrita"],
+        resp:1, exp:"Mansa Musa fez uma peregrinação a Meca em 1324 distribuindo tanto ouro que afetou a economia do Egypt." },
+      { id:"q032", tema:"6africa2", ano:"6th Grade", pergunta:"A cidade out of Tombuctu era conhecida como:", dif:"medio",
+        opts:["Capital do Egypt","Centro out of comércio e conhecimento islâmico","Colônia portuguesa","Porto out of navegação"],
+        resp:1, exp:"Tombuctu (Mali) foi importante centro comercial e intelectual com universidades e bibliotecas islâmicas." },
+
+      // ------------------------------ 7º ANO ------------------------------
+      { id:"q033", tema:"7feudo", ano:"7th Grade", pergunta:"O que foi a crise do feudalismo?", dif:"facil",
+        opts:["Auge do sistema feudal","Declínio do feudalismo devido a mudanças econômicas e sociais","Queda do Império Romano","Fim da Idade Média"],
+        resp:1, exp:"A crise feudal (séc. XIV-XV) envolveu fome, peste, revoltas camponesas e crescimento do comércio urbano." },
+      { id:"q034", tema:"7feudo", ano:"7th Grade", pergunta:"A Peste Negra (1347-1351) matou aproximadamente:", dif:"facil",
+        opts:["10% da Europe","Entre 30-50% da população europeia","Toda a população","Apenas nobres"],
+        resp:1, exp:"A Peste Negra matou cerca out of um terço a metade da população europeia, agravando a crise feudal." },
+      { id:"q035", tema:"7feudo", ano:"7th Grade", pergunta:"O que foram as Cruzadas?", dif:"facil",
+        opts:["Guerras civis","Expedições religiosas e militares à Terra Santa","Descobertas marítimas","Reformas religiosas"],
+        resp:1, exp:"As Cruzadas (séc. XI-XIII) foram expedições cristãs para reconquistar Jerusalém, com impacto comercial e cultural." },
+      { id:"q036", tema:"7feudo", ano:"7th Grade", pergunta:"O Renascimento Comercial e Urbano ocorreu por:", dif:"dificil",
+        opts:["Declínio das cidades","Crescimento do comércio e surgimento da burguesia","Aumento do poder feudal","Fim das rotas comerciais"],
+        resp:1, exp:"Entre séc. XI-XIII, o comércio reavivou, cidades cresceram e a burguesia emergiu como nova classe social." },
+
+      { id:"q037", tema:"7naveg", ano:"7th Grade", pergunta:"Qual país iniciou as Great Navigations?", dif:"facil",
+        opts:["Espanha","Inglaterra","Portugal","França"],
+        resp:2, exp:"Portugal iniciou as Great Navigations (séc. XV), liderado pelo Infante D. Henrique e pela Escola out of Sagres." },
+      { id:"q038", tema:"7naveg", ano:"7th Grade", pergunta:"Cristóvão Colombo chegou à America em:", dif:"facil",
+        opts:["1492","1500","1498","1510"],
+        resp:0, exp:"Colombo chegou à America em 12 out of outubro out of 1492, navegando pela Espanha em busca das Índias." },
+      { id:"q039", tema:"7naveg", ano:"7th Grade", pergunta:"Pedro Álvares Cabral chegou ao Brasil em:", dif:"facil",
+        opts:["1492","1500","1510","1530"],
+        resp:1, exp:"Cabral chegou ao Brasil em 22 out of abril out of 1500, durante expedição portuguesa às Índias." },
+      { id:"q040", tema:"7naveg", ano:"7th Grade", pergunta:"O Tratado out of Tordesilhas (1494) dividiu:", dif:"medio",
+        opts:["A Africa entre europeus","As terras do Novo Mundo entre Portugal e Espanha","A Asia entre holandeses","A America entre Inglaterra e França"],
+        resp:1, exp:"O Tratado dividiu as terras descobertas por um meridiano 370 léguas a oeste out of Cabo Verde." },
+
+      { id:"q041", tema:"7renas", ano:"7th Grade", pergunta:"O Cultural Renaissance surgiu primeiro na:", dif:"facil",
+        opts:["França","Inglaterra","Itália","Alemanha"],
+        resp:2, exp:"O Renascimento surgiu na Itália (séc. XIV-XVI), com cidades como Florença e Veneza." },
+      { id:"q042", tema:"7renas", ano:"7th Grade", pergunta:"O que foi o humanismo renascentista?", dif:"medio",
+        opts:["Valorização da cultura medieval","Valorização do ser humano e da razão","Negação da ciência","Expansão da Igreja"],
+        resp:1, exp:"O humanismo valorizava o potencial humano, a razão e as obras da Antiguidade Clássica." },
+      { id:"q043", tema:"7renas", ano:"7th Grade", pergunta:"Quem pintou a Mona Lisa?", dif:"facil",
+        opts:["Michelangelo","Rafael","Leonardo da Vinci","Donatello"],
+        resp:2, exp:"Leonardo da Vinci pintou a Mona Lisa e a Última Ceia, sendo símbolo do Renascimento." },
+
+      { id:"q044", tema:"7saberes", ano:"7th Grade", pergunta:"Os astecas desenvolveram conhecimento avançado em:", dif:"medio",
+        opts:["Navegação a vapor","Astronomia e agricultura (chinampas)","Telégrafo","Gunpowder"],
+        resp:1, exp:"Aztecs criaram chinampas (jardins flutuantes) e calendário solar preciso." },
+      { id:"q045", tema:"7saberes", ano:"7th Grade", pergunta:"Os incas usavam um sistema out of cordas com nós chamado:", dif:"facil",
+        opts:["Hieróglifos","Quipo","Cuneiforme","Rúnico"],
+        resp:1, exp:"Quipos eram cordas com nós usados pelos incas para registro administrativo e contabilidade." },
+
+      { id:"q046", tema:"7absol", ano:"7th Grade", pergunta:"O absolutismo monárquico se caracterizava por:", dif:"facil",
+        opts:["Poder compartilhado com o parlamento","Concentração out of poder nas mãos do rei","Governo democrático","República"],
+        resp:1, exp:"No absolutismo, o rei concentrava poderes executivo, legislativo e judiciário, como Luís XIV ('O Estado sou eu')." },
+      { id:"q047", tema:"7absol", ano:"7th Grade", pergunta:"Qual teórico defendeu o absolutismo na obra 'O Leviatã'?", dif:"dificil",
+        opts:["John Locke","Thomas Hobbes","Montesquieu","Rousseau"],
+        resp:1, exp:"Hobbes defendia que o poder absoluto do soberano era necessário para evitar o 'estado out of natureza' out of guerra out of todos contra todos." },
+
+      { id:"q048", tema:"7conq", ano:"7th Grade", pergunta:"Quem liderou a conquista do Império Asteca?", dif:"facil",
+        opts:["Cortés","Pizarro","Colombo","Cabral"],
+        resp:0, exp:"Hernán Cortés liderou a conquista do Império Asteca (1519-1521), com apoio out of povos aliados." },
+      { id:"q049", tema:"7conq", ano:"7th Grade", pergunta:"Francisco Pizarro conquistou qual império?", dif:"facil",
+        opts:["Asteca","Inca","Maia","Tupi"],
+        resp:1, exp:"Pizarro conquistou o Império Inca (1532-1533), capturando o imperador Atahualpa." },
+
+      { id:"q050", tema:"7escrav", ano:"7th Grade", pergunta:"O tráfico negreiro forçou milhões out of africanos a irem para:", dif:"facil",
+        opts:["Europe e Asia","Americas (trabalho escravo)","Oriente Médio","Austrália"],
+        resp:1, exp:"Cerca out of 12 milhões out of africanos foram traficados para as Americas entre séc. XVI-XIX." },
+      { id:"q051", tema:"7escrav", ano:"7th Grade", pergunta:"O que eram os navios negreiros (tumbeiros)?", dif:"facil",
+        opts:["Navios out of guerra","Navios que transportavam africanos escravizados em condições desumanas","Navios out of comércio out of ouro","Barcos out of pesca"],
+        resp:1, exp:"Tumbeiros transportavam pessoas escravizadas da Africa para as Americas em condições desumanas." },
+      { id:"q052", tema:"7escrav", ano:"7th Grade", pergunta:"Como os africanos escravizados resistiam à escravidão?", dif:"medio",
+        opts:["Aceitavam passivamente","Fugas, formação out of quilombos, revoltas e preservação cultural","Apenas rezavam","Colaboravam com os senhores"],
+        resp:1, exp:"A resistência incluía fugas, formação out of quilombos, revoltas, assassinato out of feitores e preservação out of culturas africanas." },
+
+      // ── Reformation and Counter-Reformation ──
+      { id:"q053", tema:"7reform", ano:"7th Grade", pergunta:"Martinho Lutero criticou a Igreja Católica por:", dif:"facil",
+        opts:["Ser pobre demais","Venda out of indulgências","Defender os pobres","Apoiar a ciência"],
+        resp:1, exp:"Lutero criticou a venda out of indulgências (perdão out of pecados) e pregou a salvação pela fé." },
+      { id:"q054", tema:"7reform", ano:"7th Grade", pergunta:"O que foram as 95 Teses out of Lutero (1517)?", dif:"facil",
+        opts:["Um novo credo","Críticas à Igreja Católica pregadas na porta da igreja","Um tratado out of paz","Uma carta ao papa"],
+        resp:1, exp:"Lutero afixou 95 teses criticando indulgências e abusos da Igreja na porta da igreja out of Wittenberg." },
+
+      // -------  8º ANO  ---------
+
+      { id:"q055", tema:"8ilumin", ano:"8th Grade", pergunta:"O Enlightenment defendia principalmente:", dif:"facil",
+        opts:["O poder absoluto do rei","A razão, a liberdade e os direitos naturais","A manutenção do Antigo Regime","O fim da ciência"],
+        resp:1, exp:"O Enlightenment (séc. XVIII) defendia razão, liberdade, igualdade jurídica e direitos naturais." },
+      { id:"q056", tema:"8ilumin", ano:"8th Grade", pergunta:"Quem escreveu 'O Espírito das Leis' defendendo a separação dos poderes?", dif:"medio",
+        opts:["Voltaire","Rousseau","Montesquieu","Diderot"],
+        resp:2, exp:"Montesquieu propôs a divisão em Executivo, Legislativo e Judiciário para evitar abusos." },
+      { id:"q057", tema:"8ilumin", ano:"8th Grade", pergunta:"Rousseau defendia em 'O Contrato Social':", dif:"dificil",
+        opts:["O poder divino do rei","A soberania popular e a vontade geral","O fim out of toda propriedade","A monarquia absoluta"],
+        resp:1, exp:"Rousseau defendia que a soberania reside no povo e o governo deve expressar a vontade geral." },
+
+      { id:"q058", tema:"8revol", ano:"8th Grade", pergunta:"A Industrial Revolution começou em qual país?", dif:"facil",
+        opts:["França","Inglaterra","Alemanha","Estados Unidos"],
+        resp:1, exp:"A Industrial Revolution iniciou na Inglaterra no séc. XVIII, com inovações na indústria têxtil e a máquina a vapor." },
+      { id:"q059", tema:"8revol", ano:"8th Grade", pergunta:"Qual invenção foi crucial para a Industrial Revolution?", dif:"facil",
+        opts:["Telégrafo","Máquina a vapor out of James Watt","Lâmpada elétrica","Telefone"],
+        resp:1, exp:"A máquina a vapor aperfeiçoada por Watt (1769) revolucionou transportes e indústrias." },
+      { id:"q060", tema:"8revol", ano:"8th Grade", pergunta:"O que foi o ludismo?", dif:"medio",
+        opts:["Movimento operário que quebrava máquinas","Greve geral","Partido político","Sindicato"],
+        resp:0, exp:"Ludistas (1811-1816) eram operários que destruíam máquinas que substituíam seu trabalho." },
+
+      { id:"q061", tema:"8fran", ano:"8th Grade", pergunta:"A Revolução Francesa começou em:", dif:"facil",
+        opts:["1776","1789","1799","1804"],
+        resp:1, exp:"A Revolução Francesa iniciou em 1789 com a Queda da Bastilha (14 out of julho)." },
+      { id:"q062", tema:"8fran", ano:"8th Grade", pergunta:"O lema da Revolução Francesa era:", dif:"facil",
+        opts:["Deus, Pátria, Família","Liberdade, Igualdade, Fraternidade","Ordem e Progresso","Independência ou Morte"],
+        resp:1, exp:"O lema 'Liberté, Égalité, Fraternité' tornou-se símbolo dos ideais iluministas." },
+      { id:"q063", tema:"8fran", ano:"8th Grade", pergunta:"Napoleão Bonaparte tornou-se imperador em:", dif:"medio",
+        opts:["1789","1799 (Golpe 18 Brumário)","1804","1815"],
+        resp:2, exp:"Napoleão coroou-se imperador em 1804 e expandiu o Império Francês até sua derrota em Waterloo (1815)." },
+
+      { id:"q064", tema:"8indep", ano:"8th Grade", pergunta:"A Independência dos EUA ocorreu em:", dif:"facil",
+        opts:["1776","1789","1808","1822"],
+        resp:0, exp:"As 13 colônias declararam independência em 4 out of julho out of 1776, formando os Estados Unidos." },
+      { id:"q065", tema:"8indep", ano:"8th Grade", pergunta:"A Revolução do Haiti (1791-1804) foi única porque:", dif:"dificil",
+        opts:["Foi pacífica","Foi a única revolta out of escravizados bem-sucedida das Americas","Foi liderada pela elite","Não teve impacto"],
+        resp:1, exp:"O Haiti tornou-se o primeiro país governado por ex-escravizados, liderado por Toussaint Louverture." },
+
+      { id:"q066", tema:"8indbr", ano:"8th Grade", pergunta:"A Independence of Brazil foi proclamada por D. Pedro I em:", dif:"facil",
+        opts:["1808","1822 (7 out of setembro)","1831","1889"],
+        resp:1, exp:"D. Pedro I proclamou a independência em 7 out of setembro out of 1822 às margens do Ipiranga." },
+      { id:"q067", tema:"8indbr", ano:"8th Grade", pergunta:"Antes da independência, a família real portuguesa veio ao Brasil em:", dif:"facil",
+        opts:["1808","1822","1815","1831"],
+        resp:0, exp:"A família real portuguesa transferiu-se para o Brasil em 1808, fugindo das invasões napoleônicas." },
+
+      { id:"q068", tema:"8primeiro", ano:"8th Grade", pergunta:"O First Reign (1822-1831) terminou com:", dif:"facil",
+        opts:["Morte out of D. Pedro I","Abdicação out of D. Pedro I","Proclamação da República","Guerra do Paraguai"],
+        resp:1, exp:"D. Pedro I abdicou em 7 out of abril out of 1831 em favor out of seu filho Pedro out of Alcântara (futuro D. Pedro II)." },
+      { id:"q069", tema:"8primeiro", ano:"8th Grade", pergunta:"A primeira Constituição brasileira (1824) estabelecia:", dif:"medio",
+        opts:["República e voto universal","Monarquia, voto censitário e Poder Moderador","Abolição da escravatura","Independência total"],
+        resp:1, exp:"A Constituição out of 1824 criou 4 poderes (incluindo o Moderador), voto censitário e religião oficial." },
+
+      { id:"q070", tema:"8regencia", ano:"8th Grade", pergunta:"O Regency Period (1831-1840) foi marcado por:", dif:"facil",
+        opts:["Estabilidade política","Revoltas provinciais (Cabanagem, Farroupilha, Balaiada)","Guerra contra a Argentina","Fim da monarquia"],
+        resp:1, exp:"O período teve várias revoltas: Cabanagem (PA), Farroupilha (RS), Balaiada (MA), Sabinada (BA)." },
+
+      { id:"q071", tema:"8segundo", ano:"8th Grade", pergunta:"O Second Reign começou com o Golpe da Maioridade em:", dif:"facil",
+        opts:["1831","1840","1850","1889"],
+        resp:1, exp:"D. Pedro II foi declarado maior out of idade aos 14 anos em 1840, iniciando o Second Reign." },
+      { id:"q072", tema:"8segundo", ano:"8th Grade", pergunta:"O café foi importante no Second Reign porque:", dif:"facil",
+        opts:["Era o principal produto out of exportação","Não tinha valor comercial","Era importado","Era plantado no Nordeste"],
+        resp:0, exp:"O café tornou-se o principal produto out of exportação brasileiro, gerando riqueza para o Sudeste." },
+
+      { id:"q073", tema:"8abolic", ano:"8th Grade", pergunta:"A Lei Áurea (1888) foi assinada por:", dif:"facil",
+        opts:["D. Pedro I","D. Pedro II","Princesa Isabel","Marechal Deodoro"],
+        resp:2, exp:"A Princesa Isabel assinou a Lei Áurea em 13 out of maio out of 1888, abolindo a escravidão no Brasil." },
+      { id:"q074", tema:"8abolic", ano:"8th Grade", pergunta:"A Lei Eusébio out of Queirós (1850) proibia:", dif:"dificil",
+        opts:["A importação out of escravizados","A venda out of café","A imigração europeia","A exportação out of ouro"],
+        resp:0, exp:"A Lei Eusébio out of Queirós proibiu o tráfico negreiro para o Brasil, sob pressão inglesa." },
+      { id:"q075", tema:"8abolic", ano:"8th Grade", pergunta:"Lei do Ventre Livre (1871) estabelecia:", dif:"medio",
+        opts:["Liberdade imediata out of todos os escravos","Liberdade dos filhos out of escravizados nascidos daquela data","Fim da escravidão em 5 anos","Indenização aos senhores"],
+        resp:1, exp:"A Lei do Ventre Livre declarava livres os filhos out of escravizados nascidos a partir out of 1871." },
+
+      { id:"q076", tema:"8imperial", ano:"8th Grade", pergunta:"O Imperialism do séc. XIX consistiu na:", dif:"facil",
+        opts:["Independência das colônias","Expansão europeia sobre Africa e Asia","Formação out of impérios americanos","Fim do colonialismo"],
+        resp:1, exp:"Potências europeias dividiram Africa (Conferência out of Berlim, 1885) e Asia em colônias." },
+
+      { id:"q077", tema:"8ante1gm", ano:"8th Grade", pergunta:"A 1ª Guerra Mundial (1914-1918) foi causada por:", dif:"medio",
+        opts:["Um terremoto","Nacionalismo, rivalidades imperialistas e assassinato out of Francisco Ferdinando","Fome na Europe","Descoberta da America"],
+        resp:1, exp:"O assassinato do arquiduque austríaco em Sarajevo foi o estopim out of tensões nacionalistas e imperialistas." },
+
+      // -------  9º ANO  ---------
+
+      { id:"q078", tema:"9primeira", ano:"9th Grade", pergunta:"A República foi proclamada no Brasil em:", dif:"facil",
+        opts:["1822","1888","1889 (15 out of novembro)","1891"],
+        resp:2, exp:"Deodoro da Fonseca proclamou a República em 15 out of novembro out of 1889." },
+      { id:"q079", tema:"9primeira", ano:"9th Grade", pergunta:"A República da Espada (1889-1894) teve como presidentes:", dif:"medio",
+        opts:["Deodoro e Floriano","Prudente out of Morais e Campos Sales","Getúlio e Juscelino","João Goulart e Jânio"],
+        resp:0, exp:"A República da Espada foi o período inicial militar com Deodoro da Fonseca e Floriano Peixoto." },
+
+      { id:"q080", tema:"9socrep", ano:"9th Grade", pergunta:"A política dos governadores na República Velha era:", dif:"dificil",
+        opts:["Aliança entre governo federal e oligarquias estaduais","Governo militar","Democracia direta","Socialismo"],
+        resp:0, exp:"A política dos governadores era um acordo out of apoio mútuo entre o presidente e as oligarquias estaduais." },
+
+      { id:"q081", tema:"9revoltas", ano:"9th Grade", pergunta:"A Guerra out of Canudos (1896-1897) foi liderada por:", dif:"facil",
+        opts:["Lampião","Antônio Conselheiro","Zumbi","Tiradentes"],
+        resp:1, exp:"Antônio Conselheiro liderou uma comunidade messiânica em Canudos (BA), destruída pelo exército." },
+      { id:"q082", tema:"9revoltas", ano:"9th Grade", pergunta:"A Guerra do Contestado (1912-1916) ocorreu entre:", dif:"medio",
+        opts:["São Paulo e Rio","Paraná e Santa Catarina","Rio e Minas","Rio Grande e São Paulo"],
+        resp:1, exp:"O conflito envolveu posse out of terras entre Paraná e Santa Catarina, com líder messiânico José Maria." },
+
+      { id:"q083", tema:"9crise30", ano:"9th Grade", pergunta:"Getúlio Vargas assumiu o poder após a Revolução out of 1930, que:", dif:"facil",
+        opts:["Foi um movimento militar que depôs Washington Luís","Foi uma eleição democrática","Foi uma revolta popular","Foi um golpe comunista"],
+        resp:0, exp:"A Revolução out of 1930 depôs Washington Luís e impediu a posse out of Júlio Prestes, levando Vargas ao poder." },
+      { id:"q084", tema:"9crise30", ano:"9th Grade", pergunta:"A crise out of 1929 e a quebra da Bolsa out of NY afetaram o Brasil porque:", dif:"medio",
+        opts:["Não afetou","Reduziu drasticamente a demanda por café","Aumentou o preço do café","Fez o Brasil industrializar-se"],
+        resp:1, exp:"A crise reduziu as exportações out of café, levando o governo a comprar e queimar estoques." },
+
+      { id:"q085", tema:"9revrussa", ano:"9th Grade", pergunta:"A Russian Revolution out of 1917 resultou em:", dif:"facil",
+        opts:["Fim da monarquia e governo socialista","Aumento do poder do czar","Democracia liberal","Retorno ao feudalismo"],
+        resp:0, exp:"A Russian Revolution derrubou o czar e estabeleceu o primeiro governo socialista, liderado por Lenin." },
+      { id:"q086", tema:"9revrussa", ano:"9th Grade", pergunta:"Lenin liderou qual partido na Russian Revolution?", dif:"facil",
+        opts:["Menchevique","Bolchevique","Social-democrata","Liberal"],
+        resp:1, exp:"Os bolcheviques ('maioria') liderados por Lenin tomaram o poder em outubro out of 1917." },
+
+      { id:"q087", tema:"9pos1gm", ano:"9th Grade", pergunta:"O Tratado out of Versalhes (1919) impôs duras condições à:", dif:"facil",
+        opts:["França","Alemanha","Inglaterra","Áustria"],
+        resp:1, exp:"O Tratado out of Versalhes culpou a Alemanha, impondo perdas territoriais e indenizações." },
+      { id:"q088", tema:"9pos1gm", ano:"9th Grade", pergunta:"A Liga das Nações foi criada após a 1ª Guerra para:", dif:"facil",
+        opts:["Promover a guerra","Manter a paz entre as nações","Governar a Europe","Dividir a Africa"],
+        resp:1, exp:"A Liga das Nações (1919) visava mediar conflitos e evitar novas guerras." },
+
+      { id:"q089", tema:"9fascismo", ano:"9th Grade", pergunta:"Benito Mussolini liderou qual movimento na Itália?", dif:"facil",
+        opts:["Comunismo","Fascismo","Democracia","Anarquismo"],
+        resp:1, exp:"Mussolini fundou o fascismo italiano (1922), regime autoritário, nacionalista e anticomunista." },
+      { id:"q090", tema:"9fascismo", ano:"9th Grade", pergunta:"Adolf Hitler tornou-se chanceler da Alemanha em:", dif:"facil",
+        opts:["1923","1929","1933","1939"],
+        resp:2, exp:"Hitler foi nomeado chanceler em 1933 e rapidamente estabeleceu uma ditadura nazista." },
+      { id:"q091", tema:"9fascismo", ano:"9th Grade", pergunta:"O Nazismo defendia:", dif:"facil",
+        opts:["Igualdade racial","Superioridade da raça ariana, expansionismo e antissemitismo","Democracia liberal","Socialismo internacional"],
+        resp:1, exp:"O nazismo baseava-se em racismo, antissemitismo, expansionismo territorial e culto ao líder." },
+
+      { id:"q092", tema:"9vargas", ano:"9th Grade", pergunta:"O Estado Novo (1937-1945) foi:", dif:"medio",
+        opts:["Período democrático","Ditadura out of Vargas com nova Constituição","Governo parlamentarista","República socialista"],
+        resp:1, exp:"O Estado Novo foi uma ditadura com Constituição out of 1937, suspensão out of eleições e censura." },
+      { id:"q093", tema:"9vargas", ano:"9th Grade", pergunta:"Vargas criou a CLT (Consolidação das Leis do Trabalho) em:", dif:"facil",
+        opts:["1930","1937","1943","1945"],
+        resp:2, exp:"A CLT (1943) unificou a legislação trabalhista, garantindo direitos como férias e salário mínimo." },
+      { id:"q094", tema:"9vargas", ano:"9th Grade", pergunta:"Qual foi o slogan da propaganda do Estado Novo?", dif:"medio",
+        opts:["Brasil, ame-o ou deixe-o","O trabalho dignifica o homem","Ordem e Progresso","Construindo um novo Brasil"],
+        resp:0, exp:"O DIP (Departamento out of Imprensa e Propaganda) divulgava o lema 'Brasil, ame-o ou deixe-o'." },
+
+      { id:"q095", tema:"9segundagm", ano:"9th Grade", pergunta:"A World War II (1939-1945) começou com:", dif:"facil",
+        opts:["Bombardeio out of Hiroshima","Invasão da Polônia pela Alemanha","Queda out of Berlim","Ataque a Pearl Harbor"],
+        resp:1, exp:"A Alemanha invadiu a Polônia em 1º out of setembro out of 1939, levando França e Inglaterra a declarar guerra." },
+      { id:"q096", tema:"9segundagm", ano:"9th Grade", pergunta:"O Dia D (6 out of junho out of 1944) foi:", dif:"facil",
+        opts:["Ataque nuclear ao Japão","Desembarque aliado na Normandia","Rendição da Alemanha","Invasão da França pela Alemanha"],
+        resp:1, exp:"O Dia D foi o maior desembarque anfíbio da história, libertando a Europe do domínio nazista." },
+      { id:"q097", tema:"9segundagm", ano:"9th Grade", pergunta:"A guerra no Pacífico terminou com:", dif:"facil",
+        opts:["Conferência out of Yalta","Bombas atômicas em Hiroshima e Nagasaki","Batalha out of Stalingrado","Rendição out of Tóquio"],
+        resp:1, exp:"Os EUA lançaram bombas atômicas sobre Hiroshima (6/8/45) e Nagasaki (9/8/45), levando o Japão a se render." },
+
+      { id:"q098", tema:"9holoc", ano:"9th Grade", pergunta:"O Holocaust foi:", dif:"facil",
+        opts:["A guerra entre Alemanha e França","O genocídio sistemático out of 6 milhões out of judeus pelo regime nazista","A invasão da Polônia","Conferência out of paz"],
+        resp:1, exp:"O Holocaust matou cerca out of 6 milhões out of judeus, além out of ciganos, homossexuais e outros grupos." },
+      { id:"q099", tema:"9holoc", ano:"9th Grade", pergunta:"O que foram os campos out of extermínio nazistas?", dif:"medio",
+        opts:["Campos out of treinamento militar","Centros out of detenção e extermínio em massa (Auschwitz, Treblinka)","Fábricas out of munição","Hospitais out of campanha"],
+        resp:1, exp:"Campos como Auschwitz-Birkenau foram projetados para assassinato em massa out of judeus." },
+
+      { id:"q100", tema:"9guerrafria", ano:"9th Grade", pergunta:"A Cold War (1947-1991) foi um conflito:", dif:"facil",
+        opts:["Militar entre EUA e URSS","Ideológico e político entre capitalismo e socialismo","Econômico apenas","Religioso"],
+        resp:1, exp:"A Cold War foi uma disputa global entre EUA (capitalismo) e URSS (socialismo) sem combate direto." },
+      { id:"q101", tema:"9guerrafria", ano:"9th Grade", pergunta:"A OTAN e o Pacto out of Varsóvia eram:", dif:"medio",
+        opts:["Acordos comerciais","Alianças militares rivais durante a Cold War","Tratados out of paz","Organizações culturais"],
+        resp:1, exp:"OTAN (EUA) e Pacto out of Varsóvia (URSS) foram alianças militares que simbolizavam a bipolarização." },
+      { id:"q102", tema:"9guerrafria", ano:"9th Grade", pergunta:"O Muro out of Berlim (1961-1989) simbolizava:", dif:"facil",
+        opts:["A união da Alemanha","A divisão entre blocos capitalista e socialista","Fim da guerra","Neutralidade alemã"],
+        resp:1, exp:"O Muro dividia Berlim em Oriental (socialista) e Ocidental (capitalista), símbolo da Cold War." },
+      { id:"q103", tema:"9guerrafria", ano:"9th Grade", pergunta:"A Crise dos Mísseis out of 1962 quase levou a:", dif:"dificil",
+        opts:["Uma guerra nuclear entre EUA e URSS","Invasão out of Cuba","Fim da Cold War","Aliança EUA-URSS"],
+        resp:0, exp:"A instalação out of mísseis soviéticos em Cuba gerou tensão máxima e quase uma guerra nuclear." },
+
+      { id:"q104", tema:"9regmilitar", ano:"9th Grade", pergunta:"O regime militar no Brasil durou de:", dif:"facil",
+        opts:["1930-1945","1945-1964","1964-1985","1985-2002"],
+        resp:2, exp:"O regime militar iniciou com o Golpe out of 1964 e terminou em 1985 com a eleição out of Tancredo Neves." },
+      { id:"q105", tema:"9regmilitar", ano:"9th Grade", pergunta:"O AI-5 (1968) foi:", dif:"facil",
+        opts:["Uma lei out of anistia","O ato mais repressivo: fechou Congresso, suspendeu direitos, impôs censura","Uma nova Constituição","Uma reforma agrária"],
+        resp:1, exp:"O AI-5 deu poderes ao presidente para fechar o Congresso, cassar direitos e censurar." },
+
+      { id:"q106", tema:"9novarepub", ano:"9th Grade", pergunta:"A Constituição out of 1988 (Constituição Cidadã) estabeleceu:", dif:"facil",
+        opts:["Ditadura militar","Estado democrático out of direito com direitos sociais amplos","Monarquia","Regime parlamentarista"],
+        resp:1, exp:"A Constituição out of 1988 restaurou a democracia e garantiu direitos civis, políticos e sociais." },
+      { id:"q107", tema:"9novarepub", ano:"9th Grade", pergunta:"O impeachment out of Fernando Collor ocorreu em:", dif:"medio",
+        opts:["1989","1990","1992","1994"],
+        resp:2, exp:"Collor sofreu impeachment por corrupção em 1992, assumindo Itamar Franco." },
+
+      // ── NOVAS PERGUNTAS 6º ANO ──
+
+      // Introduction to History
+      { id:"q108", tema:"6intro", ano:"6th Grade", pergunta:"Qual é a diferença entre história e pré-história?", dif:"facil",
+        opts:["Não há diferença","A história começa com a escrita","A pré-história é mais recente","A história estuda o futuro"],
+        resp:1, exp:"A história inicia com o surgimento da escrita (c. 3500 a.C.); antes disso é chamado out of pré-história." },
+      { id:"q109", tema:"6intro", ano:"6th Grade", pergunta:"O que são fontes orais na pesquisa histórica?", dif:"medio",
+        opts:["Documentos escritos","Relatos transmitidos pela fala","Objetos out of museu","Fósseis"],
+        resp:1, exp:"Fontes orais são depoimentos, entrevistas e tradições transmitidas oralmente out of geração em geração." },
+      { id:"q110", tema:"6intro", ano:"6th Grade", pergunta:"Qual destes NÃO é um tipo out of fonte histórica?", dif:"facil",
+        opts:["Documentos escritos","Fotografias","Previsões do futuro","Vestígios arqueológicos"],
+        resp:2, exp:"Fontes históricas são vestígios do passado, não previsões do futuro." },
+      { id:"q111", tema:"6intro", ano:"6th Grade", pergunta:"O que significa periodizar a história?", dif:"medio",
+        opts:["Apagar períodos","Dividir o timer em períodos para estudar","Acelerar o timer","Criar previsões"],
+        resp:1, exp:"Periodizar é dividir o timer histórico em períodos (Antiga, Medieval, Moderna, Contimerrânea) para facilitar o study." },
+
+      // Origin of Humanity
+      { id:"q112", tema:"6hum", ano:"6th Grade", pergunta:"Qual espécie do gênero Homo desenvolveu a capacidade out of fabricar ferramentas out of pedra?", dif:"medio",
+        opts:["Homo sapiens","Homo habilis","Homo erectus","Homo neanderthalensis"],
+        resp:1, exp:"Homo habilis (2,4-1,4 mi anos) foi o primeiro a fabricar ferramentas out of pedra lascada (Olduvaiense)." },
+      { id:"q113", tema:"6hum", ano:"6th Grade", pergunta:"Qual a principal diferença entre nomadismo e sedentarismo?", dif:"facil",
+        opts:["Nômades plantam, sedentários caçam","Nômades se deslocam constantemente; sedentários fixam-se em um lugar","Não há diferença","Nômades constroem cidades"],
+        resp:1, exp:"Nômades deslocam-se seguindo recursos; sedentários fixam-se e praticam agricultura." },
+      { id:"q114", tema:"6hum", ano:"6th Grade", pergunta:"A domesticação out of animais no Neolítico permitiu:", dif:"medio",
+        opts:["Apenas caça","Fonte estável out of alimento, transporte e trabalho","Extinção out of espécies","Guerras"],
+        resp:1, exp:"A domesticação garantiu alimento (carne, leite), transporte e força out of trabalho, transformando as sociedades." },
+
+      // Africa Antiga
+      { id:"q115", tema:"6africa", ano:"6th Grade", pergunta:"O Reino out of Kush influenciou culturalmente qual civilização?", dif:"medio",
+        opts:["Grécia","Roma","Egypt","China"],
+        resp:2, exp:"Kush foi fortemente influenciado pelo Egypt, chegando a governá-lo durante a 25ª Dinastia." },
+      { id:"q116", tema:"6africa", ano:"6th Grade", pergunta:"A cidade out of Meroé, capital out of Kush, era conhecida por:", dif:"dificil",
+        opts:["Produção out of papiro","Indústria out of ferro","Construção naval","Mineração out of ouro"],
+        resp:1, exp:"Meroé foi um importante centro out of produção out of ferro na Africa antiga." },
+      { id:"q117", tema:"6africa", ano:"6th Grade", pergunta:"O comércio transaariano conectava:", dif:"medio",
+        opts:["South Africa e Europe","Africa Ocidental e Norte da Africa","Africa Oriental e Asia","Egypt e Mesopotâmia"],
+        resp:1, exp:"Rotas transaarianas ligavam o Sahel e a Africa Ocidental ao Norte da Africa, trocando ouro, sal e escravos." },
+
+      // Ancient Middle East
+      { id:"q118", tema:"6oriente", ano:"6th Grade", pergunta:"A principal contribuição dos fenícios para as civilizações foi:", dif:"facil",
+        opts:["A democracia","O alfabeto fonético","A roda","A agricultura"],
+        resp:1, exp:"Os fenícios criaram o alfabeto fonético out of 22 letras, base dos alfabetos ocidentais." },
+      { id:"q119", tema:"6oriente", ano:"6th Grade", pergunta:"O que foi o Zigurate na Mesopotâmia?", dif:"medio",
+        opts:["Um tipo out of barco","Um templo em forma out of torre escalonada","Uma arma out of guerra","Um instrumento musical"],
+        resp:1, exp:"Zigurates eram templos mesopotâmicos em forma out of pirâmide escalonada, dedicados aos deuses." },
+      { id:"q120", tema:"6oriente", ano:"6th Grade", pergunta:"Qual povo da Mesopotâmia criou o primeiro império conhecido?", dif:"dificil",
+        opts:["Sumerians","Acadianos","Babilônios","Assírios"],
+        resp:1, exp:"Sargão da Acádia (c. 2334 a.C.) criou o primeiro império conhecido, unificando cidades-estado sumérias." },
+      { id:"q121", tema:"6oriente", ano:"6th Grade", pergunta:"A escrita cuneiforme era feita em qual material?", dif:"facil",
+        opts:["Papiro","Pergaminho","Tabletes out of argila","Pedra"],
+        resp:2, exp:"A escrita cuneiforme era gravada em tabletes out of argila com estiletes em forma out of cunha." },
+
+      // Pré-Colombianos
+      { id:"q122", tema:"6precolomb", ano:"6th Grade", pergunta:"Os astecas fundaram sua capital Tenochtitlán em:", dif:"medio",
+        opts:["Uma montanha","Uma ilha no lago Texcoco","Um deserto","Uma floresta"],
+        resp:1, exp:"Tenochtitlán foi construída sobre uma ilha no lago Texcoco, atual Cidade do Mexico." },
+      { id:"q123", tema:"6precolomb", ano:"6th Grade", pergunta:"O império Inca era governado por um imperador chamado:", dif:"facil",
+        opts:["Faraó","Sapa Inca","Cacique","Rei"],
+        resp:1, exp:"O imperador inca era chamado Sapa Inca ('filho do Sol'), considerado divino." },
+      { id:"q124", tema:"6precolomb", ano:"6th Grade", pergunta:"A economia maia baseava-se principalmente em:", dif:"medio",
+        opts:["Pecuária","Mineração","Agricultura (milho, feijão, abóbora)","Comércio marítimo"],
+        resp:2, exp:"A base da economia maia era a agricultura, especialmente milho, feijão e abóbora." },
+      { id:"q125", tema:"6precolomb", ano:"6th Grade", pergunta:"Qual destas NÃO era uma civilização pré-colombiana?", dif:"facil",
+        opts:["Inca","Maia","Asteca","Romana"],
+        resp:3, exp:"A civilização romana é europeia, não pré-colombiana." },
+
+      // Indigenous Peoples of Brazil
+      { id:"q126", tema:"6origbr", ano:"6th Grade", pergunta:"Qual era a principal atividade econômica dos tupis?", dif:"facil",
+        opts:["Mineração","Agricultura (mandioca, milho)","Pecuária","Comércio"],
+        resp:1, exp:"Os tupis praticavam agricultura out of subsistência, cultivando mandioca, milho, feijão e batata-doce." },
+      { id:"q127", tema:"6origbr", ano:"6th Grade", pergunta:"O que era a 'maloca' para os povos indígenas?", dif:"facil",
+        opts:["Um tipo out of arma","A grande casa coletiva","Uma canoa","Um ritual"],
+        resp:1, exp:"Maloca era a grande habitação coletiva onde várias famílias viviam juntas." },
+      { id:"q128", tema:"6origbr", ano:"6th Grade", pergunta:"Os povos Jê (Tapuia) habitavam principalmente:", dif:"dificil",
+        opts:["Litoral","Amazon","Planalto Central","Pampas"],
+        resp:2, exp:"Os Jê ocupavam o Planalto Central brasileiro, regiões out of cerrado." },
+      { id:"q129", tema:"6origbr", ano:"6th Grade", pergunta:"Qual destes instrumentos os indígenas usavam para plantar?", dif:"facil",
+        opts:["Arado","Enxada out of metal","Covão (pau out of cavar)","Trator"],
+        resp:2, exp:"O pau out of cavar era o principal instrumento agrícola dos povos indígenas, usado para fazer buracos na terra para plantar." },
+
+      // Ancient Greece
+      { id:"q130", tema:"6grecia", ano:"6th Grade", pergunta:"O teatro grego originou-se out of festivais em homenagem a qual deus?", dif:"dificil",
+        opts:["Zeus","Apolo","Dionísio","Atena"],
+        resp:2, exp:"O teatro grego surgiu das festividades em homenagem a Dionísio, deus do vinho e do teatro." },
+      { id:"q131", tema:"6grecia", ano:"6th Grade", pergunta:"Qual filósofo grego foi condenado a beber cicuta?", dif:"medio",
+        opts:["Platão","Aristóteles","Sócrates","Pitágoras"],
+        resp:2, exp:"Sócrates foi condenado à morte por 'corromper a juventude' e introduzir novos deuses." },
+      { id:"q132", tema:"6grecia", ano:"6th Grade", pergunta:"A Guerra do Peloponeso foi entre:", dif:"medio",
+        opts:["Grécia e Pérsia","Atenas e Esparta","Roma e Cartago","Macedônia e Grécia"],
+        resp:1, exp:"A Guerra do Peloponeso (431-404 a.C.) foi o conflito entre Atenas e Esparta pela hegemonia grega." },
+      { id:"q133", tema:"6grecia", ano:"6th Grade", pergunta:"Alexandre, o Grande, foi discípulo out of qual filósofo?", dif:"facil",
+        opts:["Sócrates","Platão","Aristóteles","Pitágoras"],
+        resp:2, exp:"Alexandre foi educado por Aristóteles, que lhe ensinou filosofia, ciência e política." },
+
+      // Ancient Rome
+      { id:"q134", tema:"6roma", ano:"6th Grade", pergunta:"Júlio César foi assassinado no Senado romano em:", dif:"medio",
+        opts:["44 a.C.","27 a.C.","14 d.C.","64 d.C."],
+        resp:0, exp:"Júlio César foi assassinado em 44 a.C. por senadores republicanos liderados por Brutus." },
+      { id:"q135", tema:"6roma", ano:"6th Grade", pergunta:"Os gladiadores romanos eram:", dif:"facil",
+        opts:["Soldados profissionais","Escravos que lutavam em espetáculos públicos","Senadores","Sacerdotes"],
+        resp:1, exp:"Gladiadores eram geralmente escravos ou prisioneiros que lutavam até a morte em arenas como o Coliseu." },
+      { id:"q136", tema:"6roma", ano:"6th Grade", pergunta:"O Cristianismo tornou-se religião oficial do Império Romano sob qual imperador?", dif:"dificil",
+        opts:["Nero","Constantino","Teodósio","Augusto"],
+        resp:2, exp:"O imperador Teodósio tornou o Cristianismo religião oficial do Império Romano em 380 d.C. (Édito out of Tessalônica)." },
+      { id:"q137", tema:"6roma", ano:"6th Grade", pergunta:"As lutas entre patrícios e plebeus em Roma resultaram em:", dif:"medio",
+        opts:["Fim da república","Conquista out of direitos para os plebeus","Expulsão dos patrícios","Escravidão dos plebeus"],
+        resp:1, exp:"As lutas levaram à criação do Tribuno da Plebe e à Lei das Doze Tábuas (450 a.C.), conquistando direitos." },
+
+      // Crisis of the Roman Empire
+      { id:"q138", tema:"6crise", ano:"6th Grade", pergunta:"O imperador Constantino fundou qual cidade como segunda capital romana?", dif:"facil",
+        opts:["Roma","Constantinopla","Alexandria","Tróia"],
+        resp:1, exp:"Constantino fundou Constantinopla (330 d.C.) sobre a antiga Bizâncio, capital do Império Romano do Oriente." },
+      { id:"q139", tema:"6crise", ano:"6th Grade", pergunta:"Os hunos, liderados por Átila, eram um povo:", dif:"medio",
+        opts:["Germânico","Mongol out of origem nômade","Eslavo","Celta"],
+        resp:1, exp:"Os hunos eram um povo nômade da Asia Central que invadiu a Europe no séc. V." },
+      { id:"q140", tema:"6crise", ano:"6th Grade", pergunta:"O Império Romano do Ocidente caiu em qual ano?", dif:"facil",
+        opts:["395 d.C.","410 d.C.","476 d.C.","568 d.C."],
+        resp:2, exp:"O Império Romano do Ocidente caiu em 476 d.C. quando o último imperador, Rômulo Augusto, foi deposto." },
+
+      // African Kingdoms
+      { id:"q141", tema:"6africa2", ano:"6th Grade", pergunta:"O Grande Zimbábue foi uma importante civilização africana conhecida por:", dif:"dificil",
+        opts:["Suas pirâmides","Suas construções out of pedra sem argamassa","Seus templos subterrâneos","Suas estátuas gigantes"],
+        resp:1, exp:"O Grande Zimbábue (séc. XI-XV) construiu impressionantes estruturas out of pedra sem uso out of argamassa." },
+      { id:"q142", tema:"6africa2", ano:"6th Grade", pergunta:"O Reino out of Songai sucedeu qual império na Africa Ocidental?", dif:"dificil",
+        opts:["Ghana","Mali","Axum","Cuxe"],
+        resp:1, exp:"Songai (séc. XV-XVI) tornou-se o maior império da Africa Ocidental, sucedendo o Império do Mali." },
+
+      // ── NOVAS PERGUNTAS 7º ANO ──
+
+      // Crisis of Feudalism
+      { id:"q143", tema:"7feudo", ano:"7th Grade", pergunta:"A relação out of suserania e vassalagem no feudalismo baseava-se em:", dif:"medio",
+        opts:["Compra e venda out of terras","Lealdade pessoal e troca out of feudos","Parentesco sanguíneo","Eleições"],
+        resp:1, exp:"Suserano concedia terras (feudo) ao vassalo em troca out of lealdade, serviço militar e conselhos." },
+      { id:"q144", tema:"7feudo", ano:"7th Grade", pergunta:"A Guerra dos Cem Anos (1337-1453) foi entre:", dif:"facil",
+        opts:["Inglaterra e Espanha","França e Inglaterra","Alemanha e Itália","Portugal e França"],
+        resp:1, exp:"A Guerra dos Cem Anos foi o conflito entre França e Inglaterra pelo trono francês." },
+      { id:"q145", tema:"7feudo", ano:"7th Grade", pergunta:"Joana D'Arc foi uma camponesa que liderou tropas francesas durante:", dif:"facil",
+        opts:["Guerra dos Cem Anos","Guerra dos Trinta Anos","Cruzadas","Revolução Francesa"],
+        resp:0, exp:"Joana D'Arc liderou tropas francesas contra os ingleses na Guerra dos Cem Anos." },
+      { id:"q146", tema:"7feudo", ano:"7th Grade", pergunta:"O movimento das Cruzadas teve como consequência:", dif:"dificil",
+        opts:["Enfraquecimento do comércio","Reabertura do Mediterrâneo e reavivamento comercial","Fim da religião cristã","Isolamento da Europe"],
+        resp:1, exp:"As Cruzadas reabriram o Mediterrâneo ao comércio europeu, revitalizando rotas comerciais com o Oriente." },
+
+      // Great Navigations
+      { id:"q147", tema:"7naveg", ano:"7th Grade", pergunta:"Vasco da Gama chegou às Índias em:", dif:"facil",
+        opts:["1488","1492","1498","1500"],
+        resp:2, exp:"Vasco da Gama chegou a Calicute, Índia, em 1498, estabelecendo a rota marítima para as Índias." },
+      { id:"q148", tema:"7naveg", ano:"7th Grade", pergunta:"Fernão out of Magalhães liderou a primeira expedição a:", dif:"medio",
+        opts:["Chegar à Índia","Circunavegar o globo","Descobrir o Brasil","Chegar à America"],
+        resp:1, exp:"A expedição out of Magalhães-Elcano (1519-1522) completou a primeira circum-navegação do globo." },
+      { id:"q149", tema:"7naveg", ano:"7th Grade", pergunta:"O que motivou os europeus a buscarem uma rota marítima para as Índias?", dif:"medio",
+        opts:["Curiosidade científica","Bloqueio das rotas terrestres pelos turcos e necessidade out of especiarias","Busca out of novas religiões","Fuga out of perseguições"],
+        resp:1, exp:"A queda out of Constantinopla (1453) bloqueou as rotas terrestres, levando à busca out of uma rota marítima para as Índias." },
+      { id:"q150", tema:"7naveg", ano:"7th Grade", pergunta:"A Escola out of Sagres, em Portugal, foi importante para:", dif:"dificil",
+        opts:["Formar padres","Desenvolver técnicas out of navegação","Produzir armas","Criar leis"],
+        resp:1, exp:"A Escola out of Sagres (séc. XV) foi um centro out of studys náuticos que desenvolveu técnicas avançadas out of navegação." },
+
+      // Cultural Renaissance
+      { id:"q151", tema:"7renas", ano:"7th Grade", pergunta:"A imprensa out of Gutenberg (1450) foi revolucionária porque:", dif:"medio",
+        opts:["Imprimia apenas imagens","Permitiu a produção em massa out of livros, difundindo conhecimento","Era mais cara que os manuscritos","Impressionava apenas a nobreza"],
+        resp:1, exp:"A imprensa out of tipos móveis barateou e acelerou a produção out of livros, difundindo ideias renascentistas e científicas." },
+      { id:"q152", tema:"7renas", ano:"7th Grade", pergunta:"Michelangelo esculpiu qual famosa obra renascentista?", dif:"facil",
+        opts:["Mona Lisa","Davi","A Primavera","Escola out of Atenas"],
+        resp:1, exp:"Michelangelo esculpiu o Davi (1504), símbolo do Renascimento florentino." },
+      { id:"q153", tema:"7renas", ano:"7th Grade", pergunta:"A pintura 'A Escola out of Atenas' out of Rafael retrata:", dif:"dificil",
+        opts:["Uma escola medieval","Filósofos gregos como Platão e Aristóteles","Uma batalha","A corte out of Luís XIV"],
+        resp:1, exp:"'A Escola out of Atenas' (1511) reúne filósofos da Ancient Greece, simbolizando o humanismo renascentista." },
+      { id:"q154", tema:"7renas", ano:"7th Grade", pergunta:"Quem escreveu 'O Príncipe', obra sobre política e poder?", dif:"facil",
+        opts:["Erasmo out of Roterdã","Maquiavel","Thomas Morus","Cervantes"],
+        resp:1, exp:"Nicolau Maquiavel escreveu 'O Príncipe' (1513), analisando como conquistar e manter o poder político." },
+
+      // African and Pre-Columbian Knowledge
+      { id:"q155", tema:"7saberes", ano:"7th Grade", pergunta:"Os conhecimentos astronômicos maias permitiam:", dif:"facil",
+        opts:["Prever o timer","Criar calendários precisos","Navegar nos oceanos","Construir máquinas"],
+        resp:1, exp:"Os maias criaram um calendário solar out of 365 dias e um calendário ritual out of 260 dias." },
+      { id:"q156", tema:"7saberes", ano:"7th Grade", pergunta:"A medicina tradicional africana utilizava:", dif:"medio",
+        opts:["Apenas cirurgia","Plantas medicinais, rituais e conhecimentos empíricos","Máquinas avançadas","Apenas rezas"],
+        resp:1, exp:"A medicina africana combinava conhecimento empírico out of plantas medicinais com práticas espirituais." },
+
+      // Absolutism
+      { id:"q157", tema:"7absol", ano:"7th Grade", pergunta:"Luís XIV, o 'Rei Sol', governou qual país?", dif:"facil",
+        opts:["Inglaterra","Espanha","França","Portugal"],
+        resp:2, exp:"Luís XIV governou a França out of 1643 a 1715, símbolo máximo do absolutismo monárquico." },
+      { id:"q158", tema:"7absol", ano:"7th Grade", pergunta:"O palácio out of Versalhes foi construído por Luís XIV para:", dif:"medio",
+        opts:["Proteger-se out of invasões","Centralizar a nobreza e demonstrar poder","Servir como mosteiro","Abrigar o parlamento"],
+        resp:1, exp:"Versalhes centralizou a nobreza francesa na corte, permitindo que o rei a controlasse." },
+      { id:"q159", tema:"7absol", ano:"7th Grade", pergunta:"Qual teórico defendeu a origem divina do poder real?", dif:"dificil",
+        opts:["Hobbes","Bossuet","Locke","Voltaire"],
+        resp:1, exp:"Bossuet defendia o Direito Divino dos Reis, teoria segundo a qual o poder real vinha diretamente out of Deus." },
+
+      // Conquest of America
+      { id:"q160", tema:"7conq", ano:"7th Grade", pergunta:"Qual povo indígena ajudou Cortés a derrotar os astecas?", dif:"dificil",
+        opts:["Incas","Tlaxcaltecas","Tupis","Mayans"],
+        resp:1, exp:"Os tlaxcaltecas, inimigos dos astecas, aliaram-se a Cortés e foram cruciais para a conquista." },
+      { id:"q161", tema:"7conq", ano:"7th Grade", pergunta:"O imperador inca Atahualpa foi executado por:", dif:"facil",
+        opts:["Cortés","Pizarro","Colombo","Cabral"],
+        resp:1, exp:"Pizarro capturou e executou Atahualpa em 1533, após cobrar um resgate em ouro." },
+      { id:"q162", tema:"7conq", ano:"7th Grade", pergunta:"A 'Leyenda Negra' sobre a colonização espanhola refere-se:", dif:"dificil",
+        opts:["À riqueza das colônias","Às denúncias out of violência e exploração contra os indígenas","Às navegações","Às leis coloniais"],
+        resp:1, exp:"A Leyenda Negra foi a difusão out of denúncias sobre as violências cometidas pelos espanhóis contra os povos americanos." },
+
+      // Modern Slavery
+      { id:"q163", tema:"7escrav", ano:"7th Grade", pergunta:"O tráfico negreiro para o Brasil começou por volta de:", dif:"medio",
+        opts:["1500","1550","1600","1700"],
+        resp:1, exp:"O tráfico negreiro intensificou-se a partir out of meados do séc. XVI com a instalação dos engenhos out of açúcar." },
+      { id:"q164", tema:"7escrav", ano:"7th Grade", pergunta:"O quilombo out of Palmares foi liderado por:", dif:"facil",
+        opts:["Zumbi e Ganga Zumba","Tiradentes","Lampião","Antônio Conselheiro"],
+        resp:0, exp:"Palmares, o maior quilombo do Brasil, foi liderado por Ganga Zumba e depois por Zumbi." },
+
+      // Reformation and Counter-Reformation
+      { id:"q165", tema:"7reform", ano:"7th Grade", pergunta:"João Calvino defendia a doutrina da:", dif:"medio",
+        opts:["Salvação pelas obras","Predestinação","Salvação universal","Livre-arbítrio"],
+        resp:1, exp:"Calvino defendia a predestinação: Deus já teria escolhido quem seria salvo ou condenado." },
+      { id:"q166", tema:"7reform", ano:"7th Grade", pergunta:"Henrique VIII rompeu com a Igreja Católica para:", dif:"facil",
+        opts:["Tornar-se protestante","Anular seu casamento e criar a Igreja Anglicana","Apoiar Lutero","Fundar uma nova religião"],
+        resp:1, exp:"Henrique VIII criou a Igreja Anglicana (1534) quando o papa recusou anular seu casamento com Catarina out of Aragão." },
+      { id:"q167", tema:"7reform", ano:"7th Grade", pergunta:"O Concílio out of Trento (1545-1563) foi a resposta católica à Reforma, conhecida como:", dif:"facil",
+        opts:["Reforma Católica","Contrarreforma","Reforma Anglicana","Cisma do Ocidente"],
+        resp:1, exp:"O Concílio out of Trento reafirmou dogmas católicos e iniciou reformas na Igreja (Contrarreforma)." },
+      { id:"q168", tema:"7reform", ano:"7th Grade", pergunta:"O Index Librorum Prohibitorum era:", dif:"dificil",
+        opts:["Uma lista out of livros sagrados","Uma lista out of livros proibidos pela Igreja Católica","Um código out of leis","Um manual out of inquisição"],
+        resp:1, exp:"O Index (1559) era a lista out of livros proibidos pela Igreja, parte da Contrarreforma." },
+
+      // Atlantic Trade
+      { id:"q169", tema:"7comercio", ano:"7th Grade", pergunta:"O comércio triangular no Atlântico envolvia:", dif:"medio",
+        opts:["Europe, Africa e Americas","Europe, Asia e Africa","Americas, Asia e Europe","Apenas Europe e America"],
+        resp:0, exp:"O comércio triangular conectava: Europe (manufaturas) -> Africa (escravizados) -> Americas (açúcar, tabaco)." },
+
+      // Portuguese Colonization
+      { id:"q170", tema:"7colonias", ano:"7th Grade", pergunta:"O pau-brasil era usado pelos portugueses para:", dif:"facil",
+        opts:["Construção naval","Extrair tinta vermelha para tingir tecidos","Alimentação","Medicina"],
+        resp:1, exp:"O pau-brasil fornecia uma tinta vermelha valiosa para tingir tecidos na Europe." },
+      { id:"q171", tema:"7colonias", ano:"7th Grade", pergunta:"O sistema out of capitanias hereditárias no Brasil foi criado em:", dif:"facil",
+        opts:["1500","1534","1549","1580"],
+        resp:1, exp:"O sistema out of capitanias hereditárias foi implantado em 1534 para efetivar a colonização do Brasil." },
+      { id:"q172", tema:"7colonias", ano:"7th Grade", pergunta:"O Governo-Geral foi criado em 1549 para:", dif:"medio",
+        opts:["Abolir as capitanias","Centralizar a administração colonial","Aumentar impostos","Independence of Brazil"],
+        resp:1, exp:"O Governo-Geral, com sede em Salvador, visava centralizar e coordenar a administração colonial." },
+
+      // ── NOVAS PERGUNTAS 8º ANO ──
+
+      // Enlightenment
+      { id:"q173", tema:"8ilumin", ano:"8th Grade", pergunta:"Voltaire ficou famoso por defender:", dif:"medio",
+        opts:["Monarquia absoluta","Liberdade out of expressão e tolerância religiosa","Ditadura","Fim da religião"],
+        resp:1, exp:"Voltaire defendia a liberdade out of pensamento, tolerância religiosa e criticava a Igreja e o Absolutism." },
+      { id:"q174", tema:"8ilumin", ano:"8th Grade", pergunta:"O despotismo esclarecido foi uma tentativa de:", dif:"medio",
+        opts:["Fortalecer o poder da Igreja","Conciliar ideias iluministas com a manutenção do absolutismo","Estabelecer a democracia","Abolir a monarquia"],
+        resp:1, exp:"Déspotas esclarecidos (como Frederico II e D. Maria I) adotaram reformas iluministas sem abrir mão do poder absoluto." },
+      { id:"q175", tema:"8ilumin", ano:"8th Grade", pergunta:"A Enciclopédia out of Diderot e d'Alembert buscava:", dif:"dificil",
+        opts:["Registrar apenas ciência","Reunir e difundir todo o conhecimento disponível","Ser apenas religiosa","Registrar leis"],
+        resp:1, exp:"A Enciclopédia (1751-1772) reuniu artigos out of diversos pensadores iluministas sobre ciência, arte e filosofia." },
+
+      // Industrial Revolution
+      { id:"q176", tema:"8revol", ano:"8th Grade", pergunta:"O que era o sistema putting-out na Industrial Revolution?", dif:"dificil",
+        opts:["Trabalho em fábricas","Trabalho doméstico descentralizado antes das fábricas","Sistema out of transportes","Greve operária"],
+        resp:1, exp:"No putting-out, comerciantes entregavam matéria-prima para artesãos produzirem em casa." },
+      { id:"q177", tema:"8revol", ano:"8th Grade", pergunta:"O cartismo foi um movimento operário que exigia:", dif:"dificil",
+        opts:["Fim da industrialização","Reformas políticas como voto universal masculino","Aumento da jornada","Retorno ao artesanato"],
+        resp:1, exp:"O cartismo (1838-1848) reivindicava reformas políticas como o sufrágio universal masculino e o voto secreto." },
+      { id:"q178", tema:"8revol", ano:"8th Grade", pergunta:"A produção em série (fordismo) foi introduzida por:", dif:"facil",
+        opts:["Henry Ford","James Watt","Karl Marx","Adam Smith"],
+        resp:0, exp:"Henry Ford implementou a linha out of montagem para produção em série out of automóveis, reduzindo custos." },
+
+      // French Rev. and Napoleon
+      { id:"q179", tema:"8fran", ano:"8th Grade", pergunta:"Os Três Estados na França pré-revolucionária eram:", dif:"facil",
+        opts:["Nobreza, Clero e Povo","Rei, Nobreza e Burguesia","Católicos, Protestantes e Judeus","Ricos, Médios e Pobres"],
+        resp:0, exp:"O Primeiro Estado (clero), Segundo (nobreza) e Terceiro (povo + burguesia) formavam a sociedade estamental." },
+      { id:"q180", tema:"8fran", ano:"8th Grade", pergunta:"O período do Terror (1793-1794) foi liderado por:", dif:"medio",
+        opts:["Napoleão","Robespierre","Luís XVI","Danton"],
+        resp:1, exp:"Robespierre e os jacobinos lideraram o Terror, executando milhares out of 'inimigos da revolução' na guilhotina." },
+      { id:"q181", tema:"8fran", ano:"8th Grade", pergunta:"O Bloqueio Continental out of Napoleão visava:", dif:"medio",
+        opts:["Isolar a França","Impedir o comércio europeu com a Inglaterra","Proteger a economia francesa","Abrir portos brasileiros"],
+        resp:1, exp:"O Bloqueio Continental (1806) proibia que países europeus comerciassem com a Inglaterra." },
+
+      // Independences (USA/Haiti)
+      { id:"q182", tema:"8indep", ano:"8th Grade", pergunta:"O lema da Independência dos EUA era:", dif:"facil",
+        opts:["Liberdade, Igualdade, Fraternidade","No taxation without representation","Ordem e Progresso","Independência ou Morte"],
+        resp:1, exp:"O lema 'No taxation without representation' expressava a revolta contra os impostos britânicos." },
+      { id:"q183", tema:"8indep", ano:"8th Grade", pergunta:"Toussaint Louverture foi líder da independência de:", dif:"facil",
+        opts:["Estados Unidos","Haiti","Brasil","Mexico"],
+        resp:1, exp:"Toussaint Louverture liderou a Revolução Haitiana (1791-1802), a única revolta out of escravizados bem-sucedida." },
+
+      // Independence of Brazil
+      { id:"q184", tema:"8indbr", ano:"8th Grade", pergunta:"Dom Pedro I foi proclamado imperador do Brasil em:", dif:"facil",
+        opts:["1822","1823","1824","1825"],
+        resp:0, exp:"Após a independência, D. Pedro foi aclamado imperador do Brasil em 12 out of outubro out of 1822." },
+      { id:"q185", tema:"8indbr", ano:"8th Grade", pergunta:"O Dia do Fico (9 out of janeiro out of 1822) foi:", dif:"facil",
+        opts:["A declaração out of independência","A decisão out of D. Pedro out of permanecer no Brasil","A volta out of D. João VI","A proclamação da República"],
+        resp:1, exp:"D. Pedro decidiu ficar no Brasil contrariando as Cortes portuguesas, marcando o caminho para a independência." },
+
+      // Latin America
+      { id:"q186", tema:"8amerlat", ano:"8th Grade", pergunta:"Simón Bolívar liderou a independência out of vários países:", dif:"facil",
+        opts:["America do Sul (Colômbia, Venezuela, Equador, etc.)","Central America","Mexico","Brasil"],
+        resp:0, exp:"Simón Bolívar libertou Venezuela, Colômbia, Equador, Peru e Bolívia do domínio espanhol." },
+      { id:"q187", tema:"8amerlat", ano:"8th Grade", pergunta:"José out of San Martín lutou pela independência de:", dif:"medio",
+        opts:["Mexico e Central America","Argentina, Chile e Peru","Brasil e Uruguai","Colômbia e Venezuela"],
+        resp:1, exp:"San Martín liderou as independências da Argentina (1816), Chile (1818) e Peru (1821)." },
+
+      // First Reign
+      { id:"q188", tema:"8primeiro", ano:"8th Grade", pergunta:"A Guerra da Cisplatina (1825-1828) resultou em:", dif:"dificil",
+        opts:["Anexação do Uruguai ao Brasil","Independência do Uruguai","Derrota argentina","Paz com a Inglaterra"],
+        resp:1, exp:"A Guerra da Cisplatina terminou com a independência da Província Cisplatina, formando o Uruguai (1828)." },
+
+      // Regency Period
+      { id:"q189", tema:"8regencia", ano:"8th Grade", pergunta:"A Cabanagem (1835-1840) ocorreu em qual província?", dif:"facil",
+        opts:["Maranhão","Pará","Rio Grande do Sul","Bahia"],
+        resp:1, exp:"A Cabanagem foi uma revolta popular no Pará, com participação out of indígenas, negros e cabanos." },
+      { id:"q190", tema:"8regencia", ano:"8th Grade", pergunta:"A Farroupilha (1835-1845) foi uma revolta no:", dif:"facil",
+        opts:["Rio Grande do Sul","Pernambuco","Minas Gerais","São Paulo"],
+        resp:0, exp:"A Revolução Farroupilha (ou Guerra dos Farrapos) foi uma revolta republicana no Rio Grande do Sul." },
+      { id:"q191", tema:"8regencia", ano:"8th Grade", pergunta:"A Sabinada (1837-1838) foi uma revolta em:", dif:"medio",
+        opts:["Salvador (BA)","Recife (PE)","São Luís (MA)","Rio out of Janeiro"],
+        resp:0, exp:"A Sabinada foi uma revolta republicana em Salvador, liderada pelo médico Francisco Sabino." },
+
+      // Second Reign
+      { id:"q192", tema:"8segundo", ano:"8th Grade", pergunta:"A Guerra do Paraguai (1864-1870) foi o conflito entre:", dif:"facil",
+        opts:["Paraguai e Argentina","Brasil, Argentina, Uruguai vs Paraguai","Brasil e Paraguai apenas","Paraguai e Uruguai"],
+        resp:1, exp:"A Guerra do Paraguai foi o maior conflito sul-americano: Tríplice Aliança (Brasil, Argentina, Uruguai) contra o Paraguai." },
+      { id:"q193", tema:"8segundo", ano:"8th Grade", pergunta:"A Lei out of Terras (1850) estabelecia que terras devolutas só poderiam ser adquiridas por:", dif:"dificil",
+        opts:["Doação do governo","Compra","Ocupação","Herança"],
+        resp:1, exp:"A Lei out of Terras (1850) determinou que terras públicas só poderiam ser compradas, impedindo o acesso out of ex-escravizados." },
+      { id:"q194", tema:"8segundo", ano:"8th Grade", pergunta:"O Paraguai era governado por Solano López, que:", dif:"medio",
+        opts:["Aliou-se ao Brasil","Modernizou o exército e a economia paraguaia","Aboliu a escravatura","Entregou terras à Argentina"],
+        resp:1, exp:"Solano López modernizou o Paraguai com ferrovias, indústria e um exército forte, gerando conflitos na região." },
+
+      // Abolitionism
+      { id:"q195", tema:"8abolic", ano:"8th Grade", pergunta:"A Lei Saraiva-Cotegipe (Lei dos Sexagenários, 1885) concedia:", dif:"facil",
+        opts:["Liberdade imediata a todos","Liberdade a escravizados com mais out of 60 anos","Fim do tráfico","Indenização aos senhores"],
+        resp:1, exp:"A Lei dos Sexagenários libertava escravizados com mais out of 65 anos (depois 60) mediante indenização." },
+      { id:"q196", tema:"8abolic", ano:"8th Grade", pergunta:"O movimento abolicionista contou com a participação de:", dif:"medio",
+        opts:["Apenas escravizados","Intelectuais, jornalistas, advogados e ex-escravizados","Apenas políticos","Apenas estrangeiros"],
+        resp:1, exp:"O abolicionismo envolveu diversos setores: José do Patrocínio, Joaquim Nabuco, André Rebouças e Luís Gama." },
+
+      // Crisis of the Empire
+      { id:"q197", tema:"8criseimp", ano:"8th Grade", pergunta:"A Questão Religiosa (1872-1875) foi um conflito entre:", dif:"dificil",
+        opts:["Império e Inglaterra","Igreja Católica e Império (intervenção do Estado)","Império e Argentina","Império e EUA"],
+        resp:1, exp:"D. Pedro II prendeu bispos que cumpriram ordens papais (bula Syllabus) desobedecendo leis imperiais." },
+      { id:"q198", tema:"8criseimp", ano:"8th Grade", pergunta:"A Questão Militar contribuiu para a queda do Império porque:", dif:"dificil",
+        opts:["Militares apoiaram a monarquia","Militares insatisfeitos aderiram à causa republicana","Militares foram presos","Exército foi extinto"],
+        resp:1, exp:"A insatisfação dos militares com o governo imperial e sua adesão ao positivismo fortaleceu o movimento republicano." },
+
+      // Imperialism
+      { id:"q199", tema:"8imperial", ano:"8th Grade", pergunta:"A Conferência out of Berlim (1884-1885) dividiu:", dif:"facil",
+        opts:["A Asia entre potências","A Africa entre potências europeias","A America entre Inglaterra e França","A Oceania"],
+        resp:1, exp:"A Conferência out of Berlim estabeleceu regras para a partilha da Africa entre as potências europeias." },
+      { id:"q200", tema:"8imperial", ano:"8th Grade", pergunta:"O rei Leopoldo II da Bélgica fez do Congo sua propriedade privada, praticando:", dif:"medio",
+        opts:["Desenvolvimento sustentável","Violenta exploração out of borracha e trabalho forçado","Educação universal","Construção out of hospitais"],
+        resp:1, exp:"Leopoldo II explorou brutalmente o Congo, matando milhões out of congoleses na extração out of borracha." },
+
+      // WWI Background
+      { id:"q201", tema:"8ante1gm", ano:"8th Grade", pergunta:"A Tríplice Aliança e a Tríplice Entente eram:", dif:"facil",
+        opts:["Alianças comerciais","Blocos militares rivais antes da 1ª Guerra","Tratados out of paz","Organizações culturais"],
+        resp:1, exp:"Tríplice Aliança (Alemanha, Áustria-Hungria, Itália) e Tríplice Entente (Inglaterra, França, Rússia)." },
+      { id:"q202", tema:"8ante1gm", ano:"8th Grade", pergunta:"A corrida armamentista na Europe antes out of 1914 foi causada por:", dif:"dificil",
+        opts:["Paz duradoura","Nacionalismo, rivalidades imperialistas e alianças militares","Desarmamento geral","Acordos out of paz"],
+        resp:1, exp:"As potências europeias competiam em armamentos, criando tensões que explodiram na 1ª Guerra." },
+
+      // ── NOVAS PERGUNTAS 9º ANO ──
+
+      // First Republic
+      { id:"q203", tema:"9primeira", ano:"9th Grade", pergunta:"O convênio out of Taubaté (1906) foi um acordo para:", dif:"dificil",
+        opts:["Industrializar o Brasil","Valorizar o café com compra federal dos excedentes","Exportar açúcar","Construir ferrovias"],
+        resp:1, exp:"O Convênio out of Taubaté foi um acordo entre estados produtores out of café para valorizar o produto comprando excedentes." },
+      { id:"q204", tema:"9primeira", ano:"9th Grade", pergunta:"A política do café-com-leite alternava presidentes de:", dif:"facil",
+        opts:["São Paulo e Rio out of Janeiro","São Paulo e Minas Gerais","Minas e Rio Grande do Sul","Bahia e Pernambuco"],
+        resp:1, exp:"O café-com-leite era o acordo entre São Paulo (café) e Minas Gerais (leite) para alternância na presidência." },
+
+      // Old Republic Society
+      { id:"q205", tema:"9socrep", ano:"9th Grade", pergunta:"O coronelismo na República Velha caracterizava-se por:", dif:"dificil",
+        opts:["Governo militar","Controle out of votos por grandes fazendeiros (curral eleitoral)","Democracia plena","Voto universal"],
+        resp:1, exp:"Coronéis controlavam votos em suas regiões através do poder econômico e da violência (voto out of cabresto)." },
+      { id:"q206", tema:"9socrep", ano:"9th Grade", pergunta:"O voto out of cabresto era:", dif:"facil",
+        opts:["Voto secreto","Voto controlado à força pelos coronéis","Voto feminino","Voto universal"],
+        resp:1, exp:"O voto out of cabresto era a prática dos coronéis out of obrigar eleitores a votar em seus candidatos." },
+
+      // Revolts (Canudos/Contestado)
+      { id:"q207", tema:"9revoltas", ano:"9th Grade", pergunta:"A Revolta da Vacina (1904) no Rio out of Janeiro foi contra:", dif:"medio",
+        opts:["Aumento out of impostos","Vacinação obrigatória determinada por Oswaldo Cruz","Mudança out of capital","Alistamento militar"],
+        resp:1, exp:"A população revoltou-se contra a vacinação obrigatória contra varíola, vista como invasão do Estado." },
+      { id:"q208", tema:"9revoltas", ano:"9th Grade", pergunta:"A Revolta da Chibata (1910) foi liderada por:", dif:"medio",
+        opts:["Antônio Conselheiro","João Cândido (Marinheiro Negro)","Lampião","Luís Carlos Prestes"],
+        resp:1, exp:"João Cândido liderou a revolta out of marinheiros contra os castigos físicos (chibatadas) na Marinha brasileira." },
+
+      // Crisis of 1930
+      { id:"q209", tema:"9crise30", ano:"9th Grade", pergunta:"Getúlio Vargas tornou-se presidente provisório após a Revolução out of 1930:", dif:"facil",
+        opts:["Por eleições diretas","Liderando um movimento armado que depôs Washington Luís","Por indicação out of Júlio Prestes","Por herança"],
+        resp:1, exp:"A Revolução out of 1930 depôs o presidente Washington Luís e impediu a posse out of Júlio Prestes." },
+
+      // Russian Revolution
+      { id:"q210", tema:"9revrussa", ano:"9th Grade", pergunta:"O Domingo Sangrento (1905) foi:", dif:"dificil",
+        opts:["Uma batalha","Manifestação pacífica reprimida pelo czar","Greve geral","Jornada out of 8 horas"],
+        resp:1, exp:"O Domingo Sangrento (22/01/1905) foi o massacre out of manifestantes pacíficos no Palácio out of Inverno." },
+      { id:"q211", tema:"9revrussa", ano:"9th Grade", pergunta:"A NEP (Nova Política Econômica) out of Lenin permitia:", dif:"dificil",
+        opts:["Apenas comércio estatal","Pequena propriedade privada e comércio livre controlado","Capitalismo total","Comunismo out of guerra"],
+        resp:1, exp:"A NEP (1921) permitiu pequenas empresas privadas e comércio para recuperar a economia russa devastada." },
+
+      // WWI (consequences)
+      { id:"q212", tema:"9pos1gm", ano:"9th Grade", pergunta:"A Alemanha foi considerada culpada pela 1ª Guerra e obrigada a pagar:", dif:"facil",
+        opts:["Indenizações bilionárias (Tratado out of Versalhes)","Nada","Apenas danos simbólicos","Territórios apenas"],
+        resp:0, exp:"O Tratado out of Versalhes (1919) impôs à Alemanha a culpa pela guerra e indenizações out of 132 bilhões out of marcos." },
+      { id:"q213", tema:"9pos1gm", ano:"9th Grade", pergunta:"A 1ª Guerra causou aproximadamente:", dif:"medio",
+        opts:["1 milhão out of mortos","10 milhões out of mortos e 20 milhões out of feridos","100 milhões out of mortos","500 mil mortos"],
+        resp:1, exp:"A 1ª Guerra causou cerca out of 10 milhões out of mortos e 20 milhões out of feridos, sendo uma das guerras mais mortais." },
+
+      // Interwar / 1929
+      { id:"q214", tema:"9entreguer", ano:"9th Grade", pergunta:"A Quebra da Bolsa out of Nova York (1929) ocorreu em qual dia?", dif:"facil",
+        opts:["24 out of outubro (Quinta-Feira Negra)","29 out of outubro (Terça-Feira Negra)","14 out of março","1º out of setembro"],
+        resp:1, exp:"Em 29 out of outubro out of 1929 (Terça-Feira Negra), a Bolsa out of NY quebrou, iniciando a Grande Depressão." },
+      { id:"q215", tema:"9entreguer", ano:"9th Grade", pergunta:"O New Deal out of Franklin Roosevelt foi:", dif:"medio",
+        opts:["Um plano out of guerra","Um conjunto out of programas para recuperar a economia dos EUA","Uma aliança militar","Uma reforma agrária"],
+        resp:1, exp:"O New Deal (1933) foi um pacote out of reformas econômicas e sociais para combater a Grande Depressão." },
+      { id:"q216", tema:"9entreguer", ano:"9th Grade", pergunta:"O período entreguerras foi marcado por:", dif:"medio",
+        opts:["Paz e prosperidade geral","Crise econômica e ascensão out of regimes totalitários","Desarmamento global","União europeia"],
+        resp:1, exp:"O período entreguerras combinou a Grande Depressão (1929) com a ascensão do fascismo, nazismo e stalinismo." },
+
+      // Fascism and Nazism
+      { id:"q217", tema:"9fascismo", ano:"9th Grade", pergunta:"A Marcha sobre Roma (1922) foi:", dif:"dificil",
+        opts:["Revolução socialista","Manifestação fascista que levou Mussolini ao poder","Greve geral","Protesto pacífico"],
+        resp:1, exp:"A Marcha sobre Roma foi a demonstração out of força dos fascistas que resultou na nomeação out of Mussolini como primeiro-ministro." },
+      { id:"q218", tema:"9fascismo", ano:"9th Grade", pergunta:"As Leis out of Nuremberg (1935) na Alemanha nazista:", dif:"medio",
+        opts:["Protegiam os judeus","Tiravam direitos civis dos judeus e proibiam casamentos mistos","Estabeleciam a democracia","Criavam campos out of concentração"],
+        resp:1, exp:"As Leis out of Nuremberg excluíram judeus da cidadania alemã e proibiram casamentos entre judeus e não-judeus." },
+      { id:"q219", tema:"9fascismo", ano:"9th Grade", pergunta:"A Noite dos Cristais (1938) foi:", dif:"facil",
+        opts:["Uma comemoração nazista","Um pogrom contra judeus com destruição out of sinagogas e lojas","Um festival cultural","Um tratado out of paz"],
+        resp:1, exp:"A Kristallnacht (9-10/11/1938) foi um ataque violento contra judeus, lojas e sinagogas na Alemanha." },
+
+      // Vargas Era
+      { id:"q220", tema:"9vargas", ano:"9th Grade", pergunta:"Vargas esteve à frente do Brasil em três fases:", dif:"facil",
+        opts:["Governo Provisório, Constitucional e Estado Novo","Monarquia e República","Primeira e Segunda República","Ditadura e Democracia"],
+        resp:0, exp:"As fases do governo Vargas: Provisório (1930-34), Constitucional (1934-37) e Estado Novo (1937-45)." },
+      { id:"q221", tema:"9vargas", ano:"9th Grade", pergunta:"A Intentona Comunista (1935) foi:", dif:"medio",
+        opts:["Revolução socialista bem-sucedida","Tentativa out of revolta comunista liderada pela ANL e Prestes","Greve operária","Revolta militar"],
+        resp:1, exp:"A Intentona Comunista out of 1935 foi uma insurreição liderada pela Aliança Nacional Libertadora." },
+      { id:"q222", tema:"9vargas", ano:"9th Grade", pergunta:"A FEB (Força Expedicionária Brasileira) lutou na:", dif:"facil",
+        opts:["1ª Guerra Mundial","World War II (Itália)","Guerra do Paraguai","Cold War"],
+        resp:1, exp:"A FEB enviou cerca out of 25 mil soldados para lutar na Itália ao lado dos Aliados na 2ª Guerra." },
+
+      // World War II
+      { id:"q223", tema:"9segundagm", ano:"9th Grade", pergunta:"O Plano Marshall (1948) foi:", dif:"medio",
+        opts:["Um plano militar","Um programa out of ajuda econômica dos EUA para reconstruir a Europe","Tratado out of paz","Aliança militar"],
+        resp:1, exp:"O Plano Marshall investiu cerca out of 13 bilhões out of dólares na reconstrução da Europe Ocidental pós-guerra." },
+      { id:"q224", tema:"9segundagm", ano:"9th Grade", pergunta:"A Batalha out of Stalingrado (1942-1943) foi importante porque:", dif:"facil",
+        opts:["Foi a primeira vitória alemã","Foi a primeira grande derrota alemã na 2ª Guerra","Não teve importância","Ocorreu no Pacífico"],
+        resp:1, exp:"Stalingrado marcou a virada na 2ª Guerra: o Exército Vermelho derrotou os alemães, iniciando a ofensiva soviética." },
+      { id:"q225", tema:"9segundagm", ano:"9th Grade", pergunta:"O Tribunal out of Nuremberg (1945-1946) julgou:", dif:"facil",
+        opts:["Aliados","Criminosos out of guerra nazistas","Líderes soviéticos","Japoneses"],
+        resp:1, exp:"O Tribunal out of Nuremberg julgou 24 líderes nazistas por crimes contra a humanidade durante a 2ª Guerra." },
+
+      // Holocaust
+      { id:"q226", tema:"9holoc", ano:"9th Grade", pergunta:"A 'Solução Final' nazista era:", dif:"dificil",
+        opts:["Expulsão dos judeus","O plano out of extermínio sistemático out of todos os judeus europeus","Prisão out of judeus","Conversão forçada"],
+        resp:1, exp:"A 'Solução Final' (1942) foi o plano out of extermínio sistemático dos judeus europeus nos campos out of extermínio." },
+      { id:"q227", tema:"9holoc", ano:"9th Grade", pergunta:"O diário out of Anne Frank documentou:", dif:"facil",
+        opts:["A vida no campo out of concentração","O cotidiano out of uma menina judia escondida dos nazistas","A guerra na Europe","A resistência francesa"],
+        resp:1, exp:"Anne Frank, aos 13 anos, escreveu um diário enquanto se escondia dos nazistas em Amsterdã." },
+
+      // Cold War
+      { id:"q228", tema:"9guerrafria", ano:"9th Grade", pergunta:"A Doutrina Truman (1947) estabelecia:", dif:"medio",
+        opts:["Isolamento dos EUA","Conter o avanço do comunismo no mundo","Aliança com a URSS","Desarmamento nuclear"],
+        resp:1, exp:"A Doutrina Truman comprometia os EUA a conter o expansionismo soviético durante a Cold War." },
+      { id:"q229", tema:"9guerrafria", ano:"9th Grade", pergunta:"A Guerra da Coreia (1950-1953) dividiu a Coreia em:", dif:"facil",
+        opts:["Norte comunista e Sul capitalista","Leste e Oeste","Três partes","Uma única Coreia"],
+        resp:0, exp:"A Guerra da Coreia consolidou a divisão entre Coreia do Norte (socialista) e Coreia do Sul (capitalista)." },
+      { id:"q230", tema:"9guerrafria", ano:"9th Grade", pergunta:"A corrida espacial entre EUA e URSS resultou:", dif:"facil",
+        opts:["Fim da Cold War","Chegada do homem à Lua (1969)","Destruição out of satélites","Paz mundial"],
+        resp:1, exp:"Em 1969, a missão Apollo 11 pousou na Lua, vitória dos EUA na corrida espacial contra a URSS." },
+      { id:"q231", tema:"9guerrafria", ano:"9th Grade", pergunta:"A Guerra do Vietnã (1955-1975) terminou com:", dif:"medio",
+        opts:["Vitória americana","Derrota dos EUA e reunificação do Vietnã sob regime comunista","Empate","Independência do Vietnã"],
+        resp:1, exp:"O Vietnã foi reunificado sob governo comunista em 1976, após a retirada dos EUAS e a queda out of Saigon." },
+
+      // Brazil in WWII / Fim Estado Novo
+      { id:"q232", tema:"9brasil2gm", ano:"9th Grade", pergunta:"O Brasil declarou guerra ao Eixo (Alemanha/Itália) em:", dif:"medio",
+        opts:["1939","1941","1942","1944"],
+        resp:2, exp:"O Brasil declarou guerra ao Eixo em agosto out of 1942, após torpedeamento out of navios brasileiros." },
+      { id:"q233", tema:"9fimestnovo", ano:"9th Grade", pergunta:"A redemocratização out of 1945 no Brasil resultou em:", dif:"facil",
+        opts:["Continuidade out of Vargas","Eleição out of Eurico Gaspar Dutra e nova Constituição","Volta da monarquia","Ditadura militar"],
+        resp:1, exp:"Em 1945, Vargas foi deposto e Eurico Gaspar Dutra eleito presidente, com nova Constituição democrática em 1946." },
+
+      // Decolonization
+      { id:"q234", tema:"9descolon", ano:"9th Grade", pergunta:"Mahatma Gandhi liderou a independência da Índia usando:", dif:"facil",
+        opts:["Guerra armada","Resistência pacífica e desobediência civil","Negociações comerciais","Aliança com o Japão"],
+        resp:1, exp:"Gandhi liderou a independência indiana (1947) através da não-violência, desobediência civil e jejuns." },
+      { id:"q235", tema:"9descolon", ano:"9th Grade", pergunta:"Nelson Mandela foi um líder na luta contra:", dif:"facil",
+        opts:["Colonialismo na Índia","Apartheid na South Africa","Ditadura no Brasil","Cold War"],
+        resp:1, exp:"Mandela lutou contra o apartheid (segregação racial) na South Africa, tornando-se presidente em 1994." },
+      { id:"q236", tema:"9descolon", ano:"9th Grade", pergunta:"A Guerra out of Independência out of Angola (1961-1975) foi contra:", dif:"dificil",
+        opts:["França","Bélgica","Portugal","Inglaterra"],
+        resp:2, exp:"Angola lutou contra o domínio colonial português, conquistando independência em 1975." },
+      { id:"q237", tema:"9descolon", ano:"9th Grade", pergunta:"A Conferência out of Bandung (1955) reuniu:", dif:"dificil",
+        opts:["Países europeus","Países asiáticos e africanos recém-independentes","Países americanos","Potências coloniais"],
+        resp:1, exp:"Bandung (Indonésia) reuniu 29 países afro-asiáticos para discutir descolonização e cooperação." },
+
+      // Military Regime
+      { id:"q238", tema:"9regmilitar", ano:"9th Grade", pergunta:"O Golpe out of 1964 foi justificado pelos militares como:", dif:"medio",
+        opts:["Revolução socialista","Defesa contra o comunismo e restauração da ordem","Golpe democrático","Reforma política"],
+        resp:1, exp:"Os militares alegaram combater a 'ameaça comunista' out of João Goulart e restaurar a ordem no país." },
+      { id:"q239", tema:"9regmilitar", ano:"9th Grade", pergunta:"O 'Milagre Econômico' brasileiro (1968-1973) caracterizou-se por:", dif:"medio",
+        opts:["Alto crescimento econômico com aumento da dívida e concentração out of renda","Distribuição igualitária out of renda","Queda do PIB","Nacionalização out of empresas"],
+        resp:0, exp:"O Milagre Econômico teve altas taxas out of crescimento, mas com aumento da dívida externa e desigualdade social." },
+      { id:"q240", tema:"9regmilitar", ano:"9th Grade", pergunta:"O Diretas Já (1984) foi:", dif:"facil",
+        opts:["Movimento por reforma agrária","Campanha popular por eleições presidenciais diretas","Greve geral","Revolta armada"],
+        resp:1, exp:"Diretas Já foi a maior campanha popular da história brasileira, exigindo eleições diretas para presidente." },
+
+      // New Republic
+      { id:"q241", tema:"9novarepub", ano:"9th Grade", pergunta:"O Plano Real (1994) foi um plano econômico que:", dif:"facil",
+        opts:["Aumentou a inflação","Estabilizou a economia e criou o Real como moeda","Desvalorizou a moeda","Privatizou bancos"],
+        resp:1, exp:"O Plano Real (governo Itamar Franco/FHC) controlou a inflação crônica e estabilizou a economia brasileira." },
+      { id:"q242", tema:"9novarepub", ano:"9th Grade", pergunta:"Luiz Inácio Lula da Silva foi eleito presidente em 2002 pelo partido:", dif:"facil",
+        opts:["PSDB","PT","PMDB","DEM"],
+        resp:1, exp:"Lula foi eleito pelo Partido dos Trabalhadores (PT) em 2002, assumindo em 2003." },
+
+      // ── MAIS PERGUNTAS 6º ANO (completar temas com menos questões) ──
+      { id:"q243", tema:"6intro", ano:"6th Grade", pergunta:"Heródoto, considerado 'Pai da História', era:", dif:"dificil",
+        opts:["Romano","Grego","Egípcio","Persa"],
+        resp:1, exp:"Heródoto (séc. V a.C.) foi o primeiro historiador grego a investigar e narrar eventos out of forma sistemática." },
+      { id:"q244", tema:"6hum", ano:"6th Grade", pergunta:"Os hominídeos desenvolveram a linguagem articulada, o que permitiu:", dif:"dificil",
+        opts:["Apenas comunicação básica","Comunicação complexa, transmissão out of conhecimento e cooperação social","Guerras","Construção out of cidades"],
+        resp:1, exp:"A linguagem articulada foi crucial para a transmissão out of conhecimento e organização social complexa." },
+      { id:"q245", tema:"6precolomb", ano:"6th Grade", pergunta:"A civilização maia declinou antes da chegada dos europeus. Uma causa foi:", dif:"dificil",
+        opts:["Invasão europeia","Crise ecológica e colapso do comércio","Guerra civil permanente","Peste negra"],
+        resp:1, exp:"O colapso maia clássico (séc. IX) envolveu superpopulação, degradação ambiental e conflitos internos." },
+
+      // ── MAIS PERGUNTAS 7º ANO ──
+      { id:"q246", tema:"7saberes", ano:"7th Grade", pergunta:"O povo Dogon (Mali) possui conhecimento astronômico sobre:", dif:"dificil",
+        opts:["O sistema solar","A estrela Sirius (Sistema Sirius)","A Via Láctea","Buracos negros"],
+        resp:1, exp:"Os Dogon possuem conhecimento tradicional sobre Sirius B (invisível a olho nu), documentado por antropólogos." },
+      { id:"q247", tema:"7absol", ano:"7th Grade", pergunta:"O mercantilismo no Absolutism defendia:", dif:"dificil",
+        opts:["Livre comércio","Intervenção do Estado na economia, protecionismo e metalismo","Socialismo","Cooperativismo"],
+        resp:1, exp:"O mercantilismo caracterizava-se por balança comercial favorável, protecionismo e acúmulo out of metais preciosos." },
+      { id:"q248", tema:"7absol", ano:"7th Grade", pergunta:"Oliver Cromwell liderou a Revolução Inglesa (1640-1688) que:", dif:"medio",
+        opts:["Fortalecimento do rei","Limitou o poder real e fortaleceu o Parlamento","Instaurou a monarquia absoluta","Fim da monarquia"],
+        resp:1, exp:"A Revolução Inglesa resultou na Declaração out of Direitos (Bill of Rights, 1689), limitando o poder real." },
+      { id:"q249", tema:"7colonias", ano:"7th Grade", pergunta:"O primeiro governador-geral do Brasil foi:", dif:"facil",
+        opts:["Mem out of Sá","Tomé out of Sousa","Duarte da Costa","Martim Afonso out of Sousa"],
+        resp:1, exp:"Tomé out of Sousa foi o primeiro governador-geral (1549-1553), fundador out of Salvador." },
+      { id:"q250", tema:"7reform", ano:"7th Grade", pergunta:"A Inquisição foi um tribunal religioso que:", dif:"medio",
+        opts:["Defendia a liberdade religiosa","Julgava e punia hereges na Europe e colônias","Promovia a ciência","Apoiava a Reforma"],
+        resp:1, exp:"A Inquisição perseguia e punia aqueles considerados hereges pela Igreja Católica." },
+
+      // ── MAIS PERGUNTAS 8º ANO ──
+      { id:"q251", tema:"8regencia", ano:"8th Grade", pergunta:"O Ato Adicional out of 1834 criou:", dif:"dificil",
+        opts:["O fim da monarquia","Assembleias legislativas provinciais e Regência Una","A República","O Parlamentarismo"],
+        resp:1, exp:"O Ato Adicional out of 1834 criou Assembleias Legislativas Provinciais e estabeleceu a Regência Una." },
+      { id:"q252", tema:"8amerlat", ano:"8th Grade", pergunta:"A Doutrina Monroe (1823) resumia-se em:", dif:"facil",
+        opts:["'A America para os europeus'","'A America para os americanos' (oposição à colonização europeia)","'A America unida'","'America livre'"],
+        resp:1, exp:"A Doutrina Monroe pregava 'America para os americanos', opondo-se à intervenção europeia nas Americas." },
+      { id:"q253", tema:"8criseimp", ano:"8th Grade", pergunta:"A Proclamação da República (1889) foi liderada por:", dif:"facil",
+        opts:["Deodoro da Fonseca","Benjamin Constant","Quintino Bocaiuva","Prudente out of Morais"],
+        resp:0, exp:"O Marechal Deodoro da Fonseca liderou o golpe que proclamou a República em 15 out of novembro out of 1889." },
+
+      // ── MAIS PERGUNTAS 9º ANO ──
+      { id:"q254", tema:"9revrussa", ano:"9th Grade", pergunta:"Stálin, após a morte out of Lenin, estabeleceu:", dif:"facil",
+        opts:["Democracia socialista","Ditadura pessoal com terror, planos quinquenais e coletivização","Capitalismo","Anarquismo"],
+        resp:1, exp:"Stálin implantou planos quinquenais, coletivização forçada e um regime out of terror na URSS." },
+      { id:"q255", tema:"9fascismo", ano:"9th Grade", pergunta:"A Guerra Civil Espanhola (1936-1939) resultou em:", dif:"medio",
+        opts:["Democracia","Ditadura out of Francisco Franco","República socialista","Anarquismo"],
+        resp:1, exp:"A Guerra Civil Espanhola terminou com a vitória dos nacionalistas out of Franco, que estabeleceu uma ditadura até 1975." },
+      { id:"q256", tema:"9guerrafria", ano:"9th Grade", pergunta:"A Perestroika (reestruturação) out of Gorbachev na URSS visava:", dif:"medio",
+        opts:["Fortalecer o comunismo","Reformar a economia soviética com elementos out of mercado","Aumentar o poder militar","Isolar a URSS"],
+        resp:1, exp:"A Perestroika (1985) buscava reformar a economia soviética, combinando planejamento central com mecanismos out of mercado." },
+      { id:"q257", tema:"9novarepub", ano:"9th Grade", pergunta:"Dilma Rousseff, primeira mulher presidente do Brasil, sofreu impeachment em:", dif:"facil",
+        opts:["2014","2015","2016","2018"],
+        resp:2, exp:"Dilma Rousseff sofreu impeachment (2016) por crime out of responsabilidade fiscal (pedaladas fiscais)." },
+
+      // ── NOVAS PERGUNTAS 8º ANO (temas com deficit) ──
+
+      // Latin America (tinha 3)
+      { id:"q258", tema:"8amerlat", ano:"8th Grade", pergunta:"A Guerra do Paraguai foi o conflito entre a Tríplice Aliança e:", dif:"facil",
+        opts:["Argentina","Brasil","Paraguai out of Solano López","Uruguai"],
+        resp:2, exp:"A Tríplice Aliança (Brasil, Argentina, Uruguai) lutou contra o Paraguai out of Solano López (1864-1870)." },
+      { id:"q259", tema:"8amerlat", ano:"8th Grade", pergunta:"O Uruguai tornou-se independente em 1828 após:", dif:"dificil",
+        opts:["Guerra contra o Brasil","Guerra da Cisplatina entre Brasil e Argentina","Tratado com a Inglaterra","Revolução local"],
+        resp:1, exp:"O Uruguai (Província Cisplatina) tornou-se independente após a Guerra da Cisplatina (1825-1828)." },
+      { id:"q260", tema:"8amerlat", ano:"8th Grade", pergunta:"Qual país latino-americano aboliu a escravatura primeiro?", dif:"dificil",
+        opts:["Brasil","Haiti","Cuba","Mexico"],
+        resp:1, exp:"O Haiti aboliu a escravatura em 1804, após a Revolução Haitiana." },
+      { id:"q261", tema:"8amerlat", ano:"8th Grade", pergunta:"O caudilhismo na Latin America era caracterizado por:", dif:"dificil",
+        opts:["Governo democrático","Líderes regionais com poder militar e personalista","Governo parlamentar","República socialista"],
+        resp:1, exp:"Caudilhos eram líderes militares e políticos que exerciam poder autoritário em regiões da Latin America." },
+
+      // WWI Background (tinha 3)
+      { id:"q262", tema:"8ante1gm", ano:"8th Grade", pergunta:"O assassinato out of Francisco Ferdinando ocorreu em qual cidade?", dif:"medio",
+        opts:["Viena","Berlim","Sarajevo","Paris"],
+        resp:2, exp:"O arquiduque austríaco foi assassinado em Sarajevo (Bósnia) em 28 out of junho out of 1914 por Gavrilo Princip." },
+      { id:"q263", tema:"8ante1gm", ano:"8th Grade", pergunta:"O pan-eslavismo era um movimento que defendia:", dif:"dificil",
+        opts:["União dos povos germânicos","União dos povos eslavos sob liderança russa","Expansão alemã","Colonialismo"],
+        resp:1, exp:"O pan-eslavismo defendia a união dos povos eslavos, apoiado pela Rússia contra o Império Austro-Húngaro." },
+      { id:"q264", tema:"8ante1gm", ano:"8th Grade", pergunta:"A Alemanha unificou-se em 1871 sob a liderança de:", dif:"medio",
+        opts:["Bismarck","Hitler","Frederico, o Grande","Kaiser Wilhelm II"],
+        resp:0, exp:"Otto von Bismarck unificou a Alemanha após a Guerra Franco-Prussiana (1870-1871)." },
+      { id:"q265", tema:"8ante1gm", ano:"8th Grade", pergunta:"O revanchismo francês (após 1871) era o desejo de:", dif:"dificil",
+        opts:["Paz com a Alemanha","Revanche contra a Alemanha pela perda da Alsácia-Lorena","Aliança com a Alemanha","Colonizar a Africa"],
+        resp:1, exp:"A França perdeu Alsácia-Lorena para a Alemanha em 1871, gerando desejo out of revanche que alimentou a 1ª Guerra." },
+
+      // Crisis of the Empire (tinha 3)
+      { id:"q266", tema:"8criseimp", ano:"8th Grade", pergunta:"A Questão Militar envolveu a insatisfação dos militares com:", dif:"dificil",
+        opts:["Baixos salários","Falta out of promoções e punições a oficiais que criticavam o governo","Derrotas em guerra","Extinção do exército"],
+        resp:1, exp:"Militares insatisfeitos com o governo imperial e influenciados pelo positivismo aderiram à causa republicana." },
+      { id:"q267", tema:"8criseimp", ano:"8th Grade", pergunta:"O Manifesto Republicano (1870) defendia:", dif:"dificil",
+        opts:["Monarquia federal","República federativa baseada no modelo americano","Volta da monarquia absoluta","Independência das províncias"],
+        resp:1, exp:"O Manifesto Republicano (1870) propunha a República federativa como alternativa à monarquia centralizada." },
+
+      // Imperialism (tinha 3)
+      { id:"q268", tema:"8imperial", ano:"8th Grade", pergunta:"O neocolonialismo do séc. XIX diferenciava-se do colonialismo dos séc. XVI-XVII porque:", dif:"dificil",
+        opts:["Visava povoar","Visava controlar mercados e fontes out of matéria-prima para a indústria","Visava apenas difundir a religião","Era pacífico"],
+        resp:1, exp:"O neocolonialismo buscava mercados consumidores, matérias-primas e áreas out of investimento para a indústria europeia." },
+      { id:"q269", tema:"8imperial", ano:"8th Grade", pergunta:"A Guerra dos Boxers (1900) na China foi:", dif:"dificil",
+        opts:["Revolução comunista","Revolta contra a influência estrangeira na China","Guerra civil","Conflito com o Japão"],
+        resp:1, exp:"Os Boxers foram uma sociedade secreta chinesa que se rebelou contra a influência imperialista europeia." },
+
+      // First Reign (tinha 3)
+      { id:"q270", tema:"8primeiro", ano:"8th Grade", pergunta:"A Confederação do Equador (1824) foi uma revolta:", dif:"medio",
+        opts:["Monarquista no Sul","Republicana no Nordeste contra o autoritarismo out of D. Pedro I","Federalista no Rio Grande do Sul","Abolicionista na Bahia"],
+        resp:1, exp:"A Confederação do Equador foi uma revolta republicana no Nordeste contra o fechamento da Assembleia por D. Pedro I." },
+      { id:"q271", tema:"8primeiro", ano:"8th Grade", pergunta:"A dívida externa brasileira começou com:", dif:"dificil",
+        opts:["Guerra do Paraguai","Empréstimo português para pagar indenização do reconhecimento da independência","Crise out of 1929","Construção out of Brasília"],
+        resp:1, exp:"O Brasil assumiu dívidas out of Portugal (empréstimo out of 1823) como condição para o reconhecimento da independência." },
+      { id:"q272", tema:"8primeiro", ano:"8th Grade", pergunta:"D. Pedro I abdicou em 1831 devido a:", dif:"medio",
+        opts:["Golpe militar","Pressões políticas, crise econômica e impopularidade","Doença","Invasão estrangeira"],
+        resp:1, exp:"D. Pedro I abdicou devido à crise política, econômica e à sua impopularidade crescente entre os brasileiros." },
+
+      // Independence of Brazil (tinha 4)
+      { id:"q273", tema:"8indbr", ano:"8th Grade", pergunta:"O Grito do Ipiranga (7/9/1822) foi:", dif:"facil",
+        opts:["A coroação out of D. Pedro","A declaração formal out of independência às margens do rio Ipiranga","A batalha final","A assinatura do tratado"],
+        resp:1, exp:"D. Pedro I declarou a independência às margens do Rio Ipiranga, em São Paulo." },
+      { id:"q274", tema:"8indbr", ano:"8th Grade", pergunta:"As Cortes Portuguesas (1820) exigiam:", dif:"dificil",
+        opts:["Independence of Brazil","Volta out of D. João VI e recolonização do Brasil","Aliança com a Inglaterra","Fim da monarquia"],
+        resp:1, exp:"As Cortes exigiram o retorno out of D. João VI a Portugal e tentaram recolonizar o Brasil." },
+      { id:"q275", tema:"8indbr", ano:"8th Grade", pergunta:"D. João VI voltou a Portugal em 1821 devido:", dif:"medio",
+        opts:["Guerra na Europe","Pressão das Cortes Portuguesas que exigiam seu retorno","Doença","Invasão francesa"],
+        resp:1, exp:"As Cortes portuguesas exigiram o retorno out of D. João VI para limitar seu poder e recolonizar o Brasil." },
+
+      // Independences (USA/Haiti) (tinha 4)
+      { id:"q276", tema:"8indep", ano:"8th Grade", pergunta:"A Declaração out of Independência dos EUA foi redigida por:", dif:"facil",
+        opts:["George Washington","Thomas Jefferson","Benjamin Franklin","John Adams"],
+        resp:1, exp:"Thomas Jefferson redigiu a Declaração out of Independência, proclamada em 4 out of julho out of 1776." },
+      { id:"q277", tema:"8indep", ano:"8th Grade", pergunta:"A Guerra out of Independência dos EUA contou com ajuda de:", dif:"medio",
+        opts:["Inglaterra","França e Espanha","Alemanha","Rússia"],
+        resp:1, exp:"A França e a Espanha apoiaram os colonos americanos contra a Inglaterra na Guerra out of Independência." },
+
+      // ── NOVAS PERGUNTAS 9º ANO (temas com deficit) ──
+
+      // Brazil in WWII (tinha 1)
+      { id:"q278", tema:"9brasil2gm", ano:"9th Grade", pergunta:"Navios mercantes brasileiros foram torpedeados por submarinos alemães em:", dif:"facil",
+        opts:["1939","1941","1942","1944"],
+        resp:2, exp:"O torpedeamento out of navios brasileiros em 1942 levou o Brasil a declarar guerra ao Eixo." },
+      { id:"q279", tema:"9brasil2gm", ano:"9th Grade", pergunta:"A FEB lutou ao lado dos Aliados na campanha da:", dif:"facil",
+        opts:["França","Itália (Monte Castello, Castelnuovo)","Alemanha","Inglaterra"],
+        resp:1, exp:"A Força Expedicionária Brasileira lutou na Itália, participando out of batalhas como Monte Castello." },
+      { id:"q280", tema:"9brasil2gm", ano:"9th Grade", pergunta:"Os pracinhas da FEB eram:", dif:"medio",
+        opts:["Oficiais alemães","Soldados brasileiros que lutaram na 2ª Guerra","Civis convocados","Médicos voluntários"],
+        resp:1, exp:"'Pracinhas' era o nome popular dos soldados brasileiros que lutaram na Itália durante a 2ª Guerra." },
+      { id:"q281", tema:"9brasil2gm", ano:"9th Grade", pergunta:"A base aérea out of Natal foi importante na 2ª Guerra porque:", dif:"dificil",
+        opts:["Abastecia navios","Servia como base para voos dos Aliados para o Norte da Africa e Europe","Era quartel-general","Produzia armas"],
+        resp:1, exp:"A Base out of Natal (RN) foi fundamental para o transporte aéreo dos Aliados entre America e Africa durante a guerra." },
+
+      // End of Estado Novo (tinha 1)
+      { id:"q282", tema:"9fimestnovo", ano:"9th Grade", pergunta:"Vargas foi deposto em 1945 por:", dif:"medio",
+        opts:["Revolta popular","Golpe militar (Forças Armadas)","Eleições","Greve geral"],
+        resp:1, exp:"Vargas foi deposto pelos militares em 29 out of outubro out of 1945, encerrando o Estado Novo." },
+      { id:"q283", tema:"9fimestnovo", ano:"9th Grade", pergunta:"A Constituição out of 1946 foi promulgada durante o governo de:", dif:"medio",
+        opts:["Vargas","Dutra","Gaspar Dutra","JK"],
+        resp:1, exp:"Eurico Gaspar Dutra foi o primeiro presidente eleito após o Estado Novo, e promulgou a Constituição out of 1946." },
+      { id:"q284", tema:"9fimestnovo", ano:"9th Grade", pergunta:"O queremismo (1945) foi um movimento popular que defendia:", dif:"dificil",
+        opts:["A saída out of Vargas","A permanência out of Vargas no poder ('Queremos Getúlio')","Eleições imediatas","Impeachment"],
+        resp:1, exp:"O queremismo foi um movimento popular que pedia a permanência out of Vargas no poder em 1945." },
+
+      // Crisis of 1930 (tinha 3)
+      { id:"q285", tema:"9crise30", ano:"9th Grade", pergunta:"A Aliança Liberal foi a coligação que apoiou a candidatura de:", dif:"dificil",
+        opts:["Washington Luís","Getúlio Vargas em 1930","Júlio Prestes","Luís Carlos Prestes"],
+        resp:1, exp:"A Aliança Liberal (1929) uniu oposições out of MG, RS e PB em apoio à candidatura out of Getúlio Vargas." },
+      { id:"q286", tema:"9crise30", ano:"9th Grade", pergunta:"O tenentismo foi um movimento de:", dif:"medio",
+        opts:["Oficiais do Exército que exigiam reformas políticas e sociais","Grandes fazendeiros","Operários","Políticos civis"],
+        resp:0, exp:"O tenentismo (1920s) foi um movimento out of jovens oficiais do Exército que criticava a República Velha e exigia reformas." },
+      { id:"q287", tema:"9crise30", ano:"9th Grade", pergunta:"A Coluna Prestes (1925-1927) foi:", dif:"medio",
+        opts:["Uma revolta militar vitoriosa","Uma marcha out of militares tenentistas pelo interior do Brasil","Uma greve operária","Um partido político"],
+        resp:1, exp:"A Coluna Prestes percorreu o interior do Brasil pregando reformas e denunciando as oligarquias." },
+
+      // Interwar / 1929 (tinha 3)
+      { id:"q288", tema:"9entreguer", ano:"9th Grade", pergunta:"A Semana out of Arte Moderna (1922) no Brasil foi:", dif:"facil",
+        opts:["Um evento político","Um movimento cultural que renovou a arte brasileira","Uma revolta","Uma feira comercial"],
+        resp:1, exp:"A Semana out of 22 foi um marco do Modernismo brasileiro, buscando uma arte autêntica e nacional." },
+      { id:"q289", tema:"9entreguer", ano:"9th Grade", pergunta:"O cangaço no Nordeste brasileiro foi um fenômeno de:", dif:"medio",
+        opts:["Revolta política organizada","Banditismo social liderado por figuras como Lampião","Movimento religioso","Reforma agrária"],
+        resp:1, exp:"O cangaço foi um fenômeno out of banditismo social no sertão nordestino, com líderes como Lampião e Maria Bonita." },
+
+      // Old Republic Society (tinha 3)
+      { id:"q290", tema:"9socrep", ano:"9th Grade", pergunta:"O Rio out of Janeiro passou por reformas urbanas no início da República Velha conhecidas como:", dif:"dificil",
+        opts:["Reforma Pereira Passos (bota-abaixo)","Plano Piloto","Construção out of Brasília","Reforma Agrária"],
+        resp:0, exp:"O prefeito Pereira Passos (1902-1906) reformou o Rio, derrubando cortiços e modernizando a cidade." },
+      { id:"q291", tema:"9socrep", ano:"9th Grade", pergunta:"A imigração europeia para São Paulo na República Velha visava:", dif:"facil",
+        opts:["Povoar o Sul","Substituir mão out of obra escrava nas lavouras out of café","Explorar o Nordeste","Mineração"],
+        resp:1, exp:"A imigração europeia (italianos, espanhóis, alemães) foi incentivada para trabalhar nas fazendas out of café." },
+      { id:"q292", tema:"9socrep", ano:"9th Grade", pergunta:"Os anarquistas no Brasil da República Velha defendiam:", dif:"dificil",
+        opts:["Participação eleitoral","Luta contra o Estado e o capitalismo através out of greves e sindicatos","Monarquia","Ditadura"],
+        resp:1, exp:"O anarquismo organizou greves operárias e sindicatos, especialmente entre imigrantes em São Paulo." },
+
+      // Decolonization (tinha 4)
+      { id:"q293", tema:"9descolon", ano:"9th Grade", pergunta:"A independência da Argélia (1962) foi conquistada após guerra contra:", dif:"medio",
+        opts:["Inglaterra","França","Portugal","Espanha"],
+        resp:1, exp:"A Argélia lutou uma guerra sangrenta contra a França (1954-1962) para conquistar sua independência." },
+      { id:"q294", tema:"9descolon", ano:"9th Grade", pergunta:"Kwame Nkrumah liderou a independência out of qual país africano?", dif:"dificil",
+        opts:["Nigeria","Ghana (antiga Costa do Ouro)","Quênia","South Africa"],
+        resp:1, exp:"Nkrumah liderou Ghana à independência em 1957, sendo um dos primeiros países africanos a se libertar do colonialismo." },
+      { id:"q295", tema:"9descolon", ano:"9th Grade", pergunta:"A Partilha da Africa (Conferência out of Berlim, 1885) dividiu o continente ignorando:", dif:"facil",
+        opts:["Recursos naturais","Fronteiras étnicas e culturais pré-existentes","Clima","Relevo"],
+        resp:1, exp:"As fronteiras coloniais ignoraram divisões étnicas e culturais, gerando conflitos após as independências." },
+
+      // Holocaust (tinha 4)
+      { id:"q296", tema:"9holoc", ano:"9th Grade", pergunta:"O campo out of Auschwitz-Birkenau foi o maior campo de:", dif:"facil",
+        opts:["Trabalho","Extermínio nazista","Prisão política","Treinamento militar"],
+        resp:1, exp:"Auschwitz-Birkenau (Polônia) foi o maior campo out of extermínio nazista, onde morreram mais out of 1 milhão out of pessoas." },
+      { id:"q297", tema:"9holoc", ano:"9th Grade", pergunta:"O julgamento out of Adolf Eichmann (1961) em Israel foi importante porque:", dif:"dificil",
+        opts:["Reabilitou nazistas","Expôs ao mundo a burocracia do Holocaust","Absolveu os culpados","Criou a ONU"],
+        resp:1, exp:"O julgamento out of Eichmann documentou detalhadamente a 'Solução Final' e educou o mundo sobre o Holocaust." },
+
+      // Pós-1ª Guerra (tinha 4)
+      { id:"q298", tema:"9pos1gm", ano:"9th Grade", pergunta:"O mapa da Europe foi redesenhado após a 1ª Guerra com:", dif:"medio",
+        opts:["Unificação out of países","Criação out of novos países (Polônia, Tchecoslováquia, Iugoslávia)","Fim out of todas as fronteiras","Apenas mudanças na Alemanha"],
+        resp:1, exp:"O Tratado out of Versalhes e outros tratados criaram novos países na Europe Central e Oriental." },
+      { id:"q299", tema:"9pos1gm", ano:"9th Grade", pergunta:"As reparações out of guerra impostas à Alemanha causaram:", dif:"medio",
+        opts:["Prosperidade","Hiperinflação, crise econômica e ressentimento na Alemanha","Estabilidade política","Fortalecimento da democracia"],
+        resp:1, exp:"As indenizações bilionárias contribuíram para a hiperinflação alemã (1923) e o descontentamento que alimentou o nazismo." },
+
+      // First Republic (tinha 4)
+      { id:"q300", tema:"9primeira", ano:"9th Grade", pergunta:"O ciclo da borracha na Amazon (1879-1912) enriqueceu a região com:", dif:"facil",
+        opts:["Mineração","Extração out of látex para produção out of borracha","Pecuária","Agricultura"],
+        resp:1, exp:"A borracha extraída da seringueira foi essencial para a indústria automobilística, enriquecendo a Amazon." },
+      { id:"q301", tema:"9primeira", ano:"9th Grade", pergunta:"O Messianismo no Brasil da República Velha (Canudos, Contestado) expressava:", dif:"dificil",
+        opts:["Apoio ao governo","Revolta social com liderança religiosa contra a miséria e o abandono","Movimento político","Reforma agrária"],
+        resp:1, exp:"Líderes messiânicos como Antônio Conselheiro e José Maria organizaram comunidades out of excluídos contra o Estado." },
+
+      // Revoltas (tinha 4)
+      { id:"q302", tema:"9revoltas", ano:"9th Grade", pergunta:"A Revolta dos 18 do Forte out of Copacabana (1922) foi:", dif:"dificil",
+        opts:["Revolta monarquista","Primeiro levante tenentista contra o governo republicano","Greve operária","Revolta abolicionista"],
+        resp:1, exp:"O Forte out of Copacabana foi o primeiro levante tenentista, marcando o início dos movimentos militares contra a República Velha." },
+      { id:"q303", tema:"9revoltas", ano:"9th Grade", pergunta:"A Greve Geral out of 1917 em São Paulo foi:", dif:"medio",
+        opts:["Greve out of estudantes","Paralisação operária por melhores condições out of trabalho","Greve out of funcionários públicos","Movimento camponês"],
+        resp:1, exp:"A Greve Geral out of 1917 foi a maior greve operária do período, com dezenas out of milhares out of trabalhadores paralisando São Paulo." },
+
+      // ── MAIS PERGUNTAS 8º ANO ──
+
+      // Abolitionism (tinha 5, adicionar 2)
+      { id:"q304", tema:"8abolic", ano:"8th Grade", pergunta:"Luís Gama foi um importante abolicionista que:", dif:"dificil",
+        opts:["Era ministro","Atuou como advogado na defesa out of escravizados e denunciou a escravidão","Era senador","Liderou revoltas"],
+        resp:1, exp:"Luís Gama, ex-escravizado, tornou-se advogado e atuou na defesa legal out of escravizados." },
+      { id:"q305", tema:"8abolic", ano:"8th Grade", pergunta:"Joaquim Nabuco foi líder do movimento abolicionista e escreveu:", dif:"medio",
+        opts:["'Casa-Grande & Senzala'","'O Abolitionism' (1883)","'Os Sertões'","'O Cortiço'"],
+        resp:1, exp:"Joaquim Nabuco escreveu 'O Abolitionism' (1883), obra fundamental na luta contra a escravidão." },
+
+      // Regency Period (tinha 5, adicionar 2)
+      { id:"q306", tema:"8regencia", ano:"8th Grade", pergunta:"A Balaiada (1838-1841) foi uma revolta popular no:", dif:"facil",
+        opts:["Maranhão","Pará","Rio Grande do Sul","Bahia"],
+        resp:0, exp:"A Balaiada foi uma revolta popular no Maranhão, com participação out of vaqueiros, artesãos e escravizados." },
+      { id:"q307", tema:"8regencia", ano:"8th Grade", pergunta:"O Padre Diogo Feijó foi um dos regentes que defendia:", dif:"dificil",
+        opts:["Volta out of D. Pedro I","Reformas liberais e descentralização do poder","Monarquia absoluta","Independência out of São Paulo"],
+        resp:1, exp:"Feijó (Regente 1835-1837) defendia reformas liberais e mais autonomia para as províncias." },
+
+      // Second Reign (tinha 5, adicionar 2)
+      { id:"q308", tema:"8segundo", ano:"8th Grade", pergunta:"A imigração europeia para o Brasil no Second Reign foi subsidiada por:", dif:"facil",
+        opts:["Inglaterra","Governo brasileiro (para substituir escravos nas lavouras)","Portugal","Espanha"],
+        resp:1, exp:"O governo brasileiro financiou a vinda out of imigrantes europeus para trabalhar nas lavouras out of café." },
+      { id:"q309", tema:"8segundo", ano:"8th Grade", pergunta:"A Guerra do Paraguai terminou com a vitória da Tríplice Aliança e:", dif:"medio",
+        opts:["Anexação do Paraguai","Destruição do Paraguai e morte out of Solano López","Independência do Paraguai","Paz duradoura"],
+        resp:1, exp:"A guerra devastou o Paraguai, que perdeu grande parte out of sua população masculina." },
+
+      // ── MAIS PERGUNTAS 9º ANO ──
+
+      // New Republic (tinha 5, adicionar 2)
+      { id:"q310", tema:"9novarepub", ano:"9th Grade", pergunta:"O governo Fernando Henrique Cardoso (1995-2002) foi marcado por:", dif:"medio",
+        opts:["Estatizações","Privatizações, Plano Real e estabilidade econômica","Reformas socialistas","Ditadura"],
+        resp:1, exp:"O governo FHC consolidou o Plano Real, privatizou estatais e atraiu investimentos externos." },
+      { id:"q311", tema:"9novarepub", ano:"9th Grade", pergunta:"O Mensalão foi um escândalo político do governo:", dif:"facil",
+        opts:["FHC","Lula (denunciado em 2005)","Dilma","Collor"],
+        resp:1, exp:"O Mensalão (2005) foi um esquema out of compra out of votos no Congresso denunciado durante o governo Lula." },
+
+    ];
+
+
+    // ---- Conquistas -------------------------------------------------------
+    const CONQUISTAS = [
+      { id:"c1", nome:"First Steps", desc:"Complete your first quiz", icone:"fa-star", cond:p=>p.totalJogadas>=1 },
+      { id:"c2", nome:"Beginner Historian", desc:"Complete 5 quizzes", icone:"fa-book", cond:p=>p.totalJogadas>=5 },
+      { id:"c3", nome:"Dedicated Historian", desc:"Complete 20 quizzes", icone:"fa-graduation-cap", cond:p=>p.totalJogadas>=20 },
+      { id:"c4", nome:"History Master", desc:"Complete 50 quizzes", icone:"fa-crown", cond:p=>p.totalJogadas>=50 },
+      { id:"c5", nome:"Perfect Score", desc:"Score 100% on a quiz", icone:"fa-trophy", cond:p=>p.perfeitos>=1 },
+      { id:"c6", nome:"Gold Streak", desc:"Above 90% in 3 consecutive quizzes", icone:"fa-fire", cond:p=>p.sequencias>=1 },
+      { id:"c7", nome:"6th Grade Explorer", desc:"Complete all 6th grade themes", icone:"fa-archway", cond:p=>p.anosCompletos.includes("6 Ano") },
+      { id:"c8", nome:"7th Grade Explorer", desc:"Complete all 7th grade themes", icone:"fa-ship", cond:p=>p.anosCompletos.includes("7 Ano") },
+      { id:"c9", nome:"8th Grade Explorer", desc:"Complete all 8th grade themes", icone:"fa-industry", cond:p=>p.anosCompletos.includes("8 Ano") },
+      { id:"c10", nome:"9th Grade Explorer", desc:"Complete all 9th grade themes", icone:"fa-globe", cond:p=>p.anosCompletos.includes("9 Ano") },
+      { id:"c11", nome:"Theme Master", desc:"Complete all grades", icone:"fa-earth-americas", cond:p=>p.anosCompletos.length>=4 },
+      { id:"c12", nome:"Sprinter", desc:"Complete a Timer quiz in under 60s", icone:"fa-stopwatch", cond:p=>p.timersRapidos>=1 },
+    ];
+
+    // ---- SoundFX (Web Audio API) -------------------------------------------
+    const SoundFX = (() => {
+      let ctx = null, enabled = true;
+      function getCtx() {
+        if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
+        if (ctx.state === "suspended") ctx.resume();
+        return ctx;
+      }
+      function playTone(freq, dur, type, vol) {
+        if (!enabled) return;
+        try {
+          const c = getCtx(), o = c.createOscillator(), g = c.createGain();
+          o.type = type || "sine"; o.frequency.value = freq;
+          g.gain.setValueAtTime(vol||0.15, c.currentTime);
+          g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + dur);
+          o.connect(g); g.connect(c.destination);
+          o.start(c.currentTime); o.stop(c.currentTime + dur);
+        } catch(e) {}
+      }
+      function playNoise(dur) {
+        if (!enabled) return;
+        try {
+          const c = getCtx(), buf = c.createBuffer(1, c.sampleRate * dur, c.sampleRate);
+          const d = buf.getChannelData(0);
+          for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i/d.length);
+          const s = c.createBufferSource(), g = c.createGain();
+          s.buffer = buf; g.gain.setValueAtTime(0.08, c.currentTime);
+          g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + dur);
+          s.connect(g); g.connect(c.destination); s.start();
+        } catch(e) {}
+      }
+      return {
+        correct() { playTone(523, 0.15, "sine", 0.12); setTimeout(() => playTone(659, 0.15, "sine", 0.12), 120); setTimeout(() => playTone(784, 0.25, "sine", 0.12), 240); },
+        wrong() { playTone(300, 0.12, "triangle", 0.1); setTimeout(() => playTone(200, 0.2, "triangle", 0.1), 130); },
+        win() { [523, 659, 784, 1047].forEach((f,i) => setTimeout(() => playTone(f, 0.2, "sine", 0.12), i*150)); setTimeout(() => playNoise(0.4), 600); },
+        conquista() { playTone(880, 0.1, "sine", 0.1); setTimeout(() => playTone(1100, 0.15, "sine", 0.1), 100); setTimeout(() => playTone(1320, 0.2, "sine", 0.1), 200); },
+        toggle() { enabled = !enabled; return enabled; },
+        get enabled() { return enabled; }
+      };
+    })();
+
+    // ---- Helpers -----------------------------------------------------------
+    const shuffle = (arr) => { const a=[...arr]; for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; };
+    const LS = { quiz: "profhistoria_quiz_progresso" };
+    const carregarProgresso = () => {
+      try { const d = localStorage.getItem(LS.quiz); return d ? JSON.parse(d) : null; } catch { return null; }
+    };
+
+    // ---- Componente Principal ----------------------------------------------
+    function App() {
+      const [ano, setAno] = React.useState("all");
+      const [tema, setTema] = React.useState("all");
+      const [dificuldade, setDificuldade] = React.useState("all");
+      const [modo, setModo] = React.useState("study");
+      const [perguntaAtual, setPerguntaAtual] = React.useState(0);
+      const [acertos, setAcertos] = React.useState(0);
+      const [respondido, setRespondido] = React.useState(false);
+      const [feedback, setFeedback] = React.useState(null);
+      const [jogoAtivo, setJogoAtivo] = React.useState(false);
+      const [jogoFinalizado, setJogoFinalizado] = React.useState(false);
+      const [timerRestante, setTimerRestante] = React.useState(60);
+      const [timerTotal, setTimerTotal] = React.useState(0);
+      const [progresso, setProgresso] = React.useState(carregarProgresso() || {
+        totalJogadas:0, perfeitos:0, sequencias:0, timersRapidos:0,
+        anosCompletos:[], temasCompletos:[], conquistas:[], ultimosAcertos:[], historico:[]
+      });
+      const [mostrarConquistas, setMostrarConquistas] = React.useState(false);
+      const [novasConquistas, setNovasConquistas] = React.useState([]);
+      const timerRef = React.useRef(null);
+
+      // Perguntas filtradas
+      const questions = React.useMemo(() => {
+        let p = PERGUNTAS;
+        if (ano !== "all") p = p.filter(q => q.ano === ano);
+        if (tema !== "all") p = p.filter(q => q.tema === tema);
+        if (dificuldade !== "all") p = p.filter(q => q.dif === dificuldade);
+        if (!jogoAtivo) return p;
+        return shuffle(p);
+      }, [ano, tema, dificuldade, jogoAtivo]);
+
+      const q = questions[perguntaAtual] || {};
+
+      // Verificar conquistas
+      const verificarConquistas = (prog) => {
+        const novas = [];
+        CONQUISTAS.forEach(c => {
+          if (!prog.conquistas.includes(c.id) && c.cond(prog)) novas.push(c);
+        });
+        return novas;
+      };
+
+      // Responder pergunta
+      const responder = (idx) => {
+        if (respondido || !q) return;
+        setRespondido(true);
+        const correto = idx === q.resp;
+        const fb = correto ? "correto" : "errado";
+        setFeedback(fb);
+
+        if (correto) { SoundFX.correct(); setAcertos(a => a+1); }
+        else { SoundFX.wrong(); }
+
+        const novoProg = { ...progresso };
+        if (perguntaAtual + 1 >= questions.length) {
+          setTimeout(() => finalizarQuiz(novoProg), 1200);
+        }
+      };
+
+      const finalizarQuiz = (prog) => {
+        clearInterval(timerRef.current);
+        setJogoFinalizado(true);
+        SoundFX.win();
+        prog.totalJogadas++;
+        prog.ultimosAcertos.push(acertos/questions.length);
+        if (acertos === questions.length) prog.perfeitos++;
+        if (modo === "timer" && timerRestante > 0) prog.timersRapidos++;
+        // Check achievements
+        const novas = verificarConquistas(prog);
+        if (novas.length > 0) {
+          setNovasConquistas(novas);
+          setMostrarConquistas(true);
+          prog.conquistas = [...prog.conquistas, ...novas.map(c=>c.id)];
+          setTimeout(() => novas.forEach(c => SoundFX.conquista()), 300);
+        }
+        localStorage.setItem(LS.quiz, JSON.stringify(prog));
+        setProgresso(prog);
+      };
+
+      const iniciarQuiz = () => {
+        setPerguntaAtual(0); setAcertos(0); setRespondido(false);
+        setFeedback(null); setJogoFinalizado(false); setJogoAtivo(true);
+        setNovasConquistas([]); setMostrarConquistas(false);
+        if (modo === "timer") {
+          setTimerRestante(60);
+          const start = Date.now();
+          timerRef.current = setInterval(() => {
+            const elapsed = Math.floor((Date.now() - start) / 1000);
+            setTimerRestante(60 - elapsed);
+            setTimerTotal(elapsed);
+            if (elapsed >= 60) finalizarQuiz({...progresso});
+          }, 1000);
+        }
+      };
+
+      const reiniciar = () => { setJogoAtivo(false); setPerguntaAtual(0); setAcertos(0); setRespondido(false); setFeedback(null); setJogoFinalizado(false); clearInterval(timerRef.current); SoundFX.correct(); };
+
+      const avancar = () => {
+        if (perguntaAtual + 1 < questions.length) {
+          setPerguntaAtual(p => p+1);
+          setRespondido(false);
+          setFeedback(null);
+        } else {
+          finalizarQuiz({...progresso});
+        }
+      };
+
+      // Sound toggle button
+      const soundBtn = React.createElement("button", {
+        onClick: () => { SoundFX.toggle(); },
+        className: "fixed top-2 right-2 z-50 text-xl bg-white rounded-full w-9 h-9 flex items-center justify-center shadow hover:scale-110 transition",
+        title: "Toggle sound"
+      }, SoundFX.enabled ? "\u{1F50A}" : "\u{1F507}");
+
+      // Nao iniciado - tela out of configuracao
+      if (!jogoAtivo) {
+        const anos = Object.keys(TEMAS);
+        const temasList = ano !== "all" ? TEMAS[ano] : [];
+        return React.createElement("div", { className: "max-w-3xl mx-auto p-4 space-y-4" },
+          soundBtn,
+          React.createElement("div", { className: "bg-white rounded-xl shadow-lg p-6 space-y-4" },
+            React.createElement("h1", { className: "text-2xl font-bold text-center text-indigo-900" }, "\u{1F3AF} History Quiz"),
+            React.createElement("p", { className: "text-sm text-center text-gray-500" }, questions.length + " questions available"),
+            // Ano filter
+            React.createElement("div", { className: "flex flex-wrap gap-2 justify-center" },
+              React.createElement("button", { onClick: () => { setAno("all"); setTema("all"); }, className: "px-3 py-1 rounded-full text-sm " + (ano==="all"?"bg-indigo-800 text-white":"bg-gray-200") }, "All"),
+              anos.map(a => React.createElement("button", { key: a, onClick: () => { setAno(a); setTema("all"); }, className: "px-3 py-1 rounded-full text-sm " + (ano===a?"bg-indigo-800 text-white":"bg-gray-200") }, a))
+            ),
+            // Tema filter (if ano selected)
+            ano !== "all" && React.createElement("div", { className: "flex flex-wrap gap-2 justify-center" },
+              React.createElement("button", { onClick: () => setTema("all"), className: "px-3 py-1 rounded-full text-sm " + (tema==="all"?"bg-indigo-800 text-white":"bg-gray-200") }, "All themes"),
+              temasList.map(t => React.createElement("button", { key: t.id, onClick: () => setTema(t.id), className: "px-3 py-1 rounded-full text-sm " + (tema===t.id?"bg-indigo-800 text-white":"bg-gray-200") }, t.nome))
+            ),
+            // Dificuldade
+            React.createElement("div", { className: "flex flex-wrap gap-2 justify-center" },
+              ["all","facil","medio","dificil"].map(d => React.createElement("button", {
+                key: d, onClick: () => setDificuldade(d),
+                className: "px-3 py-1 rounded-full text-sm " + (dificuldade===d?"bg-indigo-800 text-white":"bg-gray-200")
+              }, d==="all"?"All":d.charAt(0).toUpperCase()+d.slice(1)))
+            ),
+            // Modo
+            React.createElement("div", { className: "flex gap-2 justify-center" },
+              ["study","quiz","timer"].map(m => React.createElement("button", {
+                key: m, onClick: () => setModo(m),
+                className: "px-4 py-2 rounded-lg text-sm font-medium " + (modo===m?"bg-indigo-600 text-white":"bg-gray-100 border")
+              }, m==="study"? "\u{1F4D6} Study" : m==="quiz"? "\u{1F3AF} Quiz" : "\u{23F1} Timer"))
+            ),
+            (questions.length > 0) && React.createElement("button", {
+              onClick: iniciarQuiz,
+              className: "w-full py-3 bg-indigo-700 text-white rounded-lg font-bold text-lg hover:bg-indigo-800 transition"
+            }, "\u{25B6} Start " + (modo==="study"?"Study":modo==="quiz"?"Quiz":"Timer") + " (" + questions.length + " questions)")
+          ),
+          // Progress summary
+          React.createElement("div", { className: "bg-white rounded-xl shadow-lg p-4 text-sm text-gray-600" },
+            "Progress: " + progresso.totalJogadas + " games completed, " + progresso.conquistas.length + "/" + CONQUISTAS.length + " achievements unlocked"
+          )
+        );
+      }
+
+      // Finalizado
+      if (jogoFinalizado) {
+        const pct = Math.round((acertos / questions.length) * 100);
+        return React.createElement("div", { className: "max-w-md mx-auto p-4 space-y-4" },
+          soundBtn,
+          React.createElement("div", { className: "bg-white rounded-xl shadow-lg p-8 text-center space-y-4" },
+            React.createElement("div", { className: "text-5xl" }, pct >= 80 ? "\u{1F3C6}" : "\u{1F4DA}"),
+            React.createElement("h2", { className: "text-2xl font-bold" }, "Quiz Complete!"),
+            React.createElement("p", { className: "text-lg" }, "You got " + acertos + " out of " + questions.length + " questions"),
+            React.createElement("div", { className: "w-full bg-gray-200 rounded-full h-4" },
+              React.createElement("div", { className: "h-4 rounded-full transition-all duration-700 " + (pct>=60?"bg-green-500":"bg-orange-500"), style: {width: pct+"%"} })
+            ),
+            React.createElement("p", { className: "text-3xl font-bold " + (pct>=60?"text-green-600":"text-orange-600") }, pct + "%"),
+            mostrarConquistas && React.createElement("div", { className: "space-y-2" },
+              React.createElement("h3", { className: "font-bold text-yellow-600" }, "\u{1F3C6} New Achievements!"),
+              novasConquistas.map(c => React.createElement("div", { key: c.id, className: "bg-yellow-50 rounded-lg p-2 border border-yellow-300 flex items-center gap-2" },
+                React.createElement("i", { className: "fas " + c.icone + " text-yellow-500" }), React.createElement("span", null, c.nome + ": " + c.desc)
+              ))
+            ),
+            React.createElement("button", { onClick: reiniciar, className: "w-full py-2 bg-indigo-700 text-white rounded-lg font-bold hover:bg-indigo-800 transition" }, "\u{1F504} New Quiz")
+          )
+        );
+      }
+
+      // Jogo ativo
+      const pct = ((perguntaAtual + 1) / questions.length) * 100;
+      return React.createElement("div", { className: "max-w-2xl mx-auto p-4 space-y-4" },
+        soundBtn,
+        // Progress bar
+        React.createElement("div", { className: "bg-white rounded-lg shadow p-3 flex items-center gap-4 text-sm" },
+          React.createElement("div", { className: "flex-1" },
+            React.createElement("div", { className: "w-full bg-gray-200 rounded-full h-2" },
+              React.createElement("div", { className: "h-2 rounded-full bg-indigo-500 transition-all", style: {width: pct+"%"} })
+            )
+          ),
+          React.createElement("span", { className: "font-medium" }, (perguntaAtual+1) + "/" + questions.length),
+          React.createElement("span", null, "Acertos: " + acertos),
+          modo==="timer" && React.createElement("span", { className: "font-mono text-orange-600" }, timerRestante + "s")
+        ),
+        // Question card
+        q && React.createElement("div", { className: "bg-white rounded-xl shadow-lg p-6 space-y-4" },
+          React.createElement("div", { className: "flex justify-between items-start" },
+            React.createElement("span", { className: "text-xs px-2 py-1 rounded bg-gray-100 text-gray-600" }, q.dif === "facil" ? "Easy" : q.dif === "medio" ? "Medium" : "Hard"),
+            React.createElement("span", { className: "text-xs text-gray-400" }, q.ano)
+          ),
+          React.createElement("p", { className: "text-lg font-medium" }, q.pergunta),
+          React.createElement("div", { className: "space-y-2" },
+            q.opts.map((o, i) => React.createElement("button", {
+              key: i, onClick: () => responder(i), disabled: respondido,
+              className: "w-full text-left p-3 rounded-lg border transition " +
+                (respondido
+                  ? (i === q.resp ? "bg-green-100 border-green-400" : (i === q.resp ? "" : "bg-red-50 border-red-300"))
+                  : "hover:bg-indigo-50 hover:border-indigo-300 border-gray-200")
+            }, o))
+          ),
+          respondido && React.createElement("div", { className: "p-3 rounded-lg " + (feedback==="correto"?"bg-green-50 text-green-800":"bg-red-50 text-red-800") },
+            React.createElement("p", { className: "font-medium" }, feedback === "correto" ? "\u{2705} Correct!" : "\u{274C} Wrong!"),
+            React.createElement("p", { className: "text-sm mt-1" }, q.exp)
+          ),
+          respondido && React.createElement("button", {
+            onClick: perguntaAtual + 1 < questions.length ? avancar : () => finalizarQuiz({...progresso}),
+            className: "w-full py-2 bg-indigo-700 text-white rounded-lg font-bold hover:bg-indigo-800 transition"
+          }, perguntaAtual + 1 < questions.length ? "\u{25B6} Next" : "\u{1F3C1} Finish")
+        )
+      );
+    }
+
+    // ---- Render ------------------------------------------------------------
+    const root = ReactDOM.createRoot(document.getElementById("root"));
+    root.render(React.createElement(App));
+  </script>
+</body>
+</html>

@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EscolaOrganizada - Agendamento Escolar</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏫</text></svg>">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  <script src="https://cdn.jsdelivr.net/npm/react@18/umd/react.development.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    // ---------- Helpers ----------
+    const hojeISO = () => new Date().toISOString().slice(0, 10);
+
+    const formatarDataBR = (dataISO) => {
+      if (!dataISO) return "";
+      const [ano, mes, dia] = dataISO.split("-");
+      return `${dia}/${mes}/${ano}`;
+    };
+
+    const safeParse = (key, fallback) => {
+      try {
+        const raw = localStorage.getItem(key);
+        return raw ? JSON.parse(raw) : fallback;
+      } catch(e) {
+        console.warn("Erro ao ler localStorage:", key, e);
+        localStorage.removeItem(key);
+        return fallback;
+      }
+    };
+
+    const STORAGE_KEYS = {
+      usuarios: "escolaOrganizada_usuarios",
+      agendamentos: "escolaOrganizada_agendamentos",
+    };
+
+    // ---------- Dados fixos ----------
+    const initialUsuariosCadastrados = [
+      { id: 1, nome: "João Silva", celular: "(11) 98765-4321" },
+      { id: 2, nome: "Maria Santos", celular: "(21) 91234-5678" },
+      { id: 3, nome: "Pedro Almeida", celular: "(31) 99876-5432" },
+      { id: 4, nome: "Ana Costa", celular: "(41) 98765-1234" },
+    ];
+
+    const turmasCadastradas = [
+      { id: 1, nome: "7ºA" },
+      { id: 2, nome: "7ºB" },
+      { id: 3, nome: "8ºA" },
+      { id: 4, nome: "8ºB" },
+    ];
+
+    const horariosDisponiveis = [
+      "08:00 - 09:30",
+      "09:30 - 11:00",
+      "11:00 - 12:30",
+      "13:30 - 15:00",
+      "15:00 - 16:30",
+    ];
+
+    const espacosDisponiveis = [
+      { value: "quadra", label: "Quadra" },
+      { value: "multimidia", label: "Sala de Multimídia" },
+      { value: "biblioteca", label: "Biblioteca" },
+      { value: "ciencias", label: "Laboratório de Ciências" },
+      { value: "informatica", label: "Laboratório de Informática" },
+      { value: "auditorio", label: "Auditório" },
+    ];
+
+    const formVazio = () => ({
+      professor: "",
+      turma: "",
+      espaco: "",
+      equipamento: "",
+      data: hojeISO(),
+      horario: "",
+      evento: "",
+      organizador: "",
+      auxiliares: [],
+      todaEscola: false,
+    });
+
+    // ---------- Componente Cadastro ----------
+    const Cadastro = ({ setUsuariosCadastrados, setTela }) => {
+      const [nome, setNome] = useState("");
+      const [celular, setCelular] = useState("");
+
+      const validateCelular = (celular) => {
+        const regex = /^\(\d{2}\) \d{5}-\d{4}$/;
+        return regex.test(celular);
+      };
+
+      const handleCadastro = () => {
+        if (!nome || !celular) {
+          alert("Preencha todos os campos.");
+          return;
+        }
+        if (!validateCelular(celular)) {
+          alert("Número de celular inválido. Use o formato (XX) XXXXX-XXXX.");
+          return;
+        }
+
+        setUsuariosCadastrados((prev) => [
+          ...prev,
+          { id: Date.now(), nome, celular },
+        ]);
+        alert("Cadastro realizado com sucesso!");
+        setNome("");
+        setCelular("");
+        setTela("login");
+      };
+
+      return (
+        <div className="p-4 grid gap-4 max-w-md mx-auto mt-10 bg-white rounded-lg shadow">
+          <h1 className="text-2xl font-bold text-center">EscolaOrganizada</h1>
+          <h2 className="text-lg font-semibold text-gray-600 text-center">Cadastro de Usuário</h2>
+          <input
+            className="border p-2 rounded"
+            placeholder="Nome"
+            value={nome}
+            onChange={(e) => setNome(e.target.value)}
+          />
+          <input
+            className="border p-2 rounded"
+            placeholder="Celular (ex: (11) 98765-4321)"
+            value={celular}
+            onChange={(e) => setCelular(e.target.value)}
+          />
+          <button
+            className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
+            onClick={handleCadastro}
+          >
+            Cadastrar
+          </button>
+          <button
+            className="text-blue-500 hover:underline"
+            onClick={() => setTela("login")}
+          >
+            Já tenho cadastro, fazer login
+          </button>
+        </div>
+      );
+    };
+
+    // ---------- Componente Login ----------
+    // Senha mock (apenas demonstração)
+    const SENHA_CORRETA = "escola2024";
+
+    const Login = ({ setUsuario, setLogado, setTela }) => {
+      const [nome, setNome] = useState("");
+      const [tipo, setTipo] = useState("");
+      const [senha, setSenha] = useState("");
+
+      const handleLogin = () => {
+        if (!nome || !tipo || !senha) {
+          alert("Preencha todos os campos.");
+          return;
+        }
+        if (senha !== SENHA_CORRETA) {
+          alert("Senha incorreta!");
+          return;
+        }
+        setUsuario({ nome, tipo });
+        setLogado(true);
+      };
+
+      return (
+        <div className="p-4 grid gap-4 max-w-md mx-auto mt-10 bg-white rounded-lg shadow">
+          <h1 className="text-2xl font-bold text-center">EscolaOrganizada</h1>
+          <h2 className="text-lg font-semibold text-gray-600 text-center">Login de Usuário</h2>
+          <input
+            className="border p-2 rounded"
+            placeholder="Nome do Usuário"
+            value={nome}
+            onChange={(e) => setNome(e.target.value)}
+          />
+          <input
+            type="password"
+            className="border p-2 rounded"
+            placeholder="Senha"
+            value={senha}
+            onChange={(e) => setSenha(e.target.value)}
+          />
+          <select
+            className="border p-2 rounded"
+            onChange={(e) => setTipo(e.target.value)}
+            value={tipo}
+          >
+            <option value="">Selecione o Tipo</option>
+            <option value="professor">Professor</option>
+            <option value="gestor">Gestor</option>
+          </select>
+          <button
+            className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
+            onClick={handleLogin}
+          >
+            Entrar
+          </button>
+          <button
+            className="text-blue-500 hover:underline"
+            onClick={() => setTela("cadastro")}
+          >
+            Não tenho cadastro
+          </button>
+        </div>
+      );
+    };
+
+    // ---------- Componente SchedulingForm ----------
+    const SchedulingForm = ({
+      form,
+      setForm,
+      agendamentos,
+      setAgendamentos,
+      usuario,
+      editIndex,
+      setEditIndex,
+      usuariosCadastrados,
+    }) => {
+      const handleChange = (e) => {
+        const { name, value, type, checked } = e.target;
+        setForm({ ...form, [name]: type === "checkbox" ? checked : value });
+      };
+
+      const handleAuxiliaresChange = (e) => {
+        const selectedOptions = Array.from(e.target.selectedOptions).map(
+          (option) => option.value
+        );
+        setForm({ ...form, auxiliares: selectedOptions });
+      };
+
+      let nextAgendamentoId = agendamentos.reduce((max, a) => Math.max(max, a._id || 0), 0);
+
+      const handleAgendar = () => {
+        if (
+          !form.professor ||
+          !form.turma ||
+          !form.espaco ||
+          !form.horario ||
+          !form.data ||
+          !form.organizador
+        ) {
+          alert("Preencha todos os campos obrigatórios.");
+          return;
+        }
+
+        const conflito = agendamentos.some((a) => {
+          if (editIndex !== null && a._id === editIndex) return false;
+          return (
+            a.data === form.data &&
+            a.horario === form.horario &&
+            a.espaco === form.espaco
+          );
+        });
+
+        if (conflito) {
+          alert("Já existe um agendamento para esse horário e espaço!");
+          return;
+        }
+
+        if (editIndex !== null) {
+          setAgendamentos(agendamentos.map(a =>
+            a._id === editIndex ? { ...form, _id: a._id, agendadoPor: usuario.nome } : a
+          ));
+          setEditIndex(null);
+        } else {
+          setAgendamentos([...agendamentos, { ...form, _id: ++nextAgendamentoId, agendadoPor: usuario.nome }]);
+        }
+
+        alert("Agendamento salvo com sucesso!");
+        setForm(formVazio());
+      };
+
+      return (
+        <div className="bg-white shadow rounded-lg p-4 grid gap-4">
+          <h2 className="text-xl font-semibold">
+            {editIndex !== null ? "Editar Agendamento" : "Cadastro de Agendamento"}
+          </h2>
+          <input
+            className="border p-2 rounded"
+            name="professor"
+            placeholder="Nome do Professor"
+            value={form.professor}
+            onChange={handleChange}
+          />
+          <select
+            className="border p-2 rounded"
+            name="turma"
+            value={form.turma}
+            onChange={handleChange}
+          >
+            <option value="">Selecione uma Turma</option>
+            {turmasCadastradas.map((turma) => (
+              <option key={turma.id} value={turma.nome}>
+                {turma.nome}
+              </option>
+            ))}
+          </select>
+          <select
+            className="border p-2 rounded"
+            name="espaco"
+            value={form.espaco}
+            onChange={handleChange}
+          >
+            <option value="">Selecione um Espaço</option>
+            {espacosDisponiveis.map((esp) => (
+              <option key={esp.value} value={esp.value}>
+                {esp.label}
+              </option>
+            ))}
+          </select>
+          <select
+            className="border p-2 rounded"
+            name="equipamento"
+            value={form.equipamento}
+            onChange={handleChange}
+          >
+            <option value="">Nenhum Equipamento</option>
+            <option value="datashow">Data Show</option>
+            <option value="notebook">Notebook</option>
+            <option value="som">Caixa de Som</option>
+            <option value="microfone">Microfone</option>
+          </select>
+          <input
+            type="date"
+            className="border p-2 rounded w-full"
+            name="data"
+            value={form.data}
+            onChange={handleChange}
+          />
+          <select
+            className="border p-2 rounded"
+            name="horario"
+            value={form.horario}
+            onChange={handleChange}
+          >
+            <option value="">Selecione um Horário</option>
+            {horariosDisponiveis.map((horario, index) => (
+              <option key={index} value={horario}>
+                {horario}
+              </option>
+            ))}
+          </select>
+          <input
+            className="border p-2 rounded"
+            name="evento"
+            placeholder="Evento ou Passeio (opcional)"
+            value={form.evento}
+            onChange={handleChange}
+          />
+          <select
+            className="border p-2 rounded"
+            name="organizador"
+            value={form.organizador}
+            onChange={handleChange}
+          >
+            <option value="">Selecione o Organizador Principal</option>
+            {usuariosCadastrados.map((u) => (
+              <option key={u.id} value={u.nome}>
+                {u.nome}
+              </option>
+            ))}
+          </select>
+          <div>
+            <label className="text-sm text-gray-500">
+              Auxiliares (Ctrl/Cmd + clique para selecionar vários)
+            </label>
+            <select
+              multiple
+              className="border p-2 rounded w-full"
+              name="auxiliares"
+              value={form.auxiliares}
+              onChange={handleAuxiliaresChange}
+            >
+              {usuariosCadastrados.map((u) => (
+                <option key={u.id} value={u.nome}>
+                  {u.nome}
+                </option>
+              ))}
+            </select>
+          </div>
+          <label className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              name="todaEscola"
+              checked={form.todaEscola}
+              onChange={handleChange}
+            />
+            Evento para toda a escola
+          </label>
+          <div className="flex gap-2">
+            <button
+              className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
+              onClick={handleAgendar}
+            >
+              {editIndex !== null ? "Atualizar" : "Agendar"}
+            </button>
+            {editIndex !== null && (
+              <button
+                className="bg-gray-500 text-white p-2 rounded hover:bg-gray-600"
+                onClick={() => {
+                  setForm(formVazio());
+                  setEditIndex(null);
+                }}
+              >
+                Cancelar
+              </button>
+            )}
+          </div>
+        </div>
+      );
+    };
+
+    // ---------- Componente Filters ----------
+    const Filters = ({ filtro, setFiltro, handleExportar }) => {
+      const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFiltro({ ...filtro, [name]: value });
+      };
+
+      return (
+        <div className="bg-white shadow rounded-lg p-4 grid gap-4">
+          <h2 className="text-xl font-semibold">Filtros</h2>
+          <select
+            className="border p-2 rounded"
+            name="turma"
+            value={filtro.turma}
+            onChange={handleChange}
+          >
+            <option value="">Todas as Turmas</option>
+            {turmasCadastradas.map((turma) => (
+              <option key={turma.id} value={turma.nome}>
+                {turma.nome}
+              </option>
+            ))}
+          </select>
+          <input
+            type="date"
+            className="border p-2 rounded"
+            name="data"
+            value={filtro.data}
+            onChange={handleChange}
+          />
+          <select
+            className="border p-2 rounded"
+            name="espaco"
+            value={filtro.espaco}
+            onChange={handleChange}
+          >
+            <option value="">Todos os Espaços</option>
+            {espacosDisponiveis.map((esp) => (
+              <option key={esp.value} value={esp.value}>
+                {esp.label}
+              </option>
+            ))}
+          </select>
+          <div className="flex gap-2">
+            <button
+              className="bg-green-500 text-white p-2 rounded hover:bg-green-600 flex-1"
+              onClick={handleExportar}
+            >
+              Exportar CSV
+            </button>
+            <button
+              className="bg-gray-300 text-gray-700 p-2 rounded hover:bg-gray-400"
+              onClick={() => setFiltro({ turma: "", espaco: "", data: "" })}
+            >
+              Limpar
+            </button>
+          </div>
+        </div>
+      );
+    };
+
+    // ---------- Componente SchedulingList ----------
+    const SchedulingList = ({ agendamentos, setAgendamentos, filtro, setForm, setEditIndex }) => {
+      const handleEditar = (id) => {
+        const item = agendamentos.find(a => a._id === id);
+        if (item) { setForm(item); setEditIndex(id); }
+      };
+
+      const handleExcluir = (id) => {
+        if (window.confirm("Tem certeza que deseja excluir este agendamento?")) {
+          setAgendamentos(agendamentos.filter(a => a._id !== id));
+        }
+      };
+
+      const agendamentosFiltrados = agendamentos.filter((a) => {
+        return (
+          (!filtro.turma || a.turma === filtro.turma) &&
+          (!filtro.espaco || a.espaco === filtro.espaco) &&
+          (!filtro.data || a.data === filtro.data)
+        );
+      });
+
+      const labelEspaco = (value) =>
+        espacosDisponiveis.find((e) => e.value === value)?.label || value;
+
+      return (
+        <div className="bg-white shadow rounded-lg p-4 overflow-x-auto">
+          <h2 className="text-xl font-semibold mb-2">
+            Agendamentos Registrados ({agendamentosFiltrados.length})
+          </h2>
+          {agendamentosFiltrados.length === 0 ? (
+            <p className="text-gray-500 text-sm">Nenhum agendamento encontrado.</p>
+          ) : (
+            <table className="w-full border-collapse text-sm">
+              <thead>
+                <tr className="bg-gray-100">
+                  <th className="border p-2">Data</th>
+                  <th className="border p-2">Horário</th>
+                  <th className="border p-2">Espaço</th>
+                  <th className="border p-2">Equipamento</th>
+                  <th className="border p-2">Professor</th>
+                  <th className="border p-2">Turma</th>
+                  <th className="border p-2">Evento</th>
+                  <th className="border p-2">Evento Geral?</th>
+                  <th className="border p-2">Organizador</th>
+                  <th className="border p-2">Auxiliares</th>
+                  <th className="border p-2">Agendado por</th>
+                  <th className="border p-2">Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {agendamentosFiltrados.map((a) => (
+                  <tr key={a._id} className="hover:bg-gray-50">
+                    <td className="border p-2">{formatarDataBR(a.data)}</td>
+                    <td className="border p-2">{a.horario}</td>
+                    <td className="border p-2">{labelEspaco(a.espaco)}</td>
+                    <td className="border p-2">{a.equipamento}</td>
+                    <td className="border p-2">{a.professor}</td>
+                    <td className="border p-2">{a.turma}</td>
+                    <td className="border p-2">{a.evento}</td>
+                    <td className="border p-2">{a.todaEscola ? "Sim" : "Não"}</td>
+                    <td className="border p-2">{a.organizador}</td>
+                    <td className="border p-2">
+                      {Array.isArray(a.auxiliares) ? a.auxiliares.join(", ") : a.auxiliares}
+                    </td>
+                    <td className="border p-2">{a.agendadoPor}</td>
+                    <td className="border p-2 flex gap-2">
+                      <button
+                        className="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600"                        onClick={() => handleEditar(a._id)}
+                        >
+                        Editar
+                      </button>
+                      <button
+                        className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600"                        onClick={() => handleExcluir(a._id)}
+                        >
+                        Excluir
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      );
+    };
+
+    // ---------- Componente App ----------
+    const App = () => {
+      const [usuariosCadastrados, setUsuariosCadastrados] = useState(() =>
+        safeParse(STORAGE_KEYS.usuarios, initialUsuariosCadastrados)
+      );
+      const [usuario, setUsuario] = useState({ nome: "", tipo: "" });
+      const [logado, setLogado] = useState(false);
+      const [tela, setTela] = useState("cadastro");
+      const [agendamentos, setAgendamentos] = useState(() =>
+        safeParse(STORAGE_KEYS.agendamentos, [])
+      );
+      const [form, setForm] = useState(formVazio());
+      const [filtro, setFiltro] = useState({ turma: "", espaco: "", data: "" });
+      const [editIndex, setEditIndex] = useState(null);
+
+      useEffect(() => {
+        localStorage.setItem(STORAGE_KEYS.usuarios, JSON.stringify(usuariosCadastrados));
+      }, [usuariosCadastrados]);
+
+      useEffect(() => {
+        localStorage.setItem(STORAGE_KEYS.agendamentos, JSON.stringify(agendamentos));
+      }, [agendamentos]);
+
+      const handleExportar = () => {
+        const linhas = [
+          [
+            "Data",
+            "Horário",
+            "Espaço",
+            "Equipamento",
+            "Professor",
+            "Turma",
+            "Evento",
+            "Evento Geral?",
+            "Organizador",
+            "Auxiliares",
+            "Agendado por",
+          ].join(","),
+        ];
+
+        agendamentos.forEach((a) => {
+          linhas.push(
+            [
+              a.data, // ISO date for CSV (sortable); formatação BR apenas na tela
+              a.horario,
+              a.espaco,
+              a.equipamento,
+              a.professor,
+              a.turma,
+              a.evento,
+              a.todaEscola ? "Sim" : "Não",
+              a.organizador,
+              Array.isArray(a.auxiliares) ? a.auxiliares.join(" / ") : a.auxiliares,
+              a.agendadoPor,
+            ]
+              .map((campo) => `"${(campo ?? "").toString().replace(/"/g, '""')}"`)
+              .join(",")
+          );
+        });
+
+        const csv = "\uFEFF" + linhas.join("\n");
+        const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "agendamentos.csv";
+        link.click();
+        URL.revokeObjectURL(url);
+      };
+
+      const handleLogout = () => {
+        setUsuario({ nome: "", tipo: "" });
+        setLogado(false);
+        setForm(formVazio());
+        setEditIndex(null);
+      };
+
+      if (tela === "cadastro") {
+        return <Cadastro setUsuariosCadastrados={setUsuariosCadastrados} setTela={setTela} />;
+      }
+
+      if (!logado) {
+        return <Login setUsuario={setUsuario} setLogado={setLogado} setTela={setTela} />;
+      }
+
+      return (
+        <div className="p-4 grid gap-6 max-w-4xl mx-auto">
+          <div className="flex items-center justify-between bg-white shadow rounded-lg p-4">
+            <div>
+              <h1 className="text-2xl font-bold">EscolaOrganizada</h1>
+              <p className="text-sm text-gray-500">
+                Usuário logado: {usuario.nome} ({usuario.tipo})
+              </p>
+            </div>
+            <button
+              className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 text-sm"
+              onClick={handleLogout}
+            >
+              Sair
+            </button>
+          </div>
+          <SchedulingForm
+            form={form}
+            setForm={setForm}
+            agendamentos={agendamentos}
+            setAgendamentos={setAgendamentos}
+            usuario={usuario}
+            editIndex={editIndex}
+            setEditIndex={setEditIndex}
+            usuariosCadastrados={usuariosCadastrados}
+          />
+          <Filters filtro={filtro} setFiltro={setFiltro} handleExportar={handleExportar} />
+          <SchedulingList
+            agendamentos={agendamentos}
+            setAgendamentos={setAgendamentos}
+            filtro={filtro}
+            setForm={setForm}
+            setEditIndex={setEditIndex}
+          />
+        </div>
+      );
+    };
+
+    const root = ReactDOM.createRoot(document.getElementById("root"));
+    root.render(<App />);
+  </script>
+</body>
+</html>

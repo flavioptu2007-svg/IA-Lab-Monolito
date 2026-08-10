@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title data-i18n="games.select">Jogos Históricos</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<script src="i18n-loader.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0a12;
+  --surface:#11131e;
+  --surface2:#181b28;
+  --border:#232738;
+  --border2:#2c3045;
+  --accent:#4ade80;
+  --accent2:#22d3ee;
+  --accent3:#f472b6;
+  --warn:#fb923c;
+  --danger:#f87171;
+  --text:#e2e6f0;
+  --text2:#8b91a8;
+  --text3:#555d78;
+  --radius:12px;
+  --sm:8px;
+  --shadow:0 4px 24px rgba(0,0,0,.3);
+}
+body{
+  font-family:system-ui,-apple-system,sans-serif;
+  background:var(--bg);color:var(--text);
+  min-height:100vh;overflow-x:hidden;
+}
+body::before{
+  content:'';position:fixed;inset:0;
+  background-image:linear-gradient(rgba(74,222,128,.02) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(74,222,128,.02) 1px,transparent 1px);
+  background-size:40px 40px;pointer-events:none;z-index:0;
+}
+
+/* HEADER */
+header{
+  position:sticky;top:0;z-index:100;
+  background:rgba(10,10,18,.88);backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border);
+  padding:0 1.25rem;display:flex;align-items:center;justify-content:space-between;height:56px;
+}
+.logo{font-weight:800;font-size:1.1rem;letter-spacing:-.03em;display:flex;align-items:center;gap:8px}
+.logo span{color:var(--accent);background:linear-gradient(135deg,#4ade80,#22d3ee);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.header-right{display:flex;align-items:center;gap:10px}
+#i18n-switcher{display:flex;align-items:center}
+#themeDisplay{font-size:1.2rem;transition:transform .3s;display:inline-block}
+#themeDisplay:hover{transform:scale(1.2)rotate(10deg)}
+
+main{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:1.25rem}
+
+/* TABS */
+.tab-bar{display:flex;gap:4px;padding:4px;background:var(--surface);border-radius:var(--radius);margin-bottom:1.25rem;border:1px solid var(--border)}
+.tab-btn{
+  flex:1;padding:.55rem .5rem;border:none;border-radius:8px;
+  background:transparent;color:var(--text3);font-size:.75rem;font-weight:700;
+  cursor:pointer;transition:all .25s;text-align:center;position:relative;overflow:hidden;
+}
+.tab-btn::after{content:'';position:absolute;bottom:4px;left:50%;width:0;height:2px;background:var(--accent);border-radius:1px;transition:all .25s;transform:translateX(-50%)}
+.tab-btn:hover{color:var(--text2);background:rgba(255,255,255,.03)}
+.tab-btn.active{color:var(--accent);background:rgba(74,222,128,.08)}
+.tab-btn.active::after{width:40%}
+.tab-btn .ico{display:block;font-size:1.3rem;margin-bottom:2px}
+.tab-pane{display:none;animation:fadeUp .35s ease}
+.tab-pane.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+@keyframes slideIn{from{opacity:0;transform:translateX(-12px)}to{opacity:1;transform:translateX(0)}}
+@keyframes pop{0%{transform:scale(0)}60%{transform:scale(1.15)}100%{transform:scale(1)}}
+
+/* THEME SELECTOR */
+.theme-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:10px;margin-bottom:1.25rem}
+.theme-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  padding:1rem;cursor:pointer;transition:all .25s;position:relative;overflow:hidden;
+}
+.theme-card:hover{border-color:var(--border2);transform:translateY(-3px);box-shadow:var(--shadow)}
+.theme-card:active{transform:translateY(-1px)}
+.theme-card.active{border-color:var(--accent);background:rgba(74,222,128,.04)}
+.theme-card.active::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--accent)}
+.theme-card .t-icon{font-size:1.8rem;margin-bottom:6px;transition:transform .3s}
+.theme-card:hover .t-icon{transform:scale(1.15)}
+.theme-card .t-name{font-weight:700;font-size:.82rem;margin-bottom:2px}
+.theme-card .t-period{font-size:.65rem;color:var(--text3);font-family:monospace}
+.theme-card .t-bar{height:3px;border-radius:2px;margin-top:8px;transition:width .5s cubic-bezier(.4,0,.2,1)}
+
+/* GAME AREA */
+.game-area{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  padding:1.25rem;min-height:400px;
+}
+.game-header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:1rem}
+.game-title{font-weight:700;font-size:1.15rem;display:flex;align-items:center;gap:8px}
+.game-controls{display:flex;gap:6px;flex-wrap:wrap}
+.btn{
+  padding:.55rem 1rem;border:none;border-radius:var(--sm);
+  font-size:.78rem;font-weight:600;cursor:pointer;transition:all .2s;
+  display:inline-flex;align-items:center;gap:5px;position:relative;overflow:hidden;
+}
+.btn:active{transform:scale(.96)}
+.btn-primary{background:var(--accent);color:#000}
+.btn-primary:hover{background:#22c55e;transform:translateY(-1px);box-shadow:0 4px 12px rgba(74,222,128,.25)}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none}
+.btn-secondary{background:var(--surface2);color:var(--text2);border:1px solid var(--border2)}
+.btn-secondary:hover{background:var(--border2);color:var(--text);transform:translateY(-1px)}
+.btn-secondary:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.btn-sm{padding:.4rem .75rem;font-size:.7rem}
+
+/* ── BINGO ── */
+.bingo-header{
+  display:flex;justify-content:space-between;align-items:center;gap:12px;
+  margin-bottom:12px;flex-wrap:wrap;
+}
+.bingo-header .bh-title{font-weight:700;font-size:.85rem;text-transform:uppercase;letter-spacing:.06em;color:var(--text2)}
+.bingo-header .bh-numbers{font-family:monospace;font-size:.7rem;color:var(--text3)}
+.bingo-card{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;max-width:480px;margin:0 auto}
+.bingo-cell{
+  aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:var(--surface2);border:1px solid var(--border2);border-radius:var(--sm);
+  font-size:.65rem;font-weight:600;text-align:center;padding:2px;cursor:pointer;
+  transition:all .25s;word-break:break-word;line-height:1.15;position:relative;overflow:hidden;
+  user-select:none;
+}
+.bingo-cell::before{content:'';position:absolute;inset:0;background:var(--accent);opacity:0;transition:opacity .2s}
+.bingo-cell:hover:not(.free){border-color:var(--accent);box-shadow:0 0 12px rgba(74,222,128,.1)}
+.bingo-cell.marked{background:rgba(74,222,128,.12);border-color:var(--accent);color:var(--accent)}
+.bingo-cell.marked::before{opacity:.08}
+.bingo-cell.free{background:rgba(34,211,238,.08);border-color:var(--accent2);color:var(--accent2);cursor:default}
+.bingo-cell.called:not(.marked):not(.free){border-color:var(--warn);background:rgba(251,146,60,.06)}
+.bingo-cell.bingo-win{animation:bingoPulse .5s ease 4;z-index:2}
+@keyframes bingoPulse{0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(74,222,128,.4)}50%{transform:scale(1.08);box-shadow:0 0 20px 8px rgba(74,222,128,.2)}}
+.bingo-cell .bingo-check{position:absolute;top:2px;right:3px;font-size:.55rem;opacity:0;transition:opacity .3s}
+.bingo-cell.marked .bingo-check{opacity:1}
+
+.called-section{margin-top:1rem}
+.called-section .cs-title{font-size:.65rem;color:var(--text3);margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em}
+.called-list{display:flex;flex-wrap:wrap;gap:4px;min-height:32px;padding:8px;background:var(--surface2);border-radius:var(--sm)}
+.called-tag{
+  padding:2px 8px;background:var(--surface);border:1px solid var(--border2);
+  border-radius:4px;font-size:.62rem;color:var(--text2);font-family:monospace;
+  animation:pop .25s ease;
+}
+
+/* ── DOMINO ── */
+.domino-section{margin-bottom:1rem}
+.domino-section .ds-label{font-size:.6rem;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:6px}
+.domino-board{display:flex;flex-direction:column;gap:6px;min-height:80px}
+.domino-row{display:flex;justify-content:center;gap:6px;flex-wrap:wrap}
+.domino-piece{
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:6px 12px;background:var(--surface2);border:1px solid var(--border2);
+  border-radius:var(--sm);cursor:pointer;transition:all .2s;min-width:70px;max-width:150px;
+  animation:pop .25s ease;
+}
+.domino-piece:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.3)}
+.domino-piece:active{transform:translateY(0)}
+.domino-piece.placed{border-color:var(--accent2);background:rgba(34,211,238,.06);cursor:default}
+.domino-piece.placed:hover{transform:none}
+.domino-piece.matched{animation:dominoMatch .4s ease}
+@keyframes dominoMatch{0%{transform:scale(1)}30%{transform:scale(1.1)}100%{transform:scale(1)}}
+.domino-piece .dp-term{font-weight:700;font-size:.72rem;text-align:center}
+.domino-piece .dp-desc{font-size:.6rem;color:var(--text2);text-align:center;line-height:1.3}
+.domino-piece .dp-label{font-size:.5rem;color:var(--text3);text-transform:uppercase;letter-spacing:.04em}
+.domino-hand{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+.domino-hand .domino-piece{border-color:var(--border)}
+.domino-hand .domino-piece.correct-answer{background:rgba(74,222,128,.15);border-color:var(--accent)}
+.domino-hand .domino-piece.wrong-answer{background:rgba(248,113,113,.12);border-color:var(--danger);animation:shake .3s ease}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+.domino-stats{display:flex;gap:20px;justify-content:center;font-family:monospace;font-size:.72rem;color:var(--text3);padding:8px;background:var(--surface2);border-radius:var(--sm);margin-bottom:10px}
+.domino-stats span{display:flex;align-items:center;gap:4px}
+.domino-question{
+  background:rgba(34,211,238,.06);border:1px solid rgba(34,211,238,.15);
+  border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1rem;text-align:center;
+}
+.domino-question .dq-label{font-size:.6rem;text-transform:uppercase;letter-spacing:.08em;color:var(--accent2);margin-bottom:4px}
+.domino-question .dq-term{font-size:1.1rem;font-weight:700;color:var(--text);margin-bottom:2px}
+.domino-question .dq-hint{font-size:.7rem;color:var(--text2)}
+
+/* ── UNO ── */
+.uno-info{text-align:center;font-size:.78rem;color:var(--text2);margin-bottom:10px;display:flex;justify-content:center;gap:16px;flex-wrap:wrap}
+.uno-info .ui-badge{padding:2px 10px;border-radius:12px;background:var(--surface2);border:1px solid var(--border2);font-size:.7rem}
+.uno-pile{display:flex;gap:12px;align-items:center;justify-content:center;margin-bottom:14px}
+.uno-card{
+  width:80px;height:114px;border-radius:10px;border:2px solid rgba(255,255,255,.15);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:6px;cursor:pointer;transition:all .25s;text-align:center;position:relative;
+  animation:dealCard .3s ease;box-shadow:0 2px 8px rgba(0,0,0,.3);
+}
+@keyframes dealCard{from{transform:translateY(-20px);opacity:0}to{transform:translateY(0);opacity:1}}
+.uno-card:hover{transform:translateY(-8px);box-shadow:0 8px 24px rgba(0,0,0,.4)}
+.uno-card:active{transform:translateY(-4px)}
+.uno-card.playable{box-shadow:0 0 12px rgba(74,222,128,.3)}
+.uno-card .uc-emoji{font-size:1.4rem;margin-bottom:2px}
+.uno-card .uc-label{font-size:.55rem;opacity:.85;line-height:1.15;max-width:70px}
+.uno-card .uc-badge{position:absolute;top:-4px;right:-4px;width:20px;height:20px;border-radius:50%;background:var(--accent);color:#000;font-size:.55rem;font-weight:800;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.3)}
+.uno-card.red{background:linear-gradient(145deg,#e74c3c,#a93226);color:#fff}
+.uno-card.blue{background:linear-gradient(145deg,#2e86c1,#1a5276);color:#fff}
+.uno-card.green{background:linear-gradient(145deg,#27ae60,#1a7a40);color:#fff}
+.uno-card.yellow{background:linear-gradient(145deg,#f1c40f,#d4ac0d);color:#2c1a00}
+.uno-card.wild{background:linear-gradient(135deg,#e74c3c,#f1c40f,#27ae60,#2e86c1);color:#fff;background-size:300% 300%;animation:gradientShift 3s ease infinite}
+@keyframes gradientShift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+.uno-card.thinking{animation:thinking .6s ease infinite;border-color:var(--accent2)}
+@keyframes thinking{0%,100%{opacity:1}50%{opacity:.5}}
+.uno-hand{display:flex;gap:5px;flex-wrap:wrap;justify-content:center;min-height:120px;padding:8px 0}
+.uno-color-picker{display:flex;gap:8px;justify-content:center;margin:10px 0;animation:fadeUp .3s ease}
+.uno-color-btn{
+  width:44px;height:44px;border-radius:50%;border:3px solid transparent;
+  cursor:pointer;transition:all .25s;box-shadow:0 2px 8px rgba(0,0,0,.2);
+}
+.uno-color-btn:hover{border-color:#fff;transform:scale(1.2)}
+.uno-btn-row{display:flex;gap:8px;justify-content:center;margin-top:8px}
+.uno-btn-row .btn{min-width:100px}
+
+/* FACTS */
+.fact-box{
+  background:linear-gradient(135deg,rgba(34,211,238,.04),rgba(74,222,128,.04));
+  border:1px solid rgba(34,211,238,.12);border-radius:var(--radius);
+  padding:1rem 1.25rem;margin-top:1rem;
+  display:flex;align-items:flex-start;gap:12px;
+  transition:all .3s;
+}
+.fact-box:hover{border-color:rgba(34,211,238,.25)}
+.fact-box .fb-icon{font-size:1.5rem;flex-shrink:0;animation:pulse 2s ease infinite}
+.fact-box .fb-text{font-size:.8rem;color:var(--text2);line-height:1.5}
+.fact-box .fb-label{font-size:.6rem;text-transform:uppercase;letter-spacing:.08em;color:var(--accent2);margin-bottom:4px}
+
+/* OVERLAY */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(6px)}
+.overlay.open{display:flex}
+.overlay-box{
+  background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius);
+  padding:2.5rem;max-width:420px;width:90%;text-align:center;
+  animation:pop .4s ease;box-shadow:0 24px 64px rgba(0,0,0,.5);
+}
+.overlay-box h2{font-size:1.5rem;margin-bottom:8px}
+.overlay-box p{color:var(--text2);font-size:.85rem;margin-bottom:1.5rem;line-height:1.5}
+.overlay-box .big-icon{font-size:3.5rem;margin-bottom:12px}
+.overlay-box .btn{min-width:160px;justify-content:center;font-size:.85rem}
+
+/* RESPONSIVE */
+@media(max-width:640px){
+  header{padding:0 .75rem}
+  .theme-grid{grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}
+  .game-area{padding:.85rem}
+  .bingo-card{max-width:100%;gap:3px}
+  .bingo-cell{font-size:.55rem;border-radius:4px}
+  .bingo-cell .bingo-check{font-size:.45rem}
+  .uno-card{width:65px;height:92px}
+  .uno-card .uc-emoji{font-size:1.1rem}
+  .uno-card .uc-label{font-size:.5rem}
+  .domino-piece{padding:5px 10px;min-width:60px}
+  .domino-piece .dp-term{font-size:.65rem}
+  .overlay-box{padding:1.5rem}
+}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--text3)}
+
+/* LOADING STATE */
+.loading-state{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:3rem;color:var(--text3);gap:12px;
+}
+.loading-state .ls-spinner{width:32px;height:32px;border:3px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">🎮 <span>Jogos Históricos</span></div>
+  <div class="header-right">
+    <span style="font-size:.65rem;color:var(--text3)" id="themeDisplay">🏛️</span>
+    <div id="i18n-switcher"></div>
+  </div>
+</header>
+
+<main>
+  <!-- Theme Selector -->
+  <div class="theme-grid" id="themeGrid"></div>
+
+  <!-- Game Tabs -->
+  <div class="tab-bar" id="tabBar">
+    <button class="tab-btn active" data-game="bingo" onclick="switchGame('bingo')">
+      <span class="ico">🎯</span> <span data-i18n="games.bingo">Bingo</span>
+    </button>
+    <button class="tab-btn" data-game="domino" onclick="switchGame('domino')">
+      <span class="ico">🀄</span> <span data-i18n="games.domino">Dominó</span>
+    </button>
+    <button class="tab-btn" data-game="uno" onclick="switchGame('uno')">
+      <span class="ico">🃏</span> <span data-i18n="games.uno">Uno</span>
+    </button>
+  </div>
+
+  <!-- BINGO PANE -->
+  <div class="tab-pane active" id="game-bingo">
+    <div class="game-area">
+      <div class="game-header">
+        <div class="game-title">🎯 <span data-i18n="bingo.title">Bingo Histórico</span></div>
+        <div class="game-controls">
+          <button class="btn btn-primary btn-sm" id="bingoDraw" onclick="bingoDraw()" data-i18n="bingo.callNumber">🎲 Sortear</button>
+          <button class="btn btn-secondary btn-sm" onclick="bingoNewCard()" data-i18n="bingo.newCard">🆕 Nova Cartela</button>
+        </div>
+      </div>
+      <div id="bingoContent">
+        <div class="loading-state" id="bingoLoading">
+          <div class="ls-spinner"></div>
+          <span data-i18n="common.loading">Carregando...</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DOMINO PANE -->
+  <div class="tab-pane" id="game-domino">
+    <div class="game-area">
+      <div class="game-header">
+        <div class="game-title">🀄 <span data-i18n="domino.title">Dominó Histórico</span></div>
+        <div class="game-controls">
+          <button class="btn btn-primary btn-sm" onclick="dominoNewGame()" data-i18n="domino.newGame">🆕 Novo Jogo</button>
+          <span data-i18n="domino.score" style="font-size:.72rem;color:var(--text3);font-family:monospace" id="dominoScoreDisplay">⭐ 0</span>
+        </div>
+      </div>
+      <div id="dominoContent">
+        <div class="loading-state" id="dominoLoading">
+          <div class="ls-spinner"></div>
+          <span data-i18n="common.loading">Carregando...</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- UNO PANE -->
+  <div class="tab-pane" id="game-uno">
+    <div class="game-area">
+      <div class="game-header">
+        <div class="game-title">🃏 <span data-i18n="uno.title">Uno Histórico</span></div>
+        <div class="game-controls">
+          <button class="btn btn-primary btn-sm" onclick="unoNewGame()" data-i18n="uno.newGame">🆕 Novo Jogo</button>
+        </div>
+      </div>
+      <div id="unoContent">
+        <div class="loading-state" id="unoLoading">
+          <div class="ls-spinner"></div>
+          <span data-i18n="common.loading">Carregando...</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Fact Box -->
+  <div class="fact-box" id="factBox">
+    <div class="fb-icon">💡</div>
+    <div>
+      <div class="fb-label" data-i18n="facts.didYouKnow">Você sabia?</div>
+      <div class="fb-text" id="factText">Carregando curiosidades...</div>
+    </div>
+  </div>
+
+  <!-- Overlay -->
+  <div class="overlay" id="overlay">
+    <div class="overlay-box">
+      <div class="big-icon" id="overlayIcon">🎉</div>
+      <h2 id="overlayTitle">Parabéns!</h2>
+      <p id="overlayText">Você venceu!</p>
+      <button class="btn btn-primary" onclick="closeOverlay()" data-i18n="bingo.newGame">🔄 Jogar Novamente</button>
+    </div>
+  </div>
+</main>
+
+<script>
+/* ============================================================
+   Jogos Históricos — Game Engine v2.0
+   Bingo, Dominó, UNO — Vanilla JS + i18n
+   ============================================================ */
+
+// ── THEMES ──────────────────────────────────────────────────
+const THEMES = [
+  {
+    id:'prehistory', icon:'🦕', name:'Pré-História', period:'3,3M – 3000 a.C.',
+    desc:'Hominídeos, ferramentas de pedra, arte rupestre.', color:'#e8a838',
+    facts:[
+      'O Homo sapiens surgiu na África há ~300.000 anos.',
+      'A pintura rupestre mais antiga conhecida tem ~45.000 anos.',
+      'O fogo foi dominado pelos hominídeos há ~1,5 milhão de anos.',
+      'A agricultura surgiu no Crescente Fértil ~10.000 a.C.',
+    ],
+    terms:[
+      {term:'Homo sapiens',desc:'Espécie humana atual, surgiu há ~300.000 anos na África.'},
+      {term:'Paleolítico',desc:'Idade da Pedra Lascada (2,5M – 10.000 a.C.), caça e coleta.'},
+      {term:'Neolítico',desc:'Idade da Pedra Polida, revolução agrícola e sedentarização.'},
+      {term:'Pintura Rupestre',desc:'Registros artísticos em cavernas como Lascaux (França).'},
+      {term:'Sedentarização',desc:'Fixação em aldeias com agricultura a partir de 10.000 a.C.'},
+      {term:'Australopithecus',desc:'Gênero de hominídeos que viveu na África há 4-2 milhões de anos.'},
+      {term:'Homo erectus',desc:'Hominídeo que dominou o fogo e migrou da África.'},
+      {term:'Homo habilis',desc:'Primeiro hominídeo a fabricar ferramentas de pedra.'},
+      {term:'Neandertal',desc:'Espécie humana que viveu na Europa e Ásia, extinta ~40.000 anos atrás.'},
+      {term:'Megalítico',desc:'Monumentos de grandes pedras, como Stonehenge (Inglaterra).'},
+      {term:'Agricultura',desc:'Cultivo de plantas que permitiu a revolução neolítica.'},
+      {term:'Domesticação',desc:'Processo de tornar animais selvagens úteis aos humanos.'},
+      {term:'Cerâmica',desc:'Artefatos de barro cozido, marcador do Neolítico.'},
+      {term:'Nômade',desc:'Grupo que se desloca constantemente, sem habitação fixa.'},
+      {term:'Clã',desc:'Grupo familiar extenso, forma básica de organização social.'},
+      {term:'Ritual Funerário',desc:'Práticas de sepultamento evidenciam crenças no além.'},
+      {term:'Aldeia',desc:'Primeiros assentamentos humanos fixos no Neolítico.'},
+      {term:'Comércio',desc:'Troca de bens entre grupos, surgiu no Neolítico.'},
+      {term:'Arte Mobiliária',desc:'Pequenas esculturas como a Vênus de Willendorf.'},
+      {term:'Mito',desc:'Narrativa sagrada que explica a origem do mundo e dos humanos.'},
+      {term:'Caça-coleta',desc:'Modo de vida baseado na caça de animais e coleta de vegetais.'},
+      {term:'Ferramentas',desc:'Instrumentos de pedra, osso e madeira fabricados pelos hominídeos.'},
+      {term:'Lascas',desc:'Fragmentos de pedra usados como facas e raspadores.'},
+      {term:'Glaciação',desc:'Períodos de resfriamento global que afetaram a migração humana.'},
+    ]
+  },
+  {
+    id:'egypt', icon:'𓂀', name:'Egito Antigo', period:'3100 – 30 a.C.',
+    desc:'Faraós, pirâmides, hieróglifos e o Nilo.', color:'#c45c2e',
+    facts:[
+      'As pirâmides de Gizé são as únicas Maravilhas do Mundo Antigo ainda de pé.',
+      'O Nilo era chamado de "presente do Egito" por Heródoto.',
+      'A Pedra de Roseta permitiu decifrar os hieróglifos em 1822.',
+      'Cleópatra VII foi a última faraó do Egito Antigo.',
+    ],
+    terms:[
+      {term:'Faraó',desc:'Governante máximo do Egito, considerado um deus vivo.'},
+      {term:'Pirâmides',desc:'Monumentos funerários, a maior é a de Quéops (Gizé).'},
+      {term:'Hieróglifos',desc:'Sistema de escrita egípcio, decifrado pela Pedra de Roseta.'},
+      {term:'Múmia',desc:'Corpo preservado por técnicas de mumificação para o além.'},
+      {term:'Rio Nilo',desc:'Maior rio da África, vital para agricultura e transporte.'},
+      {term:'Anúbis',desc:'Deus egípcio dos mortos, representado com cabeça de chacal.'},
+      {term:'Rá',desc:'Deus do sol, principal divindade do panteão egípcio.'},
+      {term:'Ísis',desc:'Deusa da magia e maternidade, esposa de Osíris.'},
+      {term:'Osíris',desc:'Deus do submundo e juiz dos mortos.'},
+      {term:'Tutancâmon',desc:'Faraó jovem cuja tumba foi encontrada intacta em 1922.'},
+      {term:'Cleópatra',desc:'Última faraó do Egito, famosa por sua inteligência e poder.'},
+      {term:'Papiro',desc:'Material de escrita feito da planta do mesmo nome.'},
+      {term:'Esfinge',desc:'Monumento com corpo de leão e cabeça humana em Gizé.'},
+      {term:'Obelisco',desc:'Monumento de pedra com ponta piramidal, símbolo solar.'},
+      {term:'Escriba',desc:'Funcionário real especializado em escrita e contabilidade.'},
+      {term:'Vale dos Reis',desc:'Necrópole onde faraós do Novo Império foram enterrados.'},
+      {term:'Canopo',desc:'Vaso usado para armazenar órgãos retirados na mumificação.'},
+      {term:'Sarcófago',desc:'Caixão de pedra que abrigava a múmia do faraó.'},
+      {term:'Dinastia',desc:'Sequência de faraós da mesma família no poder.'},
+      {term:'Deus Hórus',desc:'Deus do céu, representado com cabeça de falcão.'},
+      {term:'Império',desc:'Período de maior extensão territorial e poder militar.'},
+      {term:'Exército',desc:'Força militar que protegia as fronteiras do Egito.'},
+      {term:'Barca Solar',desc:'Barco ritual que acompanhava o faraó na vida após a morte.'},
+      {term:'Templo',desc:'Edifício religioso dedicado aos deuses egípcios.'},
+    ]
+  },
+  {
+    id:'greece', icon:'🏛️', name:'Grécia Antiga', period:'800 – 146 a.C.',
+    desc:'Democracia, filosofia e as olimpíadas.', color:'#3a7bd5',
+    facts:[
+      'A democracia ateniense excluía mulheres, escravos e estrangeiros.',
+      'Os Jogos Olímpicos começaram em Olímpia em 776 a.C.',
+      'Aristóteles foi tutor de Alexandre, o Grande.',
+      'A palavra "política" vem de "polis", cidade-estado grega.',
+    ],
+    terms:[
+      {term:'Democracia',desc:'Sistema político criado em Atenas, poder do demos (povo).'},
+      {term:'Polis',desc:'Cidade-Estado grega, como Atenas e Esparta.'},
+      {term:'Filosofia',desc:'Busca pelo conhecimento racional, Sócrates, Platão, Aristóteles.'},
+      {term:'Olimpíadas',desc:'Jogos em Olímpia em honra a Zeus, desde 776 a.C.'},
+      {term:'Guerra do Peloponeso',desc:'Conflito entre Atenas e Esparta (431-404 a.C.).'},
+      {term:'Sócrates',desc:'Filósofo que questionava tudo, condenado a beber cicuta.'},
+      {term:'Platão',desc:'Filósofo que fundou a Academia, escreveu A República.'},
+      {term:'Aristóteles',desc:'Filósofo que classificou os saberes, tutor de Alexandre.'},
+      {term:'Alexandre, o Grande',desc:'Rei da Macedônia que criou um império até a Índia.'},
+      {term:'Partenon',desc:'Templo dedicado à deusa Atena na Acrópole.'},
+      {term:'Acrópole',desc:'Colina sagrada de Atenas com templos e monumentos.'},
+      {term:'Ágora',desc:'Praça pública onde ocorriam debates e comércio.'},
+      {term:'Hoplita',desc:'Soldado grego com armadura pesada e lança.'},
+      {term:'Guerras Médicas',desc:'Conflitos entre gregos e persas (490-479 a.C.).'},
+      {term:'Heródoto',desc:'Historiador grego, considerado "pai da História".'},
+      {term:'Tucídides',desc:'Historiador que narrou a Guerra do Peloponeso.'},
+      {term:'Tragédia',desc:'Gênero teatral grego (Ésquilo, Sófocles, Eurípedes).'},
+      {term:'Comédia',desc:'Gênero teatral cômico, Aristófanes é o principal autor.'},
+      {term:'Mito',desc:'Narrativa sobre deuses e heróis, base da religião grega.'},
+      {term:'Oráculo de Delfos',desc:'Santário onde a Pítia profetizava o futuro.'},
+      {term:'Falange',desc:'Formação militar com lanças e escudos interligados.'},
+      {term:'Éforo',desc:'Magistrado espartano que fiscalizava os reis.'},
+      {term:'Guerra de Troia',desc:'Conflito narrado por Homero na Ilíada.'},
+      {term:'Liga de Delos',desc:'Aliança militar liderada por Atenas contra os persas.'},
+    ]
+  },
+  {
+    id:'medieval', icon:'🏰', name:'Idade Média', period:'476 – 1453',
+    desc:'Feudalismo, cavaleiros e as cruzadas.', color:'#3e8c6e',
+    facts:[
+      'A Peste Negra matou 30-60% da população europeia (1347-1351).',
+      'A Magna Carta de 1215 limitou o poder do rei na Inglaterra.',
+      'As universidades medievais surgiram nos séculos XII-XIII.',
+      'O período foi chamado de "Idade das Trevas" pelos renascentistas.',
+    ],
+    terms:[
+      {term:'Feudalismo',desc:'Sistema social baseado em feudos, servidão e suserania.'},
+      {term:'Cruzadas',desc:'Expedições religiosas para recuperar a Terra Santa (1096-1272).'},
+      {term:'Peste Negra',desc:'Pandemia que matou 30-60% da população europeia (1347-1351).'},
+      {term:'Magna Carta',desc:'Documento de 1215 que limitou o poder do rei na Inglaterra.'},
+      {term:'Cavaleiro',desc:'Guerreiro nobre que seguia o código de cavalaria medieval.'},
+      {term:'Suserania',desc:'Relação feudal em que o nobre doava terras em troca de fidelidade.'},
+      {term:'Servidão',desc:'Trabalho obrigatório do servo nas terras do senhor feudal.'},
+      {term:'Feudo',desc:'Unidade territorial e produtiva do sistema feudal.'},
+      {term:'Igreja Católica',desc:'Instituição mais poderosa da Idade Média.'},
+      {term:'Inquisição',desc:'Tribunal da Igreja que julgava heresias.'},
+      {term:'Catedral',desc:'Igreja principal de uma diocese, estilo gótico ou românico.'},
+      {term:'Mosteiro',desc:'Comunidade religiosa isolada, centro de produção cultural.'},
+      {term:'Monge',desc:'Religioso que vivia em mosteiro dedicado à oração e trabalho.'},
+      {term:'Clero',desc:'Primeiro estado medieval: religiosos.'},
+      {term:'Nobreza',desc:'Segundo estado medieval: guerreiros e proprietários de terras.'},
+      {term:'Servo',desc:'Camponês preso à terra feudal, terceiro estado.'},
+      {term:'Peste',desc:'Doença epidêmica que devastou a Europa medieval.'},
+      {term:'Guilda',desc:'Associação de comerciantes e artesãos nas cidades.'},
+      {term:'Feira Medieval',desc:'Evento comercial periódico nas rotas de comércio.'},
+      {term:'Cidade Medieval',desc:'Centro urbano murado com comércio e guildas.'},
+      {term:'Império Bizantino',desc:'Império romano do Oriente, capital Constantinopla.'},
+      {term:'Carlos Magno',desc:'Imperador franco, coroado em 800 d.C.'},
+      {term:'Sacro Império',desc:'Império germânico fundado por Otão I em 962.'},
+      {term:'Escolástica',desc:'Método filosófico medieval que conciliava fé e razão.'},
+    ]
+  },
+  {
+    id:'modern', icon:'⚙️', name:'Idade Moderna', period:'1453 – 1789',
+    desc:'Grandes navegações, renascimento, absolutismo.', color:'#c94040',
+    facts:[
+      'Cristóvão Colombo chegou à América em 12 de outubro de 1492.',
+      'O Brasil foi descoberto por Pedro Álvares Cabral em 1500.',
+      'Martinho Lutero afixou suas 95 teses em 1517.',
+      'A máquina a vapor foi aperfeiçoada por James Watt em 1769.',
+    ],
+    terms:[
+      {term:'Renascimento',desc:'Movimento cultural e científico nos séculos XIV-XVI.'},
+      {term:'Grandes Navegações',desc:'Expansão marítima europeia, descobrimento do Brasil (1500).'},
+      {term:'Absolutismo',desc:'Sistema político com poder centralizado no rei.'},
+      {term:'Reforma Protestante',desc:'Movimento de Martinho Lutero em 1517.'},
+      {term:'Revolução Científica',desc:'Nova visão do cosmos: Copérnico, Galileu, Newton.'},
+      {term:'Descobrimento do Brasil',desc:'Chegada de Cabral em 22 de abril de 1500.'},
+      {term:'Colonização',desc:'Processo de ocupação e exploração das Américas.'},
+      {term:'Mercantilismo',desc:'Política econômica baseada no acúmulo de metais preciosos.'},
+      {term:'Tráfico Negreiro',desc:'Comércio forçado de africanos escravizados para as Américas.'},
+      {term:'Escravidão',desc:'Sistema de trabalho forçado na América colonial.'},
+      {term:'Contrarreforma',desc:'Reação da Igreja Católica à Reforma Protestante.'},
+      {term:'Jesuítas',desc:'Ordem religiosa que catequizou indígenas no Brasil.'},
+      {term:'Ciclo do Ouro',desc:'Período de exploração de ouro em Minas Gerais (séc. XVIII).'},
+      {term:'Barroco',desc:'Estilo artístico exuberante dos séculos XVII-XVIII.'},
+      {term:'Inconfidência Mineira',desc:'Revolta separatista em Minas Gerais (1789).'},
+      {term:'Iluminismo',desc:'Movimento intelectual do séc. XVIII, defesa da razão.'},
+      {term:'Enciclopédia',desc:'Obra organizada por Diderot e D\'Alembert (1751-1772).'},
+      {term:'Despotismo Esclarecido',desc:'Monarcas que adotaram ideias iluministas.'},
+      {term:'Revolução Industrial',desc:'Transformação produtiva com máquinas a vapor (1760-1840).'},
+      {term:'Capitalismo',desc:'Sistema econômico baseado no lucro e propriedade privada.'},
+      {term:'Liberalismo',desc:'Doutrina que defende liberdade econômica e individual.'},
+      {term:'Independência EUA',desc:'Colônias americanas declararam independência em 1776.'},
+      {term:'Queda de Constantinopla',desc:'Conquista pelos turcos otomanos em 1453.'},
+      {term:'Humanismo',desc:'Corrente filosófica que valorizava o ser humano.'},
+    ]
+  },
+];
+
+// ── STATE ──────────────────────────────────────────────────
+let currentTheme = 0;
+let currentGame = 'bingo';
+let bingoState = null;
+let dominoState = null;
+let unoState = null;
+
+// ── INIT ───────────────────────────────────────────────────
+document.addEventListener('i18n-loaded', () => {
+  renderThemes();
+  selectTheme(0);
+  I18N.updateDOM();
+  document.getElementById('i18n-switcher').innerHTML = I18N.renderSwitcher();
+  showRandomFact();
+});
+
+// ── THEMES ────────────────────────────────────────────────
+function renderThemes() {
+  const grid = document.getElementById('themeGrid');
+  grid.innerHTML = THEMES.map((t,i) => `
+    <div class="theme-card ${i===0?'active':''}" onclick="selectTheme(${i})" data-idx="${i}">
+      <div class="t-icon">${t.icon}</div>
+      <div class="t-name">${t.name}</div>
+      <div class="t-period">${t.period}</div>
+      <div class="t-bar" style="background:${t.color};width:${i===0?100:0}%"></div>
+    </div>
+  `).join('');
+}
+
+function selectTheme(idx) {
+  currentTheme = idx;
+  document.querySelectorAll('.theme-card').forEach((c,i) => {
+    c.classList.toggle('active',i===idx);
+    c.querySelector('.t-bar').style.width = i===idx ? '100%' : '0%';
+  });
+  document.getElementById('themeDisplay').textContent = THEMES[idx].icon;
+
+  // Reset all games with new theme
+  bingoNewCard();
+  dominoNewGame();
+  unoNewGame();
+  showRandomFact();
+}
+
+function getThemeData() { return THEMES[currentTheme]; }
+function shuffle(a) { const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];}return b; }
+
+// ── RANDOM FACT ──────────────────────────────────────────
+function showRandomFact() {
+  const t = getThemeData();
+  const all = t.facts.length > 0
+    ? t.facts
+    : ['Carregando curiosidades...'];
+  document.getElementById('factText').textContent = all[Math.floor(Math.random()*all.length)];
+}
+
+// ── GAME SWITCHER ──────────────────────────────────────
+function switchGame(game) {
+  currentGame = game;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active',b.dataset.game===game));
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.toggle('active',p.id==='game-'+game));
+}
+
+// ════════════════════════════════════════════════════════════
+// BINGO
+// ════════════════════════════════════════════════════════════
+function bingoNewCard() {
+  const t = getThemeData();
+  if (!t || !t.terms || t.terms.length < 12) return;
+
+  // Pick 24 terms from the theme
+  const shuffled = shuffle(t.terms);
+  const picks = shuffled.slice(0, 24);
+
+  // Build 5x5 grid: FREE in center (index 12)
+  const grid = [];
+  for (let i = 0; i < 25; i++) {
+    grid.push(i === 12 ? 'FREE' : picks.shift().term);
+  }
+
+  bingoState = {
+    grid,
+    marked: grid.map(c => c === 'FREE'),
+    called: [],
+    drawCount: 0,
+  };
+
+  renderBingo();
+}
+
+function renderBingo() {
+  if (!bingoState) return;
+  const content = document.getElementById('bingoContent');
+
+  const marked = bingoState.marked.filter(m => m).length;
+
+  content.innerHTML = `
+    <div class="bingo-header">
+      <div class="bh-title" data-i18n="bingo.yourCard">📋 Sua Cartela</div>
+      <div class="bh-numbers">🎯 ${bingoState.drawCount} sorteios · ✅ ${marked}/25 marcados</div>
+    </div>
+    <div class="bingo-card">
+      ${bingoState.grid.map((cell, i) => {
+        const isFree = cell === 'FREE';
+        const isMarked = bingoState.marked[i];
+        const isCalled = bingoState.called.includes(cell);
+        const cls = `bingo-cell ${isFree?'free':''} ${isMarked?'marked':''} ${isCalled&&!isMarked?'called':''}`;
+        return `<div class="${cls}" onclick="${isFree?'':'bingoMark('+i+')'}">
+          ${isFree ? '⭐' : cell}
+          <span class="bingo-check">${isMarked?'✓':''}</span>
+        </div>`;
+      }).join('')}
+    </div>
+    <div class="called-section">
+      <div class="cs-title" data-i18n="bingo.calledNumbers">📢 Números Sorteados</div>
+      <div class="called-list" id="calledList">
+        ${bingoState.called.length === 0
+          ? '<span style="font-size:.65rem;color:var(--text3);width:100%;text-align:center" data-i18n="bingo.callNumber">🔘 Clique em Sortear para começar</span>'
+          : bingoState.called.map(c => `<span class="called-tag">${c}</span>`).join('')
+        }
+      </div>
+    </div>
+  `;
+
+  // Re-run i18n on fresh content
+  I18N.updateDOM();
+}
+
+function bingoDraw() {
+  if (!bingoState) {
+    bingoNewCard();
+    return;
+  }
+
+  // Get uncalled words
+  const uncalled = bingoState.grid.filter(c => c !== 'FREE' && !bingoState.called.includes(c));
+  if (uncalled.length === 0) {
+    showOverlay('🎉', I18N ? I18N.t('bingo.bingo') : 'BINGO!', I18N ? I18N.t('bingo.allCalled') : 'Todos os termos foram sorteados!');
+    return;
+  }
+
+  const pick = uncalled[Math.floor(Math.random()*uncalled.length)];
+  bingoState.called.push(pick);
+  bingoState.drawCount++;
+  renderBingo();
+}
+
+function bingoMark(idx) {
+  if (!bingoState || bingoState.marked[idx]) return;
+  const word = bingoState.grid[idx];
+  if (!bingoState.called.includes(word)) return;
+  bingoState.marked[idx] = true;
+  renderBingo();
+  checkBingo();
+}
+
+function checkBingo() {
+  const m = bingoState.marked;
+  const winPatterns = [
+    // Rows
+    [0,1,2,3,4],[5,6,7,8,9],[10,11,12,13,14],[15,16,17,18,19],[20,21,22,23,24],
+    // Columns
+    [0,5,10,15,20],[1,6,11,16,21],[2,7,12,17,22],[3,8,13,18,23],[4,9,14,19,24],
+    // Diagonals
+    [0,6,12,18,24],[4,8,12,16,20],
+  ];
+
+  for (const p of winPatterns) {
+    if (p.every(i => m[i])) {
+      // Highlight winning cells
+      setTimeout(() => {
+        const cells = document.querySelectorAll('.bingo-card .bingo-cell');
+        p.forEach(i => { if (cells[i]) cells[i].classList.add('bingo-win'); });
+      }, 50);
+      const msg = (I18N ? I18N.t('bingo.winMessage').replace('{n}', bingoState.drawCount) : `Você completou uma linha em ${bingoState.drawCount} sorteios!`);
+      showOverlay('🎉', I18N ? I18N.t('bingo.bingo') : 'BINGO! 🎉', msg);
+      return;
+    }
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+// DOMINO — Match term ↔ description
+// ════════════════════════════════════════════════════════════
+function dominoNewGame() {
+  const t = getThemeData();
+  if (!t || !t.terms || t.terms.length < 4) return;
+
+  // Create pieces from theme terms
+  const pieces = t.terms.map((item, i) => ({
+    id: i,
+    term: item.term,
+    desc: item.desc,
+    played: false,
+  }));
+
+  // Pick one term as the current question
+  const shuffled = shuffle(pieces);
+  const current = shuffled[0];
+  const options = shuffle(pieces.filter(p => p.id !== current.id));
+
+  // Options: 1 correct (matching term's desc) + 3 wrong
+  const correctOption = { ...current, isCorrect: true };
+  const wrongOptions = options.slice(0, 3).map(p => ({ ...p, isCorrect: false }));
+  const hand = shuffle([correctOption, ...wrongOptions]);
+
+  dominoState = {
+    pieces,
+    current: { term: current.term, desc: current.desc, id: current.id },
+    hand,
+    correctOptionId: current.id,
+    playedCount: 0,
+    totalPairs: t.terms.length,
+    score: 0,
+    result: null, // null | 'correct' | 'wrong'
+    lastWrongId: null,
+  };
+
+  renderDomino();
+}
+
+function renderDomino() {
+  if (!dominoState) return;
+  const content = document.getElementById('dominoContent');
+  const d = dominoState;
+
+  // Update score display
+  document.getElementById('dominoScoreDisplay').textContent = `⭐ ${d.score}`;
+
+  const current = d.current;
+  const allPlayed = d.pieces.filter(p => p.played).length;
+
+  content.innerHTML = `
+    <div class="domino-stats">
+      <span>📋 ${allPlayed}/${d.totalPairs} pares</span>
+      <span>⭐ ${d.score} pontos</span>
+    </div>
+    <div class="domino-question">
+      <div class="dq-label" data-i18n="domino.findMatch">🔍 Encontre a descrição correta</div>
+      <div class="dq-term">${current.term}</div>
+      <div class="dq-hint" data-i18n="domino.chooseDescription">Clique na descrição que corresponde ao termo acima</div>
+    </div>
+    <div class="domino-hand">
+      ${d.hand.map((p, i) => {
+        let extra = '';
+        if (d.result === 'correct' && p.isCorrect) extra = ' correct-answer';
+        if (d.result === 'wrong' && i === d.lastWrongIdx) extra = ' wrong-answer';
+        return `<div class="domino-piece${extra}" onclick="dominoAnswer(${i})">
+          <div class="dp-label">${p.isCorrect ? '✅' : '⋯'}</div>
+          <div class="dp-desc">${p.desc}</div>
+        </div>`;
+      }).join('')}
+    </div>
+  `;
+
+  I18N.updateDOM();
+}
+
+function dominoAnswer(idx) {
+  if (!dominoState || dominoState.result) return;
+  const d = dominoState;
+  const pick = d.hand[idx];
+
+  if (pick.isCorrect) {
+    // Correct!
+    d.score += 10;
+    d.playedCount++;
+    d.result = 'correct';
+    d.pieces.find(p => p.id === pick.id).played = true;
+
+    renderDomino();
+
+    // Show feedback and advance
+    setTimeout(() => {
+      // Pick next term
+      const unplayed = d.pieces.filter(p => !p.played);
+      if (unplayed.length === 0) {
+        showOverlay('🎉', I18N ? I18N.t('domino.win') : 'Dominó!', I18N ? I18N.t('domino.allMatched') : 'Você completou todos os pares!');
+        return;
+      }
+      const next = unplayed[Math.floor(Math.random()*unplayed.length)];
+      const options = shuffle(d.pieces.filter(p => p.id !== next.id));
+      const correctOpt = { ...next, isCorrect: true };
+      const wrongOpts = options.slice(0, 3).map(p => ({ ...p, isCorrect: false }));
+      d.current = { term: next.term, desc: next.desc, id: next.id };
+      d.hand = shuffle([correctOpt, ...wrongOpts]);
+      d.result = null;
+      d.lastWrongIdx = null;
+      renderDomino();
+    }, 800);
+  } else {
+    // Wrong
+    d.lastWrongIdx = idx;
+    d.result = 'wrong';
+    d.score = Math.max(0, d.score - 2);
+    renderDomino();
+    setTimeout(() => {
+      d.result = null;
+      d.lastWrongIdx = null;
+      renderDomino();
+    }, 600);
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+// UNO — Match by color or value
+// ════════════════════════════════════════════════════════════
+const UNO_COLORS = ['red','blue','green','yellow'];
+const UNO_EMOJI = { red:'🔴', blue:'🔵', green:'🟢', yellow:'🟡', wild:'🌈' };
+const UNO_CSS = { red:'var(--danger)', blue:'#2e86c1', green:'#27ae60', yellow:'#f1c40f' };
+
+function unoNewGame() {
+  const t = getThemeData();
+  if (!t || !t.terms || t.terms.length < 8) return;
+
+  // Build a proper UNO-like deck from historical terms
+  const deck = [];
+  const valuesPerColor = Math.floor(t.terms.length / 4);
+
+  t.terms.forEach((item, i) => {
+    const colorIdx = i % 4;
+    const color = UNO_COLORS[colorIdx];
+    const value = Math.floor(i / 4); // Each color gets ~6 cards with values 0-5
+    deck.push({
+      id: i,
+      color,
+      value,
+      term: item.term,
+      label: item.term.slice(0, 8),
+    });
+  });
+
+  // Add wild cards (extra terms if available, or special wilds)
+  const extraTerms = shuffle(t.terms.slice(0, 4)).map((item, i) => ({
+    id: 1000 + i,
+    color: 'wild',
+    value: -1,
+    term: item.term,
+    label: 'WILD',
+  }));
+  deck.push(...extraTerms);
+
+  // Shuffle and deal
+  const shuffled = shuffle(deck);
+  const handSize = Math.min(5, Math.floor(shuffled.length * 0.3));
+  const hand = shuffled.slice(0, handSize);
+  const drawPile = shuffled.slice(handSize);
+
+  // First card for discard pile (not wild)
+  let topIndex = drawPile.findIndex(c => c.color !== 'wild');
+  if (topIndex === -1) topIndex = 0;
+  const top = drawPile.splice(topIndex, 1)[0];
+
+  unoState = {
+    hand,
+    drawPile,
+    top,
+    turn: 'player',
+    gameOver: false,
+    showColorPicker: false,
+  };
+
+  document.getElementById('unoContent').innerHTML = '';
+  renderUno();
+}
+
+function renderUno() {
+  if (!unoState) return;
+  const content = document.getElementById('unoContent');
+  const u = unoState;
+
+  const playerCount = u.hand.length;
+  const pileCount = u.drawPile.length;
+
+  // Info bar
+  let infoHTML = `
+    <div class="uno-info">
+      <span class="ui-badge ${u.turn==='player'?'':'thinking'}">${u.turn==='player'?'🧑‍🎓 Sua vez':'🤖 Vez do computador'}</span>
+      <span class="ui-badge">🃏 ${playerCount} cartas</span>
+      <span class="ui-badge">📦 ${pileCount} no monte</span>
+    </div>
+  `;
+
+  // Discard pile
+  const isWild = u.top.color === 'wild';
+  infoHTML += `
+    <div class="uno-pile">
+      <div class="uno-card ${isWild?'wild':u.top.color}" style="cursor:default;border-color:${isWild?'rgba(255,255,255,.3)':UNO_CSS[u.top.color]||'rgba(255,255,255,.3)'}">
+        <div class="uc-emoji">${UNO_EMOJI[u.top.color]||'⭐'}</div>
+        <div class="uc-label">${u.top.term}</div>
+      </div>
+      <div style="color:var(--text3);font-size:.65rem;text-align:center">
+        <div>⏎</div>
+        <div style="font-family:monospace">${pileCount}</div>
+      </div>
+    </div>
+  `;
+
+  // Color picker
+  if (u.showColorPicker && u.turn === 'player') {
+    infoHTML += `
+      <div class="uno-color-picker">
+        ${UNO_COLORS.map(c => `
+          <div class="uno-color-btn" style="background:${UNO_CSS[c]}" onclick="unoPickColor('${c}')" title="${c}"></div>
+        `).join('')}
+      </div>
+      <div style="text-align:center;font-size:.7rem;color:var(--text3);margin-bottom:6px" data-i18n="uno.chooseColor">🎨 Escolha uma cor</div>
+    `;
+  }
+
+  // Player hand
+  const canPlay = (u.turn === 'player' && !u.showColorPicker);
+  infoHTML += `
+    <div class="uno-hand">
+      ${u.hand.map((card, i) => {
+        const isW = card.color === 'wild';
+        const playable = canPlay && (card.color === u.top.color || card.value === u.top.value || isW);
+        return `<div class="uno-card ${isW?'wild':card.color} ${playable?'playable':''}"
+                     onclick="${canPlay?`unoPlay(${i})`:''}"
+                     style="${playable?'border-color:var(--accent)':''}">
+          <div class="uc-emoji">${UNO_EMOJI[card.color]||'⭐'}</div>
+          <div class="uc-label">${card.label}</div>
+          <span class="uc-badge">${isW?'★':card.value}</span>
+        </div>`;
+      }).join('')}
+    </div>
+  `;
+
+  // Action buttons
+  infoHTML += `
+    <div class="uno-btn-row">
+      <button class="btn btn-secondary btn-sm" onclick="unoDraw()" ${u.turn!=='player'||u.gameOver?'disabled':''} data-i18n="uno.draw">📥 Comprar</button>
+      <button class="btn btn-secondary btn-sm" onclick="unoPass()" ${u.turn!=='player'||u.gameOver?'disabled':''} data-i18n="uno.pass">⏭️ Passar</button>
+    </div>
+  `;
+
+  content.innerHTML = infoHTML;
+  I18N.updateDOM();
+}
+
+function unoPlay(idx) {
+  if (!unoState || unoState.turn !== 'player' || unoState.gameOver) return;
+  const card = unoState.hand[idx];
+  if (!card) return;
+
+  // Check if playable
+  const top = unoState.top;
+  const isPlayable = card.color === top.color || card.value === top.value || card.color === 'wild';
+  if (!isPlayable) return;
+
+  // Remove from hand
+  unoState.hand.splice(idx, 1);
+
+  if (card.color === 'wild') {
+    // Show color picker
+    unoState.top = card;
+    unoState.showColorPicker = true;
+    renderUno();
+    return;
+  }
+
+  // Play the card
+  unoState.top = card;
+  finishPlayerTurn();
+}
+
+function unoPickColor(color) {
+  if (!unoState || !unoState.showColorPicker) return;
+  // Recolor the wild card visually
+  unoState.top = { ...unoState.top, displayColor: color };
+  unoState.showColorPicker = false;
+  finishPlayerTurn();
+}
+
+function finishPlayerTurn() {
+  if (!unoState) return;
+
+  // Check win
+  if (unoState.hand.length === 0) {
+    unoState.gameOver = true;
+    renderUno();
+    showOverlay('🎉', 'UNO! 🃏', I18N ? I18N.t('uno.winMessage') : 'Você descartou todas as cartas!');
+    return;
+  }
+
+  // Computer's turn
+  unoState.turn = 'computer';
+  renderUno();
+  setTimeout(unoComputerTurn, 800 + Math.random() * 500);
+}
+
+function unoDraw() {
+  if (!unoState || unoState.turn !== 'player' || unoState.gameOver) return;
+  if (unoState.drawPile.length === 0) return;
+
+  const card = unoState.drawPile.pop();
+  unoState.hand.push(card);
+  renderUno();
+}
+
+function unoPass() {
+  if (!unoState || unoState.turn !== 'player' || unoState.gameOver) return;
+  unoState.turn = 'computer';
+  renderUno();
+  setTimeout(unoComputerTurn, 500 + Math.random() * 500);
+}
+
+function unoComputerTurn() {
+  if (!unoState || unoState.gameOver) return;
+
+  const top = unoState.top;
+  const hand = unoState.hand;
+
+  // Find playable card (wild cards are less preferred)
+  const exactMatch = hand.filter(c => c.color === top.color && c.value === top.value);
+  const colorMatch = hand.filter(c => c.color === top.color && c.id !== top.id);
+  const valueMatch = hand.filter(c => c.value === top.value && c.color !== 'wild' && c.color !== top.color);
+  const wildCards = hand.filter(c => c.color === 'wild');
+
+  let cardToPlay = null;
+
+  // AI priority: exact match > color match > value match > wild
+  if (exactMatch.length > 0) {
+    cardToPlay = exactMatch[Math.floor(Math.random()*exactMatch.length)];
+  } else if (colorMatch.length > 0) {
+    cardToPlay = colorMatch[Math.floor(Math.random()*colorMatch.length)];
+  } else if (valueMatch.length > 0) {
+    cardToPlay = valueMatch[Math.floor(Math.random()*valueMatch.length)];
+  } else if (wildCards.length > 0) {
+    cardToPlay = wildCards[Math.floor(Math.random()*wildCards.length)];
+  }
+
+  if (cardToPlay) {
+    const idx = hand.indexOf(cardToPlay);
+    hand.splice(idx, 1);
+    unoState.top = cardToPlay;
+
+    if (hand.length === 0) {
+      unoState.gameOver = true;
+      renderUno();
+      showOverlay('😔', I18N ? I18N.t('uno.lose') : 'Computador venceu!', I18N ? I18N.t('uno.computerWinMessage') : 'O computador descartou todas as cartas primeiro.');
+      return;
+    }
+
+    // If computer played a wild, pick a random color
+    if (cardToPlay.color === 'wild') {
+      unoState.top = { ...cardToPlay, displayColor: UNO_COLORS[Math.floor(Math.random()*4)] };
+    }
+  } else {
+    // Draw a card
+    if (unoState.drawPile.length > 0) {
+      const drawn = unoState.drawPile.pop();
+      hand.push(drawn);
+    }
+  }
+
+  unoState.turn = 'player';
+  renderUno();
+}
+
+// ════════════════════════════════════════════════════════════
+// OVERLAY
+// ════════════════════════════════════════════════════════════
+function showOverlay(icon, title, text) {
+  document.getElementById('overlayIcon').textContent = icon;
+  document.getElementById('overlayTitle').textContent = title;
+  document.getElementById('overlayText').textContent = text;
+  document.getElementById('overlay').classList.add('open');
+}
+
+function closeOverlay() {
+  document.getElementById('overlay').classList.remove('open');
+  if (currentGame === 'bingo') bingoNewCard();
+  else if (currentGame === 'domino') dominoNewGame();
+  else if (currentGame === 'uno') unoNewGame();
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Pipeline Multi-IA — Arquitetura Inteligente para Professores</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📄</text></svg>">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<script src="https://cdn.jsdelivr.net/npm/react@18/umd/react.development.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7/babel.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,400&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+.tab-btn{transition:all .2s ease;cursor:pointer;border:none}
+.tab-btn:hover{opacity:.85;transform:translateY(-1px)}
+.step-card{transition:all .2s ease}
+.step-card:hover{transform:translateX(3px)}
+.comp-row:nth-child(even){background:rgba(255,255,255,.025)}
+@media(max-width:640px){.tab-btn br{display:none}}
+</style>
+</head>
+<body style="margin:0">
+<div id="root"></div>
+<script type="text/babel">
+const { useState } = React;
+
+const workflows = {
+  free: {
+    id: "free",
+    label: "Totalmente Gratuito",
+    icon: "\u25C8",
+    badge: "R$ 0 / m\u00eas",
+    tagline: "3 ferramentas, zero custo",
+    description: "Elimina ChatGPT e Perplexity Pro. Claude faz o trabalho de an\u00e1lise E formata\u00e7\u00e3o final.",
+    accentColor: "#4ade80",
+    steps: [
+      { num: "01", tool: "Perplexity", role: "Busca & Valida\u00e7\u00e3o", tier: "Free \u2014 5 buscas/dia", action: "Buscar fontes prim\u00e1rias com filtros de dom\u00ednio e data", output: "Links + resumos de fontes confi\u00e1veis", tip: 'Use buscas cir\u00fargicas para n\u00e3o desperdi\u00e7ar o limite. Ex.: "IA educa\u00e7\u00e3o 2024 site:gov.br"', dot: "#818cf8" },
+      { num: "02", tool: "NotebookLM", role: "Organiza\u00e7\u00e3o Documental", tier: "Gratuito (Google)", action: "Upload dos PDFs e links. Perguntas de s\u00edntese tem\u00e1tica", output: "Resumos por tema + conex\u00f5es entre documentos", tip: "Crie um notebook por projeto: um para BNCC, um para OMREdu, um por bimestre", dot: "#fbbf24" },
+      { num: "03", tool: "Claude.ai", role: "An\u00e1lise Cr\u00edtica + Entreg\u00e1vel", tier: "Free ou Pro (j\u00e1 usa)", action: "Raciocinar sobre o material + gerar produto final", output: "Documento, c\u00f3digo ou an\u00e1lise pronto para uso", tip: "Claude substitui as etapas 3, 4 e 5 do pipeline original \u2014 \u00e9 mais r\u00e1pido e voc\u00ea j\u00e1 paga", dot: "#f472b6" }
+    ],
+    saving: "Elimina: ChatGPT US$20/m\u00eas + Perplexity Pro US$20/m\u00eas",
+    highlight: "Pipeline de 5 etapas \u2192 3 etapas"
+  },
+  hybrid: {
+    id: "hybrid",
+    label: "H\u00edbrido Claude-Centric",
+    icon: "\u25C9",
+    badge: "S\u00f3 Claude Pro",
+    tagline: "Claude no centro de tudo",
+    description: "Perfeito para quem j\u00e1 tem Claude Pro. Claude como hub \u00fanico de an\u00e1lise e gera\u00e7\u00e3o.",
+    accentColor: "#fb923c",
+    steps: [
+      { num: "01", tool: "Perplexity Free", role: "Radar de Fontes", tier: "Gratuito", action: "Varredura r\u00e1pida de fontes atualizadas sobre o tema", output: "Lista de URLs e trechos-chave", tip: "Combine com Google Scholar para fontes acad\u00eamicas sem custo extra", dot: "#818cf8" },
+      { num: "02", tool: "NotebookLM", role: "Reposit\u00f3rio Escolar", tier: "Gratuito", action: "Base permanente: BNCC, CRMG, materiais do OMREdu, gabaritos", output: "S\u00ednteses prontas para colar no Claude", tip: "Notebooks permanentes por disciplina economizam tokens no Claude", dot: "#34d399" },
+      { num: "03", tool: "Claude Projects", role: "Hub de Produ\u00e7\u00e3o", tier: "Pro (j\u00e1 incluso)", action: "Contexto persistente por projeto + gera\u00e7\u00e3o de todos os artefatos", output: "HTML, React, .docx, planos, provas, scripts Python", tip: "Um Project por turma ou tema: o contexto fica salvo entre conversas", dot: "#f472b6" }
+    ],
+    saving: "Aproveita ao m\u00e1ximo o que voc\u00ea j\u00e1 paga no Claude Pro",
+    highlight: "Projects = mem\u00f3ria persistente por projeto"
+  },
+  offline: {
+    id: "offline",
+    label: "Offline / Dados Sens\u00edveis",
+    icon: "\u25D0",
+    badge: "Zero depend\u00eancia",
+    tagline: "Funciona sem internet",
+    description: "Para quando a rede da escola cair \u2014 ou com dados de alunos que n\u00e3o devem sair do dispositivo.",
+    accentColor: "#a78bfa",
+    steps: [
+      { num: "01", tool: "Zotero", role: "Biblioteca Local", tier: "Gratuito + offline", action: "Organizar PDFs salvos localmente com notas e tags", output: "Biblioteca pessoal \u2014 sincroniza quando houver internet", tip: "Substitui o NotebookLM offline. Plugin Zotero + PDF permite anota\u00e7\u00f5es direto no arquivo", dot: "#fbbf24" },
+      { num: "02", tool: "Ollama", role: "LLM Local", tier: "Open-source, gr\u00e1tis", action: "Rodar Llama 3.1 8B ou Mistral 7B diretamente no PC", output: "Respostas de qualidade sem internet, sem limite de uso", tip: "Llama 3.1 8B roda em 8GB RAM. Mistral 7B funciona em 6GB. Instala em 2 minutos", dot: "#818cf8" },
+      { num: "03", tool: "Open WebUI", role: "Interface de Chat Local", tier: "Open-source, gr\u00e1tis", action: "Interface web local tipo ChatGPT para conversar com o Ollama", output: "Experi\u00eancia completa, 100% offline, dados dos alunos protegidos", tip: "Instala com Docker: docker run -d -p 3000:80 ghcr.io/open-webui/open-webui", dot: "#f97316" }
+    ],
+    saving: "Ideal para dados de alunos: LGPD cumprida, zero vazamento",
+    highlight: "Funciona sem internet, sem conta, sem custo"
+  }
+};
+
+const comparisonData = [
+  { feature: "Custo mensal", free: "R$ 0", hybrid: "S\u00f3 Claude Pro", offline: "R$ 0" },
+  { feature: "Precisa de internet", free: "Sim", hybrid: "Sim", offline: "N\u00e3o" },
+  { feature: "Dados de alunos seguros", free: "\u26A0 Cuidado", hybrid: "\u26A0 Cuidado", offline: "\u2713 Total" },
+  { feature: "Qualidade de an\u00e1lise", free: "Alta", hybrid: "Muito alta", offline: "Boa (local)" },
+  { feature: "Complexidade de setup", free: "Nenhuma", hybrid: "Nenhuma", offline: "Baixa" },
+  { feature: "Limite de uso", free: "Perplexity: 5/dia", hybrid: "Ilimitado", offline: "Ilimitado" },
+];
+
+function App() {
+  const [active, setActive] = useState("free");
+  const [expandedTip, setExpandedTip] = useState(null);
+  const wf = workflows[active];
+
+  return React.createElement("div", { style: { fontFamily: "'IBM Plex Mono', 'Courier New', monospace", background: "#0a0a0f", minHeight: "100vh", color: "#e2e8f0" } },
+    React.createElement("div", { style: { background: "linear-gradient(180deg, #0f0e17 0%, #0a0a0f 100%)", borderBottom: "1px solid #1e293b", padding: "36px 28px 28px" } },
+      React.createElement("div", { style: { maxWidth: 740, margin: "0 auto" } },
+        React.createElement("div", { style: { fontSize: 10, color: "#475569", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 10 } }, "Pipeline Multi-IA \u00B7 Escola P\u00fablica \u00B7 Low-Cost"),
+        React.createElement("h1", { style: { fontFamily: "'Fraunces', Georgia, serif", fontSize: "clamp(24px, 5vw, 38px)", fontWeight: 700, lineHeight: 1.1, margin: 0, color: "#f8fafc", letterSpacing: "-0.02em" } },
+          "Arquitetura Inteligente",
+          React.createElement("br"),
+          React.createElement("span", { style: { color: "#64748b", fontStyle: "italic", fontWeight: 300 } }, "sem gastar o que n\u00e3o tem")
+        ),
+        React.createElement("p", { style: { marginTop: 14, fontSize: 12, color: "#64748b", lineHeight: 1.6, maxWidth: 500 } },
+          "Vers\u00e3o refinada do pipeline original para professor de escola p\u00fablica. Tr\u00eas cen\u00e1rios, cada um para um contexto diferente."
+        )
+      )
+    ),
+    React.createElement("div", { style: { maxWidth: 740, margin: "0 auto", padding: "28px 20px" } },
+      // Tabs
+      React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8, marginBottom: 28 } },
+        Object.values(workflows).map(w =>
+          React.createElement("button", { key: w.id, onClick: () => { setActive(w.id); setExpandedTip(null); },
+            style: {
+              background: active === w.id ? "linear-gradient(135deg, " + w.accentColor + "18, " + w.accentColor + "05)" : "rgba(255,255,255,0.03)",
+              border: active === w.id ? "1px solid " + w.accentColor + "50" : "1px solid #1e293b",
+              borderRadius: 8, padding: "14px 12px", textAlign: "left", cursor: "pointer", transition: "all 0.2s ease"
+            } },
+            React.createElement("div", { style: { fontSize: 18, marginBottom: 5, color: active === w.id ? w.accentColor : "#475569" } }, w.icon),
+            React.createElement("div", { style: { fontFamily: "'Fraunces', serif", fontSize: 12, fontWeight: 600, color: active === w.id ? "#f8fafc" : "#94a3b8", lineHeight: 1.3, marginBottom: 4 } }, w.label),
+            React.createElement("div", { style: { fontSize: 10, color: active === w.id ? w.accentColor : "#475569", fontWeight: 600, letterSpacing: "0.05em" } }, w.badge)
+          )
+        )
+      ),
+      // Workflow detail card
+      React.createElement("div", { style: { background: "linear-gradient(135deg, " + wf.accentColor + "08, transparent 60%)", border: "1px solid " + wf.accentColor + "25", borderRadius: 12, padding: "22px", marginBottom: 24 } },
+        React.createElement("div", { style: { marginBottom: 18 } },
+          React.createElement("div", { style: { fontSize: 10, color: wf.accentColor, letterSpacing: "0.15em", textTransform: "uppercase", fontWeight: 600, marginBottom: 5 } }, wf.tagline),
+          React.createElement("p", { style: { fontSize: 12, color: "#94a3b8", lineHeight: 1.6, margin: 0 } }, wf.description)
+        ),
+        // Steps
+        React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 2 } },
+          wf.steps.map((step, i) =>
+            React.createElement("div", { key: i },
+              i > 0 && React.createElement("div", { style: { padding: "3px 0 3px 26px" } },
+                React.createElement("div", { style: { width: 1, height: 16, background: "#1e293b", marginLeft: 7 } })
+              ),
+              React.createElement("div", { style: { background: "#0f1117", border: "1px solid #1e293b", borderRadius: 8, padding: "14px 16px", display: "grid", gridTemplateColumns: "auto 1fr auto", gap: "0 14px", alignItems: "start", transition: "all 0.2s ease" } },
+                React.createElement("div", { style: { fontFamily: "'Fraunces', serif", fontSize: 26, fontWeight: 700, color: "#1e293b", lineHeight: 1, userSelect: "none", paddingTop: 2 } }, step.num),
+                React.createElement("div", null,
+                  React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 7, marginBottom: 3, flexWrap: "wrap" } },
+                    React.createElement("div", { style: { width: 7, height: 7, borderRadius: "50%", background: step.dot, flexShrink: 0 } }),
+                    React.createElement("span", { style: { fontFamily: "'Fraunces', serif", fontSize: 15, fontWeight: 600, color: "#f8fafc" } }, step.tool),
+                    React.createElement("span", { style: { fontSize: 9, color: "#475569", background: "#1e293b", padding: "2px 6px", borderRadius: 3, letterSpacing: "0.05em" } }, step.role)
+                  ),
+                  React.createElement("div", { style: { fontSize: 10, color: wf.accentColor, marginBottom: 7, letterSpacing: "0.05em" } }, step.tier),
+                  React.createElement("div", { style: { fontSize: 11, color: "#94a3b8", lineHeight: 1.5, marginBottom: 5 } },
+                    React.createElement("span", { style: { color: "#64748b" } }, "\u25B8 "),
+                    step.action
+                  ),
+                  React.createElement("div", { style: { fontSize: 10, color: "#64748b", lineHeight: 1.4 } },
+                    React.createElement("span", { style: { color: "#334155" } }, "\u2192 "),
+                    step.output
+                  )
+                ),
+                React.createElement("button", { onClick: () => setExpandedTip(expandedTip === active + "-" + i ? null : active + "-" + i),
+                  style: { background: "none", border: "1px solid #1e293b", borderRadius: 4, color: expandedTip === active + "-" + i ? wf.accentColor : "#475569", fontSize: 9, padding: "4px 7px", cursor: "pointer", letterSpacing: "0.05em", whiteSpace: "nowrap" } },
+                  expandedTip === active + "-" + i ? "fechar" : "dica \u2193"
+                )
+              ),
+              expandedTip === active + "-" + i && React.createElement("div", { style: { background: wf.accentColor + "0d", border: "1px solid " + wf.accentColor + "20", borderTop: "none", borderRadius: "0 0 8px 8px", padding: "11px 16px 11px 58px", fontSize: 11, color: "#94a3b8", lineHeight: 1.6 } },
+                React.createElement("span", { style: { color: wf.accentColor, marginRight: 6 } }, "\uD83D\uDCA1"),
+                step.tip
+              )
+            )
+          )
+        ),
+        // Economy + Highlight
+        React.createElement("div", { style: { marginTop: 18, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 } },
+          React.createElement("div", { style: { background: "#0a0a0f", border: "1px solid #1e293b", borderRadius: 6, padding: "10px 13px", fontSize: 11, color: "#64748b" } },
+            React.createElement("div", { style: { color: wf.accentColor, fontSize: 9, marginBottom: 3, letterSpacing: "0.1em" } }, "ECONOMIA"),
+            wf.saving
+          ),
+          React.createElement("div", { style: { background: "#0a0a0f", border: "1px solid " + wf.accentColor + "30", borderRadius: 6, padding: "10px 13px", fontSize: 11, color: wf.accentColor } },
+            React.createElement("div", { style: { color: "#64748b", fontSize: 9, marginBottom: 3, letterSpacing: "0.1em" } }, "VANTAGEM CHAVE"),
+            wf.highlight
+          )
+        )
+      ),
+      // Comparison table
+      React.createElement("div", null,
+        React.createElement("div", { style: { fontSize: 10, color: "#475569", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 10 } }, "Comparativo r\u00e1pido"),
+        React.createElement("div", { style: { border: "1px solid #1e293b", borderRadius: 8, overflow: "hidden" } },
+          React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1.6fr 1fr 1fr 1fr", background: "#0f1117", borderBottom: "1px solid #1e293b" } },
+            ["", "Gratuito", "H\u00edbrido", "Offline"].map((h, i) =>
+              React.createElement("div", { key: i, style: { padding: "10px 12px", fontSize: 10, fontWeight: 600, color: i === 0 ? "#334155" : ["#4ade80","#fb923c","#a78bfa"][i-1], letterSpacing: "0.05em", textAlign: i===0?"left":"center" } }, h)
+            )
+          ),
+          comparisonData.map((row, i) =>
+            React.createElement("div", { key: i, style: { display: "grid", gridTemplateColumns: "1.6fr 1fr 1fr 1fr", borderBottom: i < comparisonData.length-1 ? "1px solid #0f1117" : "none", background: i % 2 === 0 ? "rgba(255,255,255,0.025)" : "transparent" } },
+              React.createElement("div", { style: { padding: "9px 12px", fontSize: 11, color: "#64748b" } }, row.feature),
+              [row.free, row.hybrid, row.offline].map((val, j) =>
+                React.createElement("div", { key: j, style: { padding: "9px 12px", fontSize: 11, color: val.startsWith("\u2713")?"#4ade80":val.startsWith("\u26A0")?"#fbbf24":"#94a3b8", textAlign: "center" } }, val)
+              )
+            )
+          )
+        )
+      ),
+      // Recommendation
+      React.createElement("div", { style: { marginTop: 20, padding: "13px 15px", background: "rgba(255,255,255,0.02)", borderRadius: 6, borderLeft: "2px solid #1e293b", fontSize: 11, color: "#475569", lineHeight: 1.6 } },
+        React.createElement("span", { style: { color: "#64748b" } }, "Recomenda\u00e7\u00e3o para seu contexto: "),
+        "Use ", React.createElement("strong", { style: { color: "#f8fafc" } }, "Gratuito"), " no dia a dia, ",
+        React.createElement("strong", { style: { color: "#f8fafc" } }, " H\u00edbrido"), " nos projetos maiores (OMREdu, Origins), ",
+        "e ", React.createElement("strong", { style: { color: "#f8fafc" } }, "Offline"), " quando precisar processar dados de alunos."
+      )
+    )
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(React.createElement(App));
+</script>
+</body>
+</html>

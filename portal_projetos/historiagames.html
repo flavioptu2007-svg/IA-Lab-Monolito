@@ -1,0 +1,1363 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>🎮 HistóriaGames — Hub Educacional</title>
+<meta name="description" content="Hub educacional interativo com jogos de História para sala de aula">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   HistóriaGames Hub — Design System
+   ═══════════════════════════════════════════════════════════════ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#06080f;--bg2:#0c1020;
+  --surface:#0f1328;--surface2:#151a32;--surface3:#1a2040;
+  --border:#1e2545;--border2:#283060;--border3:#3540a0;
+  --accent:#6366f1;--accent2:#818cf8;--accent3:#a5b4fc;
+  --green:#22c55e;--green2:#4ade80;
+  --cyan:#06b6d4;--cyan2:#22d3ee;
+  --amber:#f59e0b;--amber2:#fbbf24;
+  --rose:#f43f5e;--rose2:#fb7185;
+  --violet:#8b5cf6;--violet2:#a78bfa;
+  --text:#e8ecf4;--text2:#94a3c0;--text3:#5b6a8a;--text4:#3a4566;
+  --radius:16px;--radius-sm:10px;--radius-xs:6px;
+  --shadow:0 8px 32px rgba(0,0,0,.4);
+  --shadow-lg:0 16px 64px rgba(0,0,0,.5);
+  --transition:all .3s cubic-bezier(.4,0,.2,1);
+}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Inter',system-ui,-apple-system,sans-serif;
+  background:var(--bg);color:var(--text);
+  min-height:100vh;overflow-x:hidden;
+  line-height:1.6;
+}
+
+/* ── Animated Background ── */
+body::before{
+  content:'';position:fixed;inset:0;z-index:0;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -20%,rgba(99,102,241,.08),transparent),
+    radial-gradient(ellipse 60% 40% at 80% 80%,rgba(6,182,212,.05),transparent),
+    radial-gradient(ellipse 50% 30% at 10% 60%,rgba(139,92,246,.04),transparent);
+  pointer-events:none;
+}
+body::after{
+  content:'';position:fixed;inset:0;z-index:0;
+  background-image:
+    linear-gradient(rgba(99,102,241,.015) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(99,102,241,.015) 1px,transparent 1px);
+  background-size:60px 60px;pointer-events:none;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--accent)}
+
+/* ── Header ── */
+.header{
+  position:sticky;top:0;z-index:100;
+  background:rgba(6,8,15,.85);backdrop-filter:blur(20px) saturate(180%);
+  border-bottom:1px solid var(--border);
+  padding:0 2rem;height:64px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.logo-icon{font-size:1.6rem;transition:transform .3s}
+.logo:hover .logo-icon{transform:rotate(10deg) scale(1.1)}
+.logo-text{
+  font-weight:800;font-size:1.15rem;letter-spacing:-.03em;
+  background:linear-gradient(135deg,var(--accent),var(--cyan),var(--violet));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+.header-nav{display:flex;align-items:center;gap:8px}
+.nav-link{
+  padding:.5rem 1rem;border-radius:var(--radius-xs);
+  font-size:.8rem;font-weight:600;color:var(--text2);
+  cursor:pointer;transition:var(--transition);text-decoration:none;
+  border:1px solid transparent;
+}
+.nav-link:hover{color:var(--text);background:var(--surface)}
+.nav-link.active{color:var(--accent);background:rgba(99,102,241,.1);border-color:rgba(99,102,241,.2)}
+.header-actions{display:flex;align-items:center;gap:8px}
+.icon-btn{
+  width:36px;height:36px;border-radius:var(--radius-xs);border:1px solid var(--border);
+  background:var(--surface);color:var(--text2);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1rem;transition:var(--transition);
+}
+.icon-btn:hover{border-color:var(--accent);color:var(--accent);transform:translateY(-1px)}
+
+/* ── Main Layout ── */
+.main{position:relative;z-index:1;max-width:1280px;margin:0 auto;padding:0 2rem 4rem}
+
+/* ── Hero ── */
+.hero{
+  padding:3rem 0 2rem;text-align:center;
+  position:relative;
+}
+.hero-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:.4rem 1rem;border-radius:99px;
+  background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.2);
+  font-size:.72rem;font-weight:600;color:var(--accent2);
+  margin-bottom:1rem;animation:fadeInDown .6s ease;
+}
+.hero-badge .pulse{
+  width:6px;height:6px;border-radius:50%;background:var(--green);
+  animation:pulse 2s ease infinite;
+}
+.hero h1{
+  font-size:clamp(2rem,5vw,3.2rem);font-weight:900;
+  letter-spacing:-.04em;line-height:1.1;
+  margin-bottom:.75rem;animation:fadeInUp .6s ease;
+}
+.hero h1 .gradient{
+  background:linear-gradient(135deg,var(--accent),var(--cyan),var(--green2),var(--amber));
+  background-size:300% 300%;animation:gradientShift 6s ease infinite;
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.hero p{
+  font-size:1.05rem;color:var(--text2);max-width:600px;margin:0 auto 1.5rem;
+  animation:fadeInUp .6s ease .1s both;
+}
+.hero-stats{
+  display:flex;justify-content:center;gap:2rem;flex-wrap:wrap;
+  animation:fadeInUp .6s ease .2s both;
+}
+.hero-stat{text-align:center}
+.hero-stat .num{font-size:1.8rem;font-weight:800;color:var(--accent2)}
+.hero-stat .label{font-size:.7rem;color:var(--text3);text-transform:uppercase;letter-spacing:.06em}
+
+/* ── Search Bar ── */
+.search-section{
+  margin:1.5rem 0 2rem;animation:fadeInUp .6s ease .3s both;
+}
+.search-bar{
+  display:flex;gap:8px;align-items:center;
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);padding:6px;
+  transition:var(--transition);max-width:700px;margin:0 auto;
+}
+.search-bar:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px rgba(99,102,241,.1)}
+.search-bar .icon{font-size:1.2rem;color:var(--text3);padding:0 8px;flex-shrink:0}
+.search-bar input{
+  flex:1;border:none;background:transparent;color:var(--text);
+  font-size:.9rem;outline:none;padding:.6rem 0;
+}
+.search-bar input::placeholder{color:var(--text3)}
+.search-bar .btn-search{
+  padding:.55rem 1.2rem;border:none;border-radius:var(--radius-sm);
+  background:var(--accent);color:#fff;font-size:.8rem;font-weight:600;
+  cursor:pointer;transition:var(--transition);white-space:nowrap;
+}
+.search-bar .btn-search:hover{background:var(--accent2);transform:translateY(-1px)}
+
+/* ── Filter Bar ── */
+.filters{
+  display:flex;justify-content:center;gap:8px;flex-wrap:wrap;
+  margin-bottom:2rem;
+}
+.filter-chip{
+  padding:.45rem 1rem;border-radius:99px;
+  background:var(--surface);border:1px solid var(--border);
+  font-size:.75rem;font-weight:600;color:var(--text2);
+  cursor:pointer;transition:var(--transition);
+  display:flex;align-items:center;gap:5px;
+}
+.filter-chip:hover{border-color:var(--border2);color:var(--text);transform:translateY(-1px)}
+.filter-chip.active{background:rgba(99,102,241,.12);border-color:var(--accent);color:var(--accent2)}
+.filter-chip .count{
+  background:var(--surface2);padding:1px 6px;border-radius:99px;
+  font-size:.65rem;color:var(--text3);
+}
+.filter-chip.active .count{background:rgba(99,102,241,.2);color:var(--accent)}
+
+/* ── Section Headers ── */
+.section-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:1.25rem;
+}
+.section-title{
+  font-size:1.1rem;font-weight:700;display:flex;align-items:center;gap:8px;
+}
+.section-count{font-size:.75rem;color:var(--text3);font-weight:500}
+
+/* ── Game Cards Grid ── */
+.games-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(320px,1fr));
+  gap:16px;margin-bottom:2.5rem;
+}
+.game-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);overflow:hidden;
+  transition:var(--transition);cursor:pointer;
+  position:relative;
+}
+.game-card:hover{
+  border-color:var(--border2);transform:translateY(-4px);
+  box-shadow:var(--shadow);
+}
+.game-card:hover .card-banner{transform:scale(1.03)}
+.game-card:active{transform:translateY(-2px)}
+.card-banner{
+  height:140px;position:relative;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;
+  transition:transform .4s cubic-bezier(.4,0,.2,1);
+}
+.card-banner .banner-emoji{font-size:3.5rem;filter:drop-shadow(0 4px 12px rgba(0,0,0,.3))}
+.card-banner .banner-overlay{
+  position:absolute;inset:0;
+  background:linear-gradient(180deg,transparent 40%,rgba(0,0,0,.6) 100%);
+}
+.card-type-badge{
+  position:absolute;top:10px;right:10px;
+  padding:3px 10px;border-radius:99px;
+  font-size:.6rem;font-weight:700;text-transform:uppercase;
+  letter-spacing:.05em;backdrop-filter:blur(8px);
+}
+.card-type-badge.digital{background:rgba(34,197,94,.2);color:var(--green2);border:1px solid rgba(34,197,94,.3)}
+.card-type-badge.print{background:rgba(245,158,11,.2);color:var(--amber2);border:1px solid rgba(245,158,11,.3)}
+.card-type-badge.hub{background:rgba(99,102,241,.2);color:var(--accent2);border:1px solid rgba(99,102,241,.3)}
+.card-type-badge.quiz{background:rgba(139,92,246,.2);color:var(--violet2);border:1px solid rgba(139,92,246,.3)}
+.card-type-badge.rpg{background:rgba(244,63,94,.2);color:var(--rose2);border:1px solid rgba(244,63,94,.3)}
+.card-body{padding:1rem 1.2rem}
+.card-title{font-weight:700;font-size:.95rem;margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.card-subtitle{font-size:.75rem;color:var(--text3);margin-bottom:8px}
+.card-desc{font-size:.78rem;color:var(--text2);line-height:1.5;margin-bottom:10px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.card-meta{display:flex;gap:8px;flex-wrap:wrap}
+.card-tag{
+  padding:2px 8px;border-radius:99px;
+  background:var(--surface2);border:1px solid var(--border);
+  font-size:.65rem;color:var(--text3);font-weight:500;
+}
+.card-tag.age{border-color:rgba(34,197,94,.2);color:var(--green2)}
+.card-tag.period{border-color:rgba(6,182,212,.2);color:var(--cyan2)}
+.card-tag.bncc{border-color:rgba(139,92,246,.2);color:var(--violet2)}
+.card-actions{
+  display:flex;gap:6px;padding:.75rem 1.2rem;
+  border-top:1px solid var(--border);
+}
+.card-btn{
+  flex:1;padding:.5rem;border:none;border-radius:var(--radius-xs);
+  font-size:.72rem;font-weight:600;cursor:pointer;transition:var(--transition);
+  display:flex;align-items:center;justify-content:center;gap:4px;
+}
+.card-btn-play{background:var(--accent);color:#fff}
+.card-btn-play:hover{background:var(--accent2);transform:translateY(-1px)}
+.card-btn-print{background:var(--surface2);color:var(--text2);border:1px solid var(--border)}
+.card-btn-print:hover{border-color:var(--amber);color:var(--amber)}
+
+/* ── Print Preview Modal ── */
+.modal-overlay{
+  display:none;position:fixed;inset:0;z-index:200;
+  background:rgba(0,0,0,.7);backdrop-filter:blur(8px);
+  align-items:center;justify-content:center;
+}
+.modal-overlay.open{display:flex}
+.modal{
+  background:var(--surface);border:1px solid var(--border2);
+  border-radius:var(--radius);width:90%;max-width:800px;
+  max-height:85vh;overflow:auto;
+  animation:modalIn .3s ease;
+}
+.modal-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:1.25rem 1.5rem;border-bottom:1px solid var(--border);
+  position:sticky;top:0;background:var(--surface);z-index:1;
+}
+.modal-title{font-weight:700;font-size:1rem;display:flex;align-items:center;gap:8px}
+.modal-close{
+  width:32px;height:32px;border-radius:var(--radius-xs);border:1px solid var(--border);
+  background:transparent;color:var(--text2);cursor:pointer;font-size:1.1rem;
+  display:flex;align-items:center;justify-content:center;transition:var(--transition);
+}
+.modal-close:hover{border-color:var(--rose);color:var(--rose)}
+.modal-body{padding:1.5rem}
+.modal-footer{
+  display:flex;gap:8px;justify-content:flex-end;
+  padding:1rem 1.5rem;border-top:1px solid var(--border);
+}
+.modal-btn{
+  padding:.6rem 1.5rem;border-radius:var(--radius-xs);
+  font-size:.8rem;font-weight:600;cursor:pointer;transition:var(--transition);
+  border:1px solid var(--border);
+}
+.modal-btn-primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.modal-btn-primary:hover{background:var(--accent2)}
+.modal-btn-secondary{background:var(--surface2);color:var(--text2)}
+.modal-btn-secondary:hover{border-color:var(--border2);color:var(--text)}
+
+/* ── Print Layout ── */
+.print-preview{
+  background:#fff;color:#1a1a1a;padding:2rem;border-radius:var(--radius-sm);
+}
+.print-preview h2{font-size:1.3rem;margin-bottom:.5rem;color:#1a1a1a}
+.print-preview .subtitle{color:#666;font-size:.85rem;margin-bottom:1rem}
+.print-preview .section{margin-bottom:1.2rem}
+.print-preview h3{font-size:.9rem;font-weight:700;color:#333;margin-bottom:.5rem;border-bottom:2px solid #e5e7eb;padding-bottom:.3rem}
+.print-preview ul{padding-left:1.5rem}
+.print-preview li{font-size:.85rem;color:#444;margin-bottom:.3rem}
+.print-preview .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:1rem}
+.print-preview .info-box{background:#f8f9fa;padding:.75rem;border-radius:6px;border:1px solid #e5e7eb}
+.print-preview .info-box .label{font-size:.7rem;text-transform:uppercase;color:#999;letter-spacing:.05em}
+.print-preview .info-box .value{font-size:.85rem;font-weight:600;color:#333}
+
+/* ── Game Interface ── */
+.game-panel{
+  display:none;position:fixed;inset:0;z-index:150;
+  background:var(--bg);
+}
+.game-panel.open{display:flex;flex-direction:column}
+.game-topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:.75rem 1.5rem;background:rgba(15,19,40,.95);
+  border-bottom:1px solid var(--border);backdrop-filter:blur(12px);
+}
+.game-topbar .back-btn{
+  display:flex;align-items:center;gap:6px;
+  padding:.4rem .8rem;border-radius:var(--radius-xs);
+  border:1px solid var(--border);background:transparent;
+  color:var(--text2);font-size:.78rem;font-weight:600;
+  cursor:pointer;transition:var(--transition);
+}
+.game-topbar .back-btn:hover{border-color:var(--accent);color:var(--accent)}
+.game-topbar .game-name{font-weight:700;font-size:.9rem}
+.game-topbar .game-actions{display:flex;gap:6px}
+.game-iframe{
+  flex:1;width:100%;border:none;background:var(--bg);
+}
+
+/* ── Featured Section ── */
+.featured{
+  margin-bottom:2.5rem;
+}
+.featured-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;
+}
+.featured-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius-sm);padding:1rem;
+  cursor:pointer;transition:var(--transition);
+  display:flex;align-items:center;gap:12px;
+}
+.featured-card:hover{border-color:var(--accent);transform:translateX(4px)}
+.featured-card .fc-icon{font-size:2rem;flex-shrink:0}
+.featured-card .fc-info h4{font-size:.85rem;font-weight:700;margin-bottom:2px}
+.featured-card .fc-info p{font-size:.72rem;color:var(--text3)}
+
+/* ── Footer ── */
+.footer{
+  text-align:center;padding:2rem;margin-top:2rem;
+  border-top:1px solid var(--border);color:var(--text3);font-size:.75rem;
+}
+.footer a{color:var(--accent2);text-decoration:none}
+.footer a:hover{text-decoration:underline}
+
+/* ── Animations ── */
+@keyframes fadeInUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeInDown{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes modalIn{from{opacity:0;transform:scale(.95) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
+@keyframes gradientShift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes cardIn{from{opacity:0;transform:translateY(16px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+
+.card-animate{animation:cardIn .4s ease both}
+
+/* ── Empty State ── */
+.empty-state{
+  text-align:center;padding:3rem 1rem;color:var(--text3);
+}
+.empty-state .empty-icon{font-size:3rem;margin-bottom:.75rem;opacity:.5}
+.empty-state p{font-size:.9rem}
+
+/* ── Toast ── */
+.toast{
+  position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(100px);
+  padding:.7rem 1.5rem;border-radius:var(--radius-sm);
+  background:var(--surface2);border:1px solid var(--border2);
+  color:var(--text);font-size:.8rem;font-weight:600;
+  box-shadow:var(--shadow-lg);z-index:300;
+  transition:transform .4s cubic-bezier(.4,0,.2,1);
+  display:flex;align-items:center;gap:8px;
+}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast.success{border-color:var(--green)}
+.toast.info{border-color:var(--cyan)}
+
+/* ── Responsive ── */
+@media(max-width:768px){
+  .header{padding:0 1rem;height:56px}
+  .main{padding:0 1rem 3rem}
+  .hero h1{font-size:1.8rem}
+  .hero-stats{gap:1.2rem}
+  .games-grid{grid-template-columns:1fr}
+  .featured-grid{grid-template-columns:1fr}
+  .search-bar{flex-direction:column;padding:8px}
+  .search-bar .btn-search{width:100%}
+  .nav-link{display:none}
+  .card-banner{height:110px}
+}
+@media(max-width:480px){
+  .hero-stats .num{font-size:1.4rem}
+  .card-banner .banner-emoji{font-size:2.5rem}
+}
+
+/* ── Print Styles ── */
+@media print{
+  body{background:#fff!important;color:#000!important}
+  body::before,body::after{display:none!important}
+  .header,.hero,.search-section,.filters,.footer,.game-panel,.modal-overlay,.toast{display:none!important}
+  .games-grid{grid-template-columns:1fr 1fr}
+  .game-card{break-inside:avoid;border:1px solid #ddd}
+  .card-banner{height:80px}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ Header ═══ -->
+<header class="header">
+  <a class="logo" href="#" onclick="goHome();return false">
+    <span class="logo-icon">🎮</span>
+    <span class="logo-text">HistóriaGames</span>
+  </a>
+  <nav class="header-nav">
+    <a class="nav-link active" href="#library" onclick="scrollToSection('library')">📚 Biblioteca</a>
+    <a class="nav-link" href="#featured" onclick="scrollToSection('featured')">⭐ Destaques</a>
+    <a class="nav-link" href="#about" onclick="scrollToSection('about')">ℹ️ Sobre</a>
+  </nav>
+  <div class="header-actions">
+    <button class="icon-btn" onclick="toggleTheme()" title="Alternar tema" id="themeBtn">🌙</button>
+    <button class="icon-btn" onclick="printLibrary()" title="Imprimir catálogo">🖨️</button>
+  </div>
+</header>
+
+<!-- ═══ Main Content ═══ -->
+<main class="main">
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-badge"><span class="pulse"></span> Plataforma Educacional • BNCC Alinhada</div>
+    <h1>Jogos de <span class="gradient">História</span><br>para a Sala de Aula</h1>
+    <p>Catálogo completo de jogos educacionais interativos — busque, filtre, imprima e jogue. Alinhado com a Base Nacional Comum Curricular.</p>
+    <div class="hero-stats">
+      <div class="hero-stat"><div class="num" id="totalGames">16</div><div class="label">Jogos</div></div>
+      <div class="hero-stat"><div class="num">5</div><div class="label">Períodos</div></div>
+      <div class="hero-stat"><div class="num">4</div><div class="label">Tipos</div></div>
+      <div class="hero-stat"><div class="num">6º–EM</div><div class="label">Séries</div></div>
+    </div>
+  </section>
+
+  <!-- Search -->
+  <section class="search-section">
+    <div class="search-bar">
+      <span class="icon">🔍</span>
+      <input type="text" id="searchInput" placeholder="Buscar jogo por nome, período ou tema..." oninput="filterGames()">
+      <button class="btn-search" onclick="filterGames()">Buscar</button>
+    </div>
+  </section>
+
+  <!-- Filters -->
+  <section class="filters" id="filterBar">
+    <div class="filter-chip active" data-filter="all" onclick="setFilter('all')">Todos <span class="count" id="countAll">16</span></div>
+    <div class="filter-chip" data-filter="digital" onclick="setFilter('digital')">💻 Digital <span class="count" id="countDigital">0</span></div>
+    <div class="filter-chip" data-filter="print" onclick="setFilter('print')">🖨️ Impressão <span class="count" id="countPrint">0</span></div>
+    <div class="filter-chip" data-filter="quiz" onclick="setFilter('quiz')">📝 Quiz <span class="count" id="countQuiz">0</span></div>
+    <div class="filter-chip" data-filter="rpg" onclick="setFilter('rpg')">🎭 RPG/DIY <span class="count" id="countRpg">0</span></div>
+    <div class="filter-chip" data-filter="6ano" onclick="setFilter('6ano')">6º Ano</div>
+    <div class="filter-chip" data-filter="7ano" onclick="setFilter('7ano')">7º Ano</div>
+    <div class="filter-chip" data-filter="8ano" onclick="setFilter('8ano')">8º Ano</div>
+    <div class="filter-chip" data-filter="9ano" onclick="setFilter('9ano')">9º Ano</div>
+    <div class="filter-chip" data-filter="em" onclick="setFilter('em')">Ens. Médio</div>
+  </section>
+
+  <!-- Featured -->
+  <section class="featured" id="featured">
+    <div class="section-header">
+      <div class="section-title">⭐ Destaques da Semana</div>
+    </div>
+    <div class="featured-grid" id="featuredGrid"></div>
+  </section>
+
+  <!-- Library -->
+  <section id="library">
+    <div class="section-header">
+      <div class="section-title">📚 Biblioteca Digital <span class="section-count" id="showingCount"></span></div>
+    </div>
+    <div class="games-grid" id="gamesGrid"></div>
+    <div class="empty-state" id="emptyState" style="display:none">
+      <div class="empty-icon">🔍</div>
+      <p>Nenhum jogo encontrado para esta busca.</p>
+    </div>
+  </section>
+
+  <!-- About / BNCC -->
+  <section id="about" style="margin-top:2rem">
+    <div class="section-header">
+      <div class="section-title">ℹ️ Sobre o Projeto</div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem">
+      <p style="color:var(--text2);font-size:.85rem;line-height:1.7;margin-bottom:1rem">
+        O <strong style="color:var(--text)">HistóriaGames</strong> é uma plataforma educacional que oferece jogos interativos para o ensino de História, alinhados com a <strong style="color:var(--accent2)">Base Nacional Comum Curricular (BNCC)</strong>. Os jogos cobrem desde a Pré-História até o Ensino Médio, desenvolvidos pelo <strong>Profº Flávio Alexandre</strong> como parte do projeto <strong style="color:var(--cyan2)">ProfHistória IA</strong>.
+      </p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:.75rem">
+        <div style="background:var(--surface2);padding:.75rem;border-radius:var(--radius-xs);border:1px solid var(--border)">
+          <div style="font-size:.7rem;text-transform:uppercase;color:var(--text3);letter-spacing:.05em;margin-bottom:4px">Competências BNCC</div>
+          <div style="font-size:.82rem;font-weight:600">EF06HI – EM13CHS</div>
+        </div>
+        <div style="background:var(--surface2);padding:.75rem;border-radius:var(--radius-xs);border:1px solid var(--border)">
+          <div style="font-size:.7rem;text-transform:uppercase;color:var(--text3);letter-spacing:.05em;margin-bottom:4px">Pensamento Histórico</div>
+          <div style="font-size:.82rem;font-weight:600">Análise Crítica de Fontes</div>
+        </div>
+        <div style="background:var(--surface2);padding:.75rem;border-radius:var(--radius-xs);border:1px solid var(--border)">
+          <div style="font-size:.7rem;text-transform:uppercase;color:var(--text3);letter-spacing:.05em;margin-bottom:4px">Empatia Temporal</div>
+          <div style="font-size:.82rem;font-weight:600">Cultural e Histórica</div>
+        </div>
+        <div style="background:var(--surface2);padding:.75rem;border-radius:var(--radius-xs);border:1px solid var(--border)">
+          <div style="font-size:.7rem;text-transform:uppercase;color:var(--text3);letter-spacing:.05em;margin-bottom:4px">Formatos</div>
+          <div style="font-size:.82rem;font-weight:600">Digital + Impresso + RPG</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <p>ProfHistória IA • Profº Flávio Alexandre • <a href="#">GitHub</a></p>
+    <p style="margin-top:.3rem;opacity:.6">Feito com ❤️ para educadores brasileiros</p>
+  </footer>
+</main>
+
+<!-- ═══ Print Preview Modal ═══ -->
+<div class="modal-overlay" id="printModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="printModalTitle">🖨️ Pré-visualização de Impressão</div>
+      <button class="modal-close" onclick="closePrintModal()">✕</button>
+    </div>
+    <div class="modal-body" id="printModalBody"></div>
+    <div class="modal-footer">
+      <button class="modal-btn modal-btn-secondary" onclick="closePrintModal()">Cancelar</button>
+      <button class="modal-btn modal-btn-primary" onclick="doPrint()">🖨️ Imprimir</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ Game Panel (iframe) ═══ -->
+<div class="game-panel" id="gamePanel">
+  <div class="game-topbar">
+    <button class="back-btn" onclick="closeGame()">← Voltar ao Hub</button>
+    <div class="game-name" id="gamePanelName">Jogo</div>
+    <div class="game-actions">
+      <button class="icon-btn" onclick="printCurrentGame()" title="Imprimir instruções">🖨️</button>
+      <button class="icon-btn" onclick="toggleFullscreen()" title="Tela cheia">⛶</button>
+    </div>
+  </div>
+  <iframe class="game-iframe" id="gameIframe" src="about:blank"></iframe>
+</div>
+
+<!-- ═══ Toast ═══ -->
+<div class="toast" id="toast"></div>
+
+<script>
+/* ================================================================
+   HistóriaGames Hub — Engine v1.0
+   ================================================================ */
+
+// ── GAME CATALOG ──────────────────────────────────────────────
+const GAMES = [
+  {
+    id: 'bingo-domino-uno',
+    title: '🎮 Jogos Históricos (Bingo, Dominó, Uno)',
+    subtitle: 'Hub de jogos com 5 temas históricos',
+    description: 'Plataforma com Bingo, Dominó e Uno educativos cobrindo Pré-História, Egito Antigo, Grécia Antiga, Idade Média e Idade Moderna.',
+    emoji: '🎮',
+    type: 'hub',
+    file: 'jogos_historicos.html',
+    periods: ['prehistory', 'egypt', 'greece', 'medieval', 'modern'],
+    ages: ['6ano', '7ano', '8ano', '9ano'],
+    bncc: ['EF06HI01', 'EF07HI01', 'EF08HI01'],
+    print: true,
+    featured: true,
+    banner: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
+    color: '#6366f1',
+  },
+  {
+    id: 'quiz-historico',
+    title: '📝 Quiz Histórico',
+    subtitle: '250+ perguntas, 40 temas — Português',
+    description: 'Quiz interativo com mais de 250 perguntas de múltipla escolha, verdadeiro/falso e completar lacunas. Cobrindo do 6º ano ao Ensino Médio.',
+    emoji: '📝',
+    type: 'quiz',
+    file: 'quiz_historico.html',
+    periods: ['all'],
+    ages: ['6ano', '7ano', '8ano', '9ano', 'em'],
+    bncc: ['EF06HI01', 'EF07HI01', 'EF08HI01', 'EF09HI01', 'EM13CHS01'],
+    print: false,
+    featured: true,
+    banner: 'linear-gradient(135deg, #1a1a2e 0%, #2d1b69 50%, #5b21b6 100%)',
+    color: '#8b5cf6',
+  },
+  {
+    id: 'quiz-historico-en',
+    title: '📝 History Quiz (English)',
+    subtitle: '250+ questions, 40 themes — English',
+    description: 'English version of the history quiz with 250+ multiple choice, true/false, and fill-in-the-blank questions covering 6th grade to High School.',
+    emoji: '🌍',
+    type: 'quiz',
+    file: 'quiz_historico_en.html',
+    periods: ['all'],
+    ages: ['6ano', '7ano', '8ano', '9ano', 'em'],
+    bncc: ['EF06HI01'],
+    print: false,
+    featured: false,
+    banner: 'linear-gradient(135deg, #1a1a2e 0%, #1e3a5f 50%, #2563eb 100%)',
+    color: '#3b82f6',
+  },
+  {
+    id: 'memoria-holandesas',
+    title: '🃏 Jogo da Memória — Invasões Holandesas',
+    subtitle: '8 pares para imprimir e recortar',
+    description: 'Jogo de memória impresso sobre as Invasões Holandesas no Brasil. Material para recortar e usar em sala de aula com 8 pares de cartas.',
+    emoji: '🃏',
+    type: 'print',
+    file: 'jogo_memoria_holandesas.html',
+    periods: ['modern'],
+    ages: ['7ano', '8ano'],
+    bncc: ['EF07HI04', 'EF08HI02'],
+    print: true,
+    featured: false,
+    banner: 'linear-gradient(135deg, #1a1a2e 0%, #5f370e 50%, #b45309 100%)',
+    color: '#f59e0b',
+  },
+  {
+    id: 'memoria-holandesas-digital',
+    title: '💻 Memória Digital — Invasões Holandesas',
+    subtitle: '7º ano • 8 pares • 16 cartas',
+    description: 'Versão digital do jogo da memória sobre as Invasões Holandesas. Estatísticas de movimentos, pares e tempo. Categorias: Personagens, Acontecimentos, Economia, Cultura.',
+    emoji: '💻',
+    type: 'digital',
+    file: 'jogo_memoria_holandesas_digital.html',
+    periods: ['modern'],
+    ages: ['7ano'],
+    bncc: ['EF07HI04'],
+    print: false,
+    featured: false,
+    banner: 'linear-gradient(135deg, #1a1a2e 0%, #065f46 50%, #059669 100%)',
+    color: '#10b981',
+  },
+  {
+    id: 'memoria-brasil-colonia',
+    title: '💻 Jogo da Memória — Brasil Colônia',
+    subtitle: '7º e 8º ano • 20 pares • 40 cartas',
+    description: 'Jogo da memória digital sobre o período colonial brasileiro. 20 pares de cartas com termos históricos e suas descrições.',
+    emoji: '🏛️',
+    type: 'digital',
+    file: 'jogo_memoria_brasil_colonia.html',
+    periods: ['modern'],
+    ages: ['7ano', '8ano'],
+    bncc: ['EF07HI04', 'EF08HI02'],
+    print: false,
+    featured: true,
+    banner: 'linear-gradient(135deg, #1a1a2e 0%, #7c2d12 50%, #c2410c 100%)',
+    color: '#ea580c',
+  },
+  {
+    id: 'memoria-reforma',
+    title: '💻 Jogo da Memória — Reforma Protestante',
+    subtitle: '7º ano',
+    description: 'Jogo da memória digital sobre a Reforma Protestante. Cartas com personagens, eventos e conceitos da reforma de Martinho Lutero.',
+    emoji: '📖',
+    type: 'digital',
+    file: 'jogo_memoria_reforma.html',
+    periods: ['modern'],
+    ages: ['7ano'],
+    bncc: ['EF07HI05'],
+    print: false,
+    featured: false,
+    banner: 'linear-gradient(135deg, #1a1a2e 0%, #4c1d95 50%, #7c3aed 100%)',
+    color: '#7c3aed',
+  },
+  {
+    id: 'uno-egito',
+    title: '🃏 UNO Educativo — Egito Antigo',
+    subtitle: '110 cartas para aprender história jogando',
+    description: 'UNO educativo com 110 cartas sobre o Egito Antigo. Cartas com termos históricos, especiais (Inversão, Pular, Comprar 2) e curingas temáticos.',
+    emoji: '𓂀',
+    type: 'digital',
+    file: 'uno_egito_antigo.html',
+    periods: ['egypt'],
+    ages: ['6ano', '7ano'],
+    bncc: ['EF06HI06'],
+    print: true,
+    featured: true,
+    banner: 'linear-gradient(135deg, #1a1a2e 0%, #78350f 50%, #d97706 100%)',
+    color: '#d97706',
+  },
+  {
+    id: 'labirinto-indigena',    title: '🏛️ Labirinto da Aldeia Indígena',
+    subtitle: 'Jogo interativo com timer e recompensas',
+    description: 'Labirinto interativo temático sobre aldeia indígena. Timer, entrada de dados do aluno, sistema de recompensas e stickers.',
+    emoji: '🏛️',
+    type: 'digital',
+    file: 'labirinto_aldeia_indigena.html',
+    periods: ['prehistory'],
+    ages: ['6ano', '7ano'],
+    bncc: ['EF06HI09'],
+    print: false,
+    featured: false,
+    banner: 'linear-gradient(135deg, #1a1a2e 0%, #14532d 50%, #15803d 100%)',
+    color: '#22c55e',
+  },
+  {
+    id: 'debate-argumentativo',
+    title: '🎭 Debate Argumentativo',
+    subtitle: 'Atividade de oralidade e argumentação',
+    description: 'Atividade de debate argumentativo para desenvolver habilidades de oralidade, argumentação e pensamento crítico em História.',
+    emoji: '🎭',
+    type: 'rpg',
+    file: 'debate_argumentativo.html',
+    periods: ['all'],
+    ages: ['8ano', '9ano', 'em'],
+    bncc: ['EF08HI01', 'EF09HI01', 'EM13CHS01'],
+    print: true,
+    featured: false,
+    banner: 'linear-gradient(135deg, #1a1a2e 0%, #831843 50%, #be185d 100%)',
+    color: '#ec4899',
+  },
+  {
+    id: 'minha-historia',
+    title: '📖 Minha História Pessoal',
+    subtitle: 'Narrativa autobiográfica interativa',
+    description: 'Atividade interativa para que o aluno construa sua própria história pessoal, desenvolvendo narrativa e reflexão sobre sua trajetória.',
+    emoji: '📖',
+    type: 'rpg',
+    file: 'minha_historia_pessoal.html',
+    periods: ['all'],
+    ages: ['6ano', '7ano', '8ano', '9ano'],
+    bncc: ['EF06HI01'],
+    print: true,
+    featured: false,
+    banner: 'linear-gradient(135deg, #1a1a2e 0%, #1e3a5f 50%, #2563eb 100%)',
+    color: '#3b82f6',
+  },
+  {
+    id: 'prova-adaptada-1',
+    title: '📝 Prova Adaptada — História 9º Ano (1)',
+    subtitle: 'República Velha e Início do Século XX',
+    description: 'Prova adaptada de História para o 9º ano sobre República Velha e Início do Século XX. Inclui interpretação de charges e análise de fontes.',
+    emoji: '📝',
+    type: 'quiz',
+    file: 'prova_adaptada_1_historia_9ano.html',
+    periods: ['modern'],
+    ages: ['9ano'],
+    bncc: ['EF09HI08'],
+    print: true,
+    featured: false,
+    banner: 'linear-gradient(135deg, #1a1a2e 0%, #365314 50%, #4d7c0f 100%)',
+    color: '#84cc16',
+  },
+  {
+    id: 'prova-adaptada-2',
+    title: '📝 Prova Adaptada — História 9º Ano (2)',
+    subtitle: 'República Velha & Transformações',
+    description: 'Segunda prova adaptada de História para o 9º ano. Foco em transformações sociais, econômicas e culturais no período da República Velha.',
+    emoji: '📝',
+    type: 'quiz',
+    file: 'prova_adaptada_2_historia_9ano.html',
+    periods: ['modern'],
+    ages: ['9ano'],
+    bncc: ['EF09HI08'],
+    print: true,
+    featured: false,
+    banner: 'linear-gradient(135deg, #1a1a2e 0%, #365314 50%, #65a30d 100%)',
+    color: '#a3e635',
+  },
+  {
+    id: 'atividades-interativas',
+    title: '🧩 Editor de Atividades Interativas',
+    subtitle: 'Crie quizzes, V/F e completar lacunas',
+    description: 'Editor visual para criar atividades interativas: múltipla escolha, verdadeiro/falso e completar lacunas. Exporte como HTML ou JSON.',
+    emoji: '🧩',
+    type: 'rpg',
+    file: 'atividades_interativas.html',
+    periods: ['all'],
+    ages: ['6ano', '7ano', '8ano', '9ano', 'em'],
+    bncc: ['EF06HI01'],
+    print: true,
+    featured: true,
+    banner: 'linear-gradient(135deg, #1a1a2e 0%, #581c87 50%, #9333ea 100%)',
+    color: '#a855f7',
+  },
+  {
+    id: 'corretor-gabaritos',
+    title: '✅ Corretor de Gabaritos Pro',
+    subtitle: 'Correção automática de provas',
+    description: 'Sistema de correção automática de provas com gabarito. Leitura de respostas e geração de relatórios de desempenho.',
+    emoji: '✅',
+    type: 'digital',
+    file: 'corretor_gabaritos_pro.html',
+    periods: ['all'],
+    ages: ['6ano', '7ano', '8ano', '9ano', 'em'],
+    bncc: [],
+    print: false,
+    featured: false,
+    banner: 'linear-gradient(135deg, #1a1a2e 0%, #065f46 50%, #059669 100%)',
+    color: '#10b981',
+  },
+  {
+    id: 'omredu-corretor',
+    title: '📋 OMREdu Corretor de Gabaritos',
+    subtitle: 'Correção com leitura óptica',
+    description: 'Corretor de gabaritos OMREdu com leitura óptica de marcaciones. Correção híbrida e relatórios detalhados.',
+    emoji: '📋',
+    type: 'digital',
+    file: 'omredu_corretor_gabaritos.html',
+    periods: ['all'],
+    ages: ['6ano', '7ano', '8ano', '9ano', 'em'],
+    bncc: [],
+    print: false,
+    featured: false,
+    banner: 'linear-gradient(135deg, #1a1a2e 0%, #1e3a5f 50%, #1d4ed8 100%)',
+    color: '#3b82f6',
+  },
+  {
+    id: 'danca-dragoes-sucessao',
+    title: '🐉 A Dança dos Dragões e as Guerras de Sucessão',
+    subtitle: 'Ficção × História — jogo de pares e quiz',
+    description: 'Material didático que compara as guerras de sucessão de "Game of Thrones" (A Dança dos Dragões) com três crises históricas: a Anarquia (séc. XII), a Crise de 1383-85 e a Guerra das Duas Rosas. Inclui jogo de pares ficção × história, quiz de verificação e roteiro de debate.',
+    emoji: '🐉',
+    type: 'digital',
+    file: 'casa_do_dragao_sucessao.html',
+    periods: ['medieval'],
+    ages: ['7ano', '8ano', '9ano'],
+    bncc: [],
+    print: false,
+    featured: false,
+    banner: 'linear-gradient(135deg, #1a1a2e 0%, #7f1d1d 50%, #b91c1c 100%)',
+    color: '#b91c1c',
+  },
+  {
+    id: 'bingo-reforma',
+    title: '🅱️ Bingo Histórico — Reforma Religiosa',
+    subtitle: '7º ano • bingo de termos para imprimir',
+    description: 'Bingo com termos e personagens da Reforma Religiosa (Lutero, 95 teses, indulgências e mais) pronto para imprimir e jogar em sala de aula.',
+    emoji: '🅱️',
+    type: 'print',
+    file: 'jogo_bingo_reforma.html',
+    periods: ['modern'],
+    ages: ['7ano'],
+    bncc: ['EF07HI05'],
+    print: true,
+    featured: false,
+    banner: 'linear-gradient(135deg, #1a1a2e 0%, #7c2d12 50%, #c2410c 100%)',
+    color: '#ea580c',
+  },
+  {
+    id: 'domino-reforma',
+    title: '🦅 Dominó da Reforma Protestante',
+    subtitle: '7º ano • jogo de pares digital',
+    description: 'Dominó digital que emparelha conceitos e personagens da Reforma Protestante. Ideal para fixar o vocabulário histórico de forma lúdica.',
+    emoji: '🦅',
+    type: 'digital',
+    file: 'jogo_domino_reforma.html',
+    periods: ['modern'],
+    ages: ['7ano'],
+    bncc: ['EF07HI05'],
+    print: false,
+    featured: false,
+    banner: 'linear-gradient(135deg, #1a1a2e 0%, #4c1d95 50%, #7c3aed 100%)',
+    color: '#7c3aed',
+  },
+  {
+    id: 'jogo-das-eras',
+    title: '🏛️ Jogo das Eras — História',
+    subtitle: 'BNCC 6º–9º ano • perguntas por período',
+    description: 'Jogo de perguntas e respostas por períodos históricos cobrindo do 6º ao 9º ano, alinhado às habilidades BNCC. Ótimo para revisão de conteúdo.',
+    emoji: '🏛️',
+    type: 'quiz',
+    file: 'jogo_perguntas_historia.html',
+    periods: ['all'],
+    ages: ['6ano', '7ano', '8ano', '9ano'],
+    bncc: ['EF06HI01'],
+    print: false,
+    featured: false,
+    banner: 'linear-gradient(135deg, #1a1a2e 0%, #134e4a 50%, #0f766e 100%)',
+    color: '#14b8a6',
+  },
+  {
+    id: 'quiz-roma',
+    title: '🏛️ Quiz: Roma, a Cidade Eterna',
+    subtitle: '6º e 7º ano • Roma Antiga',
+    description: 'Quiz interativo sobre a Roma Antiga: fundação, República, Império, cotidiano e legado. Perguntas de múltipla escolha com feedback imediato.',
+    emoji: '🏛️',
+    type: 'quiz',
+    file: 'quiz_roma_cidade_eterna.html',
+    periods: ['all'],
+    ages: ['6ano', '7ano'],
+    bncc: [],
+    print: false,
+    featured: false,
+    banner: 'linear-gradient(135deg, #1a1a2e 0%, #78350f 50%, #b45309 100%)',
+    color: '#b45309',
+  },
+  {
+    id: 'atividades-adaptaveis',
+    title: '♿ Atividades Adaptáveis — Educação Inclusiva',
+    subtitle: 'Adaptação de atividades para todos os alunos',
+    description: 'Gerador de atividades adaptadas para educação inclusiva: versões ampliadas, simplificadas e com apoio visual para alunos com necessidades específicas.',
+    emoji: '♿',
+    type: 'digital',
+    file: 'atividades_adaptaveis.html',
+    periods: ['all'],
+    ages: ['6ano', '7ano', '8ano', '9ano', 'em'],
+    bncc: [],
+    print: true,
+    featured: false,
+    banner: 'linear-gradient(135deg, #1a1a2e 0%, #14532d 50%, #16a34a 100%)',
+    color: '#22c55e',
+  },
+  {
+    id: 'diariopro',
+    title: '📔 DiárioPro — Assistente de Diário Escolar',
+    subtitle: 'Registro de aulas e relatórios',
+    description: 'Assistente de diário escolar: registro de conteúdos, frequência, observações e geração de relatórios para o professor.',
+    emoji: '📔',
+    type: 'digital',
+    file: 'diariopro.html',
+    periods: ['all'],
+    ages: ['6ano', '7ano', '8ano', '9ano', 'em'],
+    bncc: [],
+    print: true,
+    featured: false,
+    banner: 'linear-gradient(135deg, #1a1a2e 0%, #1e3a5f 50%, #1d4ed8 100%)',
+    color: '#3b82f6',
+  },
+  {
+    id: 'escola-organizada',
+    title: '🗓️ EscolaOrganizada — Agendamento Escolar',
+    subtitle: 'Calendário e organização da escola',
+    description: 'Sistema de agendamento escolar: calendário de eventos, horários, lembretes e organização da rotina da escola.',
+    emoji: '🗓️',
+    type: 'digital',
+    file: 'escola_organizada.html',
+    periods: ['all'],
+    ages: ['6ano', '7ano', '8ano', '9ano', 'em'],
+    bncc: [],
+    print: false,
+    featured: false,
+    banner: 'linear-gradient(135deg, #1a1a2e 0%, #374151 50%, #6b7280 100%)',
+    color: '#6b7280',
+  },
+  {
+    id: 'gestao-escolar',
+    title: '📚 Gestão Escolar — Sistema Completo',
+    subtitle: 'Administração de turmas, alunos e notas',
+    description: 'Sistema completo de gestão escolar: cadastro de turmas e alunos, lançamento de notas, frequência e relatórios de desempenho.',
+    emoji: '📚',
+    type: 'digital',
+    file: 'gestao_escolar.html',
+    periods: ['all'],
+    ages: ['6ano', '7ano', '8ano', '9ano', 'em'],
+    bncc: [],
+    print: false,
+    featured: false,
+    banner: 'linear-gradient(135deg, #1a1a2e 0%, #365314 50%, #65a30d 100%)',
+    color: '#84cc16',
+  },
+  {
+    id: 'guia-notebooklm-claude',
+    title: '🤖 Guia de Fluxo: NotebookLM → Claude AI',
+    subtitle: 'Fluxo de trabalho com IA para professores',
+    description: 'Guia passo a passo do fluxo NotebookLM para Claude AI aplicado à produção de materiais de história: fontes, roteiros e automação.',
+    emoji: '🤖',
+    type: 'digital',
+    file: 'guia_notebooklm_claude.html',
+    periods: ['all'],
+    ages: ['6ano', '7ano', '8ano', '9ano', 'em'],
+    bncc: [],
+    print: false,
+    featured: false,
+    banner: 'linear-gradient(135deg, #1a1a2e 0%, #581c87 50%, #a21caf 100%)',
+    color: '#c026d3',
+  },
+  {
+    id: 'omredu-hibrido',
+    title: '📋 OMREdu Híbrido — Corretor de Gabaritos',
+    subtitle: 'Correção offline + IA',
+    description: 'Corretor de gabaritos híbrido: leitura óptica local com reforço de IA, relatórios detalhados e compatibilidade com o fluxo OMREdu.',
+    emoji: '📋',
+    type: 'digital',
+    file: 'omredu_corretor_hibrido.html',
+    periods: ['all'],
+    ages: ['6ano', '7ano', '8ano', '9ano', 'em'],
+    bncc: [],
+    print: false,
+    featured: false,
+    banner: 'linear-gradient(135deg, #1a1a2e 0%, #064e3b 50%, #059669 100%)',
+    color: '#10b981',
+  },
+  {
+    id: 'pipeline-multi-ia',
+    title: '🧠 Pipeline Multi-IA para Professores',
+    subtitle: 'Arquitetura inteligente de materiais',
+    description: 'Explicador visual do pipeline multi-IA usado para gerar materiais didáticos: planejamento, adaptação, avaliação e revisão em múltiplas etapas.',
+    emoji: '🧠',
+    type: 'digital',
+    file: 'pipeline_multi_ia.html',
+    periods: ['all'],
+    ages: ['6ano', '7ano', '8ano', '9ano', 'em'],
+    bncc: [],
+    print: false,
+    featured: false,
+    banner: 'linear-gradient(135deg, #1a1a2e 0%, #0c4a6e 50%, #0284c7 100%)',
+    color: '#0ea5e9',
+  },
+];
+
+// ── STATE ──────────────────────────────────────────────────────
+let currentFilter = 'all';
+let searchQuery = '';
+let currentPrintGame = null;
+
+// ── INIT ───────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  updateFilterCounts();
+  renderFeatured();
+  renderGames();
+  updateCounts();
+});
+
+// ── RENDER GAMES ───────────────────────────────────────────────
+function renderGames() {
+  const grid = document.getElementById('gamesGrid');
+  const empty = document.getElementById('emptyState');
+  const filtered = getFilteredGames();
+
+  document.getElementById('showingCount').textContent = `(${filtered.length} de ${GAMES.length})`;
+
+  if (filtered.length === 0) {
+    grid.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+
+  empty.style.display = 'none';
+  grid.innerHTML = filtered.map((g, i) => `
+    <div class="game-card card-animate" style="animation-delay:${i * .05}s" onclick="openGame('${g.id}')">
+      <div class="card-banner" style="background:${g.banner}">
+        <span class="banner-emoji">${g.emoji}</span>
+        <div class="banner-overlay"></div>
+        <span class="card-type-badge ${g.type}">${typeLabel(g.type)}</span>
+      </div>
+      <div class="card-body">
+        <div class="card-title">${g.title}</div>
+        <div class="card-subtitle">${g.subtitle}</div>
+        <div class="card-desc">${g.description}</div>
+        <div class="card-meta">
+          ${g.ages.map(a => `<span class="card-tag age">${ageLabel(a)}</span>`).join('')}
+          ${g.periods.slice(0, 2).map(p => `<span class="card-tag period">${periodLabel(p)}</span>`).join('')}
+          ${g.bncc.slice(0, 1).map(b => `<span class="card-tag bncc">${b}</span>`).join('')}
+        </div>
+      </div>
+      <div class="card-actions" onclick="event.stopPropagation()">
+        <button class="card-btn card-btn-play" onclick="openGame('${g.id}')">▶ Jogar</button>
+        ${g.print ? `<button class="card-btn card-btn-print" onclick="openPrintModal('${g.id}')">🖨️ Imprimir</button>` : ''}
+      </div>
+    </div>
+  `).join('');
+  observeCards();
+}
+
+function renderFeatured() {
+  const grid = document.getElementById('featuredGrid');
+  const featured = GAMES.filter(g => g.featured);
+  grid.innerHTML = featured.map(g => `
+    <div class="featured-card" onclick="openGame('${g.id}')">
+      <div class="fc-icon">${g.emoji}</div>
+      <div class="fc-info">
+        <h4>${g.title.replace(/^[^\s]+\s/, '')}</h4>
+        <p>${g.subtitle}</p>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ── FILTERING ──────────────────────────────────────────────────
+function getFilteredGames() {
+  return GAMES.filter(g => {
+    // Type / grade filter
+    if (currentFilter !== 'all') {
+      if (['digital', 'print', 'quiz', 'rpg'].includes(currentFilter)) {
+        if (g.type !== currentFilter) return false;
+      } else {
+        if (!g.ages.includes(currentFilter)) return false;
+      }
+    }
+    // Search
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      const haystack = [g.title, g.subtitle, g.description, ...g.periods, ...g.ages, ...g.bncc].join(' ').toLowerCase();
+      if (!haystack.includes(q)) return false;
+    }
+    return true;
+  });
+}
+
+function setFilter(f) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-chip').forEach(c => {
+    c.classList.toggle('active', c.dataset.filter === f);
+  });
+  renderGames();
+}
+
+function filterGames() {
+  searchQuery = document.getElementById('searchInput').value.trim();
+  renderGames();
+}
+
+function updateFilterCounts() {
+  document.getElementById('countAll').textContent = GAMES.length;
+  document.getElementById('countDigital').textContent = GAMES.filter(g => g.type === 'digital').length;
+  document.getElementById('countPrint').textContent = GAMES.filter(g => g.type === 'print').length;
+  document.getElementById('countQuiz').textContent = GAMES.filter(g => g.type === 'quiz').length;
+  document.getElementById('countRpg').textContent = GAMES.filter(g => g.type === 'rpg').length;
+}
+
+function updateCounts() {
+  document.getElementById('totalGames').textContent = GAMES.length;
+}
+
+// ── LABELS ─────────────────────────────────────────────────────
+function typeLabel(t) {
+  return { digital: '💻 Digital', print: '🖨️ Impressão', quiz: '📝 Quiz', rpg: '🎭 RPG/DIY', hub: '🎮 Hub' }[t] || t;
+}
+function ageLabel(a) {
+  return { '6ano': '6º Ano', '7ano': '7º Ano', '8ano': '8º Ano', '9ano': '9º Ano', 'em': 'Ens. Médio' }[a] || a;
+}
+function periodLabel(p) {
+  return {
+    prehistory: 'Pré-História', egypt: 'Egito Antigo', greece: 'Grécia Antiga',
+    medieval: 'Idade Média', modern: 'Idade Moderna', all: 'Todos os períodos'
+  }[p] || p;
+}
+
+// ── GAME PANEL ─────────────────────────────────────────────────
+function openGame(id) {
+  const g = GAMES.find(x => x.id === id);
+  if (!g) return;
+  document.getElementById('gamePanelName').textContent = g.title;
+  document.getElementById('gameIframe').src = g.file;
+  document.getElementById('gamePanel').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeGame() {
+  document.getElementById('gamePanel').classList.remove('open');
+  document.getElementById('gameIframe').src = 'about:blank';
+  document.body.style.overflow = '';
+}
+
+function printCurrentGame() {
+  const name = document.getElementById('gamePanelName').textContent;
+  const g = GAMES.find(x => x.title === name);
+  if (g) openPrintModal(g.id);
+}
+
+function toggleFullscreen() {
+  const panel = document.getElementById('gamePanel');
+  if (!document.fullscreenElement) {
+    panel.requestFullscreen?.();
+  } else {
+    document.exitFullscreen?.();
+  }
+}
+
+// ── PRINT MODAL ────────────────────────────────────────────────
+function openPrintModal(id) {
+  const g = GAMES.find(x => x.id === id);
+  if (!g) return;
+  currentPrintGame = g;
+
+  const modal = document.getElementById('printModal');
+  document.getElementById('printModalTitle').innerHTML = `🖨️ ${g.title}`;
+
+  document.getElementById('printModalBody').innerHTML = `
+    <div class="print-preview" id="printContent">
+      <h2>${g.emoji} ${g.title.replace(/^[^\s]+\s/, '')}</h2>
+      <p class="subtitle">${g.subtitle}</p>
+      <div class="info-grid">
+        <div class="info-box"><div class="label">Tipo</div><div class="value">${typeLabel(g.type)}</div></div>
+        <div class="info-box"><div class="label">Séries</div><div class="value">${g.ages.map(ageLabel).join(', ')}</div></div>
+        <div class="info-box"><div class="label">Período</div><div class="value">${g.periods.map(periodLabel).join(', ')}</div></div>
+        <div class="info-box"><div class="label">BNCC</div><div class="value">${g.bncc.join(', ') || '—'}</div></div>
+      </div>
+      <div class="section">
+        <h3>📋 Descrição</h3>
+        <p style="font-size:.85rem;color:#444">${g.description}</p>
+      </div>
+      <div class="section">
+        <h3>🎯 Objetivos Pedagógicos</h3>
+        <ul>
+          <li>Desenvolver o pensamento histórico e cronológico</li>
+          <li>Analisar criticamente fontes históricas</li>
+          <li>Praticar a empatia temporal e cultural</li>
+          <li>Compreender transformações sociais, políticas e culturais</li>
+        </ul>
+      </div>
+      <div class="section">
+        <h3>🛠️ Materiais Necessários</h3>
+        <ul>
+          <li>${g.type === 'print' ? 'Impressora e papel A4' : 'Computador, tablet ou smartphone com navegador'}</li>
+          <li>${g.type === 'rpg' ? 'Folhas em branco e canetas' : 'Conexão com a internet (para jogos online)'}</li>
+          <li>Caderno do aluno para registro</li>
+        </ul>
+      </div>
+      <div class="section">
+        <h3>📖 Instruções de Uso</h3>
+        <ul>
+          <li>Abra o arquivo HTML no navegador do dispositivo</li>
+          <li>${g.type === 'digital' ? 'Clique em "Iniciar" para começar o jogo' : 'Siga as instruções impressas na atividade'}</li>
+          <li>Orientar os alunos sobre as regras antes de iniciar</li>
+          <li>Registrar os resultados no caderno</li>
+        </ul>
+      </div>
+    </div>
+  `;
+
+  modal.classList.add('open');
+}
+
+function closePrintModal() {
+  document.getElementById('printModal').classList.remove('open');
+  currentPrintGame = null;
+}
+
+function doPrint() {
+  const content = document.getElementById('printContent');
+  if (!content) return;
+  const w = window.open('', '_blank');
+  w.document.write(`
+    <!DOCTYPE html><html><head><title>Impressão — HistóriaGames</title>
+    <style>
+      body{font-family:system-ui,sans-serif;padding:2rem;color:#1a1a1a;line-height:1.6}
+      h2{font-size:1.3rem;margin-bottom:.5rem}
+      h3{font-size:.95rem;font-weight:700;margin:1rem 0 .4rem;border-bottom:2px solid #e5e7eb;padding-bottom:.3rem}
+      .subtitle{color:#666;font-size:.85rem;margin-bottom:1rem}
+      .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:1rem}
+      .info-box{background:#f8f9fa;padding:.6rem;border-radius:6px;border:1px solid #e5e7eb}
+      .info-box .label{font-size:.65rem;text-transform:uppercase;color:#999}
+      .info-box .value{font-size:.82rem;font-weight:600;color:#333}
+      ul{padding-left:1.5rem}li{font-size:.85rem;color:#444;margin-bottom:.25rem}
+      .footer-print{margin-top:2rem;text-align:center;font-size:.7rem;color:#999;border-top:1px solid #eee;padding-top:.5rem}
+    </style></head><body>
+    ${content.innerHTML}
+    <div class="footer-print">HistóriaGames — ProfHistória IA — Profº Flávio Alexandre</div>
+    </body></html>
+  `);
+  w.document.close();
+  w.print();
+}
+
+function printLibrary() {
+  const w = window.open('', '_blank');
+  const rows = GAMES.map(g => `
+    <tr>
+      <td style="padding:6px;border-bottom:1px solid #eee">${g.emoji} ${g.title.replace(/^[^\s]+\s/, '')}</td>
+      <td style="padding:6px;border-bottom:1px solid #eee">${typeLabel(g.type)}</td>
+      <td style="padding:6px;border-bottom:1px solid #eee">${g.ages.map(ageLabel).join(', ')}</td>
+      <td style="padding:6px;border-bottom:1px solid #eee">${g.periods.map(periodLabel).join(', ')}</td>
+    </tr>
+  `).join('');
+  w.document.write(`<!DOCTYPE html><html><head><title>Catálogo — HistóriaGames</title>
+    <style>body{font-family:system-ui,sans-serif;padding:2rem}table{width:100%;border-collapse:collapse;font-size:.8rem}th{text-align:left;padding:6px;border-bottom:2px solid #333}td{padding:6px;border-bottom:1px solid #eee}</style>
+    </head><body>
+    <h2>🎮 HistóriaGames — Catálogo de Jogos</h2>
+    <p style="color:#666;font-size:.85rem">Gerado em ${new Date().toLocaleDateString('pt-BR')}</p>
+    <table><thead><tr><th>Jogo</th><th>Tipo</th><th>Séries</th><th>Período</th></tr></thead><tbody>${rows}</tbody></table>
+    <p style="margin-top:1.5rem;font-size:.7rem;color:#999;text-align:center">ProfHistória IA — Profº Flávio Alexandre</p>
+    </body></html>`);
+  w.document.close();
+  w.print();
+}
+
+// ── NAVIGATION ─────────────────────────────────────────────────
+function scrollToSection(id) {
+  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+  document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+  document.querySelector(`.nav-link[href="#${id}"]`)?.classList.add('active');
+}
+
+function goHome() {
+  closeGame();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ── TOAST ──────────────────────────────────────────────────────
+function showToast(msg, type = 'info') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `toast ${type} show`;
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ── THEME ──────────────────────────────────────────────────────
+let darkMode = true;
+function toggleTheme() {
+  darkMode = !darkMode;
+  document.documentElement.style.setProperty('--bg', darkMode ? '#06080f' : '#f8fafc');
+  document.documentElement.style.setProperty('--bg2', darkMode ? '#0c1020' : '#f1f5f9');
+  document.documentElement.style.setProperty('--surface', darkMode ? '#0f1328' : '#ffffff');
+  document.documentElement.style.setProperty('--surface2', darkMode ? '#151a32' : '#f1f5f9');
+  document.documentElement.style.setProperty('--surface3', darkMode ? '#1a2040' : '#e2e8f0');
+  document.documentElement.style.setProperty('--border', darkMode ? '#1e2545' : '#e2e8f0');
+  document.documentElement.style.setProperty('--border2', darkMode ? '#283060' : '#cbd5e1');
+  document.documentElement.style.setProperty('--text', darkMode ? '#e8ecf4' : '#1e293b');
+  document.documentElement.style.setProperty('--text2', darkMode ? '#94a3c0' : '#64748b');
+  document.documentElement.style.setProperty('--text3', darkMode ? '#5b6a8a' : '#94a3b8');
+  document.documentElement.style.setProperty('--text4', darkMode ? '#3a4566' : '#cbd5e1');
+  document.getElementById('themeBtn').textContent = darkMode ? '🌙' : '☀️';
+  showToast(darkMode ? '🌙 Modo escuro ativado' : '☀️ Modo claro ativado', 'info');
+}
+
+// ── KEYBOARD ───────────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    if (document.getElementById('gamePanel').classList.contains('open')) closeGame();
+    if (document.getElementById('printModal').classList.contains('open')) closePrintModal();
+  }
+  if (e.key === '/' && !document.getElementById('searchInput').matches(':focus')) {
+    e.preventDefault();
+    document.getElementById('searchInput').focus();
+  }
+});
+
+// ── INTERSECTION OBSERVER (animate cards on scroll) ────────────
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.style.opacity = '1';
+      e.target.style.transform = 'translateY(0)';
+    }
+  });
+}, { threshold: 0.1 });
+
+// Observe cards after render
+function observeCards() {
+  requestAnimationFrame(() => {
+    document.querySelectorAll('.game-card').forEach(c => observer.observe(c));
+  });
+}
+observeCards();
+</script>
+</body>
+</html>
