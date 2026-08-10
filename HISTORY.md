@@ -5,6 +5,25 @@
 
 ---
 
+## v2.1.1 — IA-Lab Unified (monolito)
+
+**Data:** Agosto de 2026
+**Bump:** `2.1.0 → 2.1.1` (patch — ferramentas de primeira parte versionadas, sem mudança de runtime)
+
+### Adicionado
+
+- **Scripts de primeira parte no repo** — deploy (Cloud Run/Firebase), áudio (microfone virtual, testes, diagnóstico), automação (inbox, Google Drive, rename de arquivos escolares, padronização de fontes) e diagnóstico do Microsoft Office no Linux (`scripts/diagnose_office_linux.sh`)
+- **Guia Microsoft Office no Linux (Wine)** — `docs/microsoft-office-linux-wine.md` (fluxo em 8 etapas: diagnóstico → recomendação → autorização → instalação → configuração → testes → correções → relatório) + seção no README
+- **Portal educacional versionado** — `portal_projetos/` (jogos de história, provas adaptadas, widgets de IA, PWA) incluído no monolito (repo aninhado achatado; histórico preservado em `flavioptu2007-svg/portal-projetos`)
+- **Arquivos de raiz versionados** — `Dockerfile`, `analyze_project.sh`, demos (`demo.sh`, `demo_audio.py`, `calculadora.html`), `install-system-packages.sh`, `Modelfile` (Ollama) e `skills-lock.json`
+
+### Interno (sem mudança de comportamento)
+
+- Tooling de dev limpo: `black`/`isort` removidos do `pyproject.toml` (CI e pre-commit usam apenas `ruff format`)
+- Pipeline CI corrigido e 100% verde a cada push (pin do ruff 0.15.20, skips condicionais de speechbrain/webrtcvad, testes do leituraia incluídos — 508 no total)
+
+---
+
 ## v2.1.0 — IA-Lab Unified (monolito)
 
 **Data:** Agosto de 2026

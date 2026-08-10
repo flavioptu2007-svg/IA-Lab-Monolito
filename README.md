@@ -6,7 +6,7 @@
 **Monolito FastAPI** que unifica 5 projetos em um único ecossistema de IA, áudio, RAG, educação e inferência local.
 
 ```
-📦 ia-lab-unified v2.1.0
+📦 ia-lab-unified v2.1.1
 ├── 🧠 8 providers de IA (OpenAI, Claude, Gemini, Groq, GLM, Perplexity, Ollama, BitNet)
 ├── 🎙️ Pipeline de áudio completo (STT, TTS, VAD, efeitos, microfone virtual)
 ├── 📚 RAG com Qdrant (busca semântica + contexto aumentado)
@@ -505,7 +505,7 @@ docker compose --profile test up
 ```
 /home/flavio/
 ├── src/                          # Módulos do monolito unificado
-│   ├── __init__.py               # Package marker v2.1.0
+│   ├── __init__.py               # Package marker v2.1.1
 │   ├── core/
 │   │   ├── __init__.py
 │   │   ├── lifespan.py           # 🔄 Startup/shutdown (init DB → fecha conexões)

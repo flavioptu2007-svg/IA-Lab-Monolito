@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ia-lab-unified"
-version = "2.1.0"
+version = "2.1.1"
 description = "IA-Lab Unified — Monolito FastAPI com IA, Áudio, RAG, OpenVINO, HistóriaIA e BitNet"
 readme = "README.md"
 requires-python = ">=3.11"
