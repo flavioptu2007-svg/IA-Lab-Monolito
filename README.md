@@ -60,6 +60,7 @@ cd web/dashboard && npm install && npm run dev
 - [Arquitetura](#arquitetura)
 - [Instalação](#instalação)
 - [Configuração](#configuração)
+- [Desenvolvimento Local com IA (grátis)](#desenvolvimento-local-com-ia-grátis)
 - [Execução](#execução)
 - [Docker Compose](#docker-compose)
 - [API Endpoints](#api-endpoints)
@@ -250,6 +251,49 @@ cp .env.example .env
 | `IA_LAB_LOG_LEVEL` | `INFO` | Nível de log |
 
 > 💡 **Dica:** Você só precisa de **uma** API key para começar. Defina `IA_LAB_OPENAI_API_KEY` ou use o Ollama local (zero configuração).
+
+---
+
+## Desenvolvimento Local com IA (grátis)
+
+A forma mais simples de rodar o chat com IA **sem gastar nada**: o provider **Gemini** do Google AI Studio (conta gratuita, **sem cartão de crédito**). Guia completo: **[`ENV_LOCAL_GEMINI.md`](ENV_LOCAL_GEMINI.md)**.
+
+### Passo a passo
+
+```bash
+# 1. Configure o .env (modelo sem segredos):
+cp .env.example .env
+# 2. Edite .env e cole sua chave gratuita em IA_LAB_GEMINI_API_KEY
+#    (obtenha em https://aistudio.google.com/apikey — sem cartão)
+
+# 3. Sobe o servidor local (porta 8099) e testa o chat com 1 comando:
+./scripts/chat_local.sh
+```
+
+### Tudo com um clique
+
+O script [`scripts/chat_local.sh`](scripts/chat_local.sh) sobe o servidor **e já testa o `/api/chat`**, mostrando resposta + latência:
+
+| Comando | O que faz |
+|---------|-----------|
+| `./scripts/chat_local.sh` | Sobe o servidor (porta 8099) + testa o chat |
+| `./scripts/chat_local.sh --pergunta "..."` | Testa com pergunta customizada |
+| `./scripts/chat_local.sh --status` | Mostra se está no ar + PID |
+| `./scripts/chat_local.sh --parar` | Derruba o servidor |
+| `./scripts/chat_local.sh --porta 9000` | Usa outra porta |
+
+Swagger local: `http://127.0.0.1:8099/docs`
+
+### Configuração recomendada (já no `.env.example`)
+
+| Variável | Valor recomendado | Motivo |
+|----------|------------------|--------|
+| `IA_LAB_PRIMARY_PROVIDER` | `gemini` | Grátis, sem cartão |
+| `IA_LAB_GEMINI_API_KEY` | `AQ...` (sua chave) | Google AI Studio |
+| `IA_LAB_GEMINI_MODEL` | `gemini-3.1-flash-lite` | ~1,5s, respostas completas |
+| `IA_LAB_RAG_ENABLED` | `false` | RAG exige Qdrant local |
+
+> ⚠️ **Segurança:** o `.env` está no `.gitignore` — a chave **nunca** deve ser commitada. Em produção ela vive apenas nas env vars do Render/dashboard. Veja detalhes em [`ENV_LOCAL_GEMINI.md`](ENV_LOCAL_GEMINI.md).
 
 ---
 
