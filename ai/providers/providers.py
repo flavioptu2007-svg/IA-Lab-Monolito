@@ -106,7 +106,7 @@ class GeminiProvider(BaseProvider):
         temperature: float = 0.7,
         max_tokens: int = 4096,
     ) -> str:
-        url = f"{self.base_url}/models/{self.model}:generateContent" f"?key={self.api_key}"
+        url = f"{self.base_url}/models/{self.model}:generateContent?key={self.api_key}"
         contents = [{"parts": [{"text": prompt}]}]
         payload: dict = {
             "contents": contents,

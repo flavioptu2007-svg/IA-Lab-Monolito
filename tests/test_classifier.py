@@ -294,7 +294,7 @@ class TestOverrideKeywords:
         """Override keyword deve vencer mesmo se outra categoria
         tiver mais matches de padrão."""
         result = TaskClassifier.classify(
-            "arquitetura, design pattern, fluxo, cache, " "escalabilidade, mensageria e código"
+            "arquitetura, design pattern, fluxo, cache, escalabilidade, mensageria e código"
         )
         # 'código' é override para code
         assert result == TaskType.code
@@ -355,7 +355,7 @@ class TestScoring:
     def test_maior_pontuacao_vence(self):
         """A categoria com maior pontuação deve vencer."""
         result = TaskClassifier.classify(
-            "código, função, classe, método, API, endpoint, " "analisar log de erro"
+            "código, função, classe, método, API, endpoint, analisar log de erro"
         )
         # code tem mais matches (código, função, classe, método, api, endpoint)
         # analysis só tem (analisar)
