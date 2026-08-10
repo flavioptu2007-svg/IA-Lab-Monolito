@@ -184,6 +184,51 @@ namespaces = false
 [tool.ruff]
 target-version = "py311"
 line-length = 100
+# Pastas de terceiros, instaladas, backups ou outros repositórios — fora do lint.
+# A raiz do projeto é o home do usuário, então estes diretórios não fazem parte
+# do código de primeira parte (ai/, api/, web/, src/, tests/, scripts/, leituraia/...).
+extend-exclude = [
+    # ── Backups / outros sistemas ─────────────────────────────────
+    "Secretária",           # backup completo de outro computador
+    "backup-ssd",
+    "backups",
+    "backup-antigravity",
+    "Transferências",
+    "Documentos",
+    "Downloads",
+    "Imagens",
+    "Música",
+    "Videos",
+    "Público",
+    "Drive",
+    "OneDrive",
+    "estudos",
+    "dotfiles",
+
+    # ── Repositórios de terceiros / outros projetos ──────────────
+    "ComfyUI",              # repositório de terceiros
+    "Projetos",             # outros repositórios (IA-Lab-Enterprise, Multi-Agent-CAD...)
+    "AI",                   # checkouts separados (BitNet, HistoriaIA, openvino...)
+    "OpenManus",
+    "Intel-AI-Lab",
+    "next-app",             # app Next.js separado
+    "aceros",               # app SDC.Evolution (terceiros)
+    "cobalt",
+    "orca",
+    "browser_use-0.13.6.dist-info.backup",
+    "bin/squashfs-root",    # AppImage extraído (runtime de terceiros)
+
+    # ── Artefatos gerados / runtime ──────────────────────────────
+    "output",               # saídas geradas (qwencloud...)
+    "htmlcov",
+    "logs",
+    "data",                 # bancos/estado local
+    "qdrant",
+    "ia_lab_enterprise.egg-info",
+
+    # ── Diretórios ocultos (instalações, caches, ferramentas) ────
+    ".*",
+]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "W", "UP", "B", "SIM", "ARG"]

@@ -14,7 +14,6 @@ Cobertura:
 
 from __future__ import annotations
 
-
 import pytest
 
 from ai.audio.exceptions import VADError
@@ -119,7 +118,9 @@ class TestVADDetectSpeech:
     def test_detect_speech_all_silence(self, synthetic_silence: bytes) -> None:
         """Buffer completamente silencioso deve retornar lista vazia."""
         detector = VoiceActivityDetector(
-            aggressiveness=3, frame_ms=30, sample_rate=16000  # Máx — menos chance de falso positivo
+            aggressiveness=3,
+            frame_ms=30,
+            sample_rate=16000,  # Máx — menos chance de falso positivo
         )
         segments = detector.detect_speech(synthetic_silence[:9600])  # 300ms
         assert segments == []

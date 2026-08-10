@@ -20,37 +20,34 @@ Uso típico (engine principal):
 
 from __future__ import annotations
 
+# Fase 6 — Métricas
+from ai.audio import effects, formats, metrics
 from ai.audio.core import AudioEngine
-from ai.audio.settings import AudioSettings, audio_settings, get_audio_settings
 
 # Fase 3 — Módulos base
 from ai.audio.exceptions import (
-    AudioError,
-    AudioDeviceError,
     AudioCaptureError,
-    AudioPlaybackError,
-    AudioFormatError,
+    AudioConfigError,
     AudioConversionError,
-    VADError,
+    AudioDeviceError,
+    AudioError,
+    AudioFormatError,
+    AudioPlaybackError,
     STTError,
     TTSError,
-    AudioConfigError,
+    VADError,
 )
-
-# Fase 4 — Captura, reprodução e processamento
-from ai.audio.vad import VoiceActivityDetector
-from ai.audio.recorder import AudioRecorder
+from ai.audio.microphone import VirtualMicrophone
 from ai.audio.player import AudioPlayer, PlaybackItem
-from ai.audio import effects
+from ai.audio.recorder import AudioRecorder
+from ai.audio.settings import AudioSettings, audio_settings, get_audio_settings
 
 # Fase 5 — IA e conversão
 from ai.audio.stt import SpeechToText
 from ai.audio.tts import TextToSpeech
-from ai.audio.microphone import VirtualMicrophone
-from ai.audio import formats
 
-# Fase 6 — Métricas
-from ai.audio import metrics
+# Fase 4 — Captura, reprodução e processamento
+from ai.audio.vad import VoiceActivityDetector
 
 __all__ = [
     # Engine e Config

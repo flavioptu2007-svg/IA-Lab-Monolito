@@ -19,14 +19,13 @@ import threading
 import uuid
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
 
 from flask import (
     Flask,
     Response,
     jsonify,
-    request,
     render_template,
+    request,
     stream_with_context,
 )
 
@@ -65,12 +64,13 @@ current_config = dict(DEFAULT_CONFIG)
 # Persistência SQLite
 # ---------------------------------------------------------------------------
 
+
 def get_db_path() -> str:
     """Retorna o caminho do banco de dados."""
     return DB_PATH
 
 
-def init_db(db_path: Optional[str] = None) -> None:
+def init_db(db_path: str | None = None) -> None:
     """Inicializa o banco SQLite e cria as tabelas se não existirem."""
     path = db_path or get_db_path()
     if path == ":memory:":
@@ -114,7 +114,12 @@ def db_save_conversation(conv: dict) -> None:
             for msg in conv.get("messages", []):
                 conn.execute(
                     "INSERT INTO messages (conv_id, role, content, timestamp) VALUES (?, ?, ?, ?)",
-                    (conv["id"], msg["role"], msg["content"], msg.get("timestamp", datetime.now().isoformat())),
+                    (
+                        conv["id"],
+                        msg["role"],
+                        msg["content"],
+                        msg.get("timestamp", datetime.now().isoformat()),
+                    ),
                 )
     except sqlite3.Error as e:
         print(f"[DB] Erro ao salvar conversa {conv.get('id', '?')}: {e}")
@@ -183,6 +188,7 @@ def db_load_all() -> dict[str, dict]:
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def load_config() -> dict:
     """Carrega configuração do arquivo JSON ou retorna defaults."""
     if CONFIG_FILE.exists():
@@ -202,6 +208,7 @@ def save_config(config: dict) -> None:
 def load_openai_client():
     """Cria um cliente da API OpenAI compatível com a configuração atual."""
     from openai import OpenAI
+
     base = current_config.get("api_base_url", DEFAULT_CONFIG["api_base_url"]).rstrip("/")
     key = current_config.get("api_key") or "no-key"
     return OpenAI(base_url=base, api_key=key)
@@ -210,12 +217,14 @@ def load_openai_client():
 def stream_chat(messages, model=None, temperature=None, max_tokens=None):
     """Faz o streaming da resposta da API e renderiza os eventos SSE."""
     import openai
+
     client = load_openai_client()
     try:
         response = client.chat.completions.create(
             model=model or current_config.get("model", DEFAULT_CONFIG["model"]),
             messages=messages,
-            temperature=temperature or current_config.get("temperature", DEFAULT_CONFIG["temperature"]),
+            temperature=temperature
+            or current_config.get("temperature", DEFAULT_CONFIG["temperature"]),
             max_tokens=max_tokens or current_config.get("max_tokens", DEFAULT_CONFIG["max_tokens"]),
             stream=True,
         )
@@ -242,6 +251,7 @@ def stream_chat(messages, model=None, temperature=None, max_tokens=None):
 # Rotas — Páginas
 # ---------------------------------------------------------------------------
 
+
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -250,6 +260,7 @@ def index():
 # ---------------------------------------------------------------------------
 # Rotas — API de Chat
 # ---------------------------------------------------------------------------
+
 
 @app.route("/api/chat", methods=["POST"])
 def chat():
@@ -309,11 +320,13 @@ def chat():
         if full_response:
             with conv_lock:
                 if conv_id in conversations:
-                    conversations[conv_id]["messages"].append({
-                        "role": "assistant",
-                        "content": full_response,
-                        "timestamp": datetime.now().isoformat(),
-                    })
+                    conversations[conv_id]["messages"].append(
+                        {
+                            "role": "assistant",
+                            "content": full_response,
+                            "timestamp": datetime.now().isoformat(),
+                        }
+                    )
                     # Persiste no SQLite
                     db_save_conversation(conversations[conv_id])
 
@@ -334,12 +347,14 @@ def list_conversations():
     with conv_lock:
         items = []
         for conv in conversations.values():
-            items.append({
-                "id": conv["id"],
-                "title": conv["title"],
-                "created_at": conv["created_at"],
-                "message_count": len([m for m in conv["messages"] if m["role"] == "user"]),
-            })
+            items.append(
+                {
+                    "id": conv["id"],
+                    "title": conv["title"],
+                    "created_at": conv["created_at"],
+                    "message_count": len([m for m in conv["messages"] if m["role"] == "user"]),
+                }
+            )
         items.sort(key=lambda x: x["created_at"], reverse=True)
     return jsonify(items)
 
@@ -351,12 +366,14 @@ def get_conversation(conv_id):
         conv = conversations.get(conv_id)
         if not conv:
             return jsonify({"error": "Conversa não encontrada"}), 404
-        return jsonify({
-            "id": conv["id"],
-            "title": conv["title"],
-            "messages": conv["messages"],
-            "created_at": conv["created_at"],
-        })
+        return jsonify(
+            {
+                "id": conv["id"],
+                "title": conv["title"],
+                "messages": conv["messages"],
+                "created_at": conv["created_at"],
+            }
+        )
 
 
 @app.route("/api/conversations/<conv_id>", methods=["DELETE"])
@@ -381,6 +398,7 @@ def clear_conversations():
 # ---------------------------------------------------------------------------
 # Rotas — Configuração
 # ---------------------------------------------------------------------------
+
 
 @app.route("/api/config", methods=["GET"])
 def get_config():
@@ -409,6 +427,7 @@ def update_config():
 def test_connection():
     """Testa a conexão com a API listando os modelos disponíveis."""
     import openai
+
     data = request.get_json(force=True)
     base = data.get("api_base_url", current_config["api_base_url"]).rstrip("/")
     key = data.get("api_key") or current_config.get("api_key") or "no-key"
@@ -418,7 +437,9 @@ def test_connection():
         model_list = [m.id for m in models]
         return jsonify({"status": "ok", "models": model_list})
     except openai.APIConnectionError:
-        return jsonify({"status": "error", "message": "❌ Não foi possível conectar ao servidor"}), 400
+        return jsonify(
+            {"status": "error", "message": "❌ Não foi possível conectar ao servidor"}
+        ), 400
     except openai.AuthenticationError:
         return jsonify({"status": "error", "message": "❌ Chave de API inválida"}), 400
     except Exception as e:
@@ -429,12 +450,15 @@ def test_connection():
 # Inicialização
 # ---------------------------------------------------------------------------
 
+
 def main():
     parser = argparse.ArgumentParser(description="Coraci Chat — App de Chat com IA")
     parser.add_argument("--port", type=int, default=5000, help="Porta do servidor (default: 5000)")
     parser.add_argument("--host", type=str, default="127.0.0.1", help="Host (default: 127.0.0.1)")
     parser.add_argument("--debug", action="store_true", help="Modo debug")
-    parser.add_argument("--db", type=str, default=None, help="Caminho do banco SQLite (default: coraci.db)")
+    parser.add_argument(
+        "--db", type=str, default=None, help="Caminho do banco SQLite (default: coraci.db)"
+    )
     args = parser.parse_args()
 
     global DB_PATH, conversations
@@ -464,8 +488,8 @@ def main():
 ║           🤖 Coraci Chat                     ║
 ║                                              ║
 ║  🌐 http://{args.host}:{args.port}                    ║
-║  ⚙️  API: {current_config.get('api_base_url', '?')}  ║
-║  📦 Modelo: {current_config.get('model', '?')}       ║
+║  ⚙️  API: {current_config.get("api_base_url", "?")}  ║
+║  📦 Modelo: {current_config.get("model", "?")}       ║
 ║  💾 DB: {DB_PATH}  ║
 ║                                              ║
 ╚══════════════════════════════════════════════╝

@@ -15,7 +15,6 @@ from __future__ import annotations
 
 from unittest.mock import patch
 
-
 from ai.audio.player import AudioPlayer, PlaybackItem
 
 
@@ -189,11 +188,13 @@ class TestAudioPlayerPlayOnce:
 
     def test_play_once_file(self) -> None:
         player = AudioPlayer()
-        with patch.object(player, "play") as mock_play:
-            with patch.object(player, "_thread", None):
-                player.play_once("test.wav", wait=False)
-                assert player.queue_size == 1
-                mock_play.assert_called_once()
+        with (
+            patch.object(player, "play") as mock_play,
+            patch.object(player, "_thread", None),
+        ):
+            player.play_once("test.wav", wait=False)
+            assert player.queue_size == 1
+            mock_play.assert_called_once()
 
     def test_play_once_bytes(self) -> None:
         player = AudioPlayer()

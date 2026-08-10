@@ -7,6 +7,7 @@ para rotear para o provedor de IA mais adequado.
 from __future__ import annotations
 
 import re
+
 from ai.providers.base import TaskType
 
 

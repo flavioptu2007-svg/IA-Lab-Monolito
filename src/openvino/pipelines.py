@@ -48,10 +48,10 @@ async def is_available() -> bool:
     """Verifica se OpenVINO e dependências Intel AI Lab estão instalados."""
     try:
         # Tenta importar openvino primeiro
-        import openvino  # noqa: F401
-
         # Tenta importar optimum.intel (OVModelForCausalLM)
         from optimum.intel import OVModelForCausalLM  # noqa: F401
+
+        import openvino  # noqa: F401
 
         return True
     except ImportError:
@@ -97,10 +97,9 @@ class OpenVINOPipeline:
             return
 
         _ensure_sys_path()
+        from optimum.intel import OVModelForCausalLM
         from transformers import AutoTokenizer
         from transformers import pipeline as hf_pipeline
-
-        from optimum.intel import OVModelForCausalLM
 
         logger.info("Carregando modelo OpenVINO: %s (%s)", self.model_path, self.device)
 
@@ -223,6 +222,7 @@ class AudioRagPipeline:
         _ensure_sys_path()
 
         from langchain_classic.chains import RetrievalQA
+        from langchain_community.document_loaders import TextLoader
         from langchain_community.llms import HuggingFacePipeline
         from langchain_community.vectorstores import FAISS
         from langchain_core.prompts import PromptTemplate
@@ -231,8 +231,6 @@ class AudioRagPipeline:
         from optimum.intel import OVModelForCausalLM
         from transformers import AutoTokenizer
         from transformers import pipeline as hf_pipeline
-
-        from langchain_community.document_loaders import TextLoader
 
         logger.info("Carregando componentes RAG...")
 

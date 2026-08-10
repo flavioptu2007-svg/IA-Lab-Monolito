@@ -17,9 +17,9 @@ import time
 from pathlib import Path
 from typing import Any
 
+from ai.audio.effects import bytes_to_float, normalize, remove_silence, resample
 from ai.audio.exceptions import STTError
 from ai.audio.settings import audio_settings
-from ai.audio.effects import bytes_to_float, normalize, remove_silence, resample
 from ai.telemetry import get_logger
 
 logger = get_logger("ai.audio.stt")
@@ -113,7 +113,7 @@ class SpeechToText:
         self,
         audio_data: bytes,
         sample_rate: int | None = None,
-        language: str | None = None,
+        language: str | None = None,  # noqa: ARG002  # mantido p/ compatibilidade da API pública
         normalize_audio: bool = True,
     ) -> str:
         """Transcreve um buffer PCM de áudio para texto.
@@ -217,7 +217,7 @@ class SpeechToText:
 
         except Exception as e:
             logger.error("Erro na transcrição speechbrain: %s", e)
-            raise STTError("Falha na transcrição", str(e))
+            raise STTError("Falha na transcrição", str(e)) from e
 
     @staticmethod
     def _convert_to_pcm(filepath: str) -> bytes:
@@ -248,12 +248,13 @@ class SpeechToText:
             return result.stdout
 
         except subprocess.TimeoutExpired:
-            raise STTError("Timeout na conversão do arquivo de áudio")
+            raise STTError("Timeout na conversão do arquivo de áudio") from None
         except FileNotFoundError:
-            raise STTError("ffmpeg não encontrado", "Instale com: sudo apt install ffmpeg")
+            raise STTError(
+                "ffmpeg não encontrado", "Instale com: sudo apt install ffmpeg"
+            ) from None
 
     def __repr__(self) -> str:
         return (
-            f"SpeechToText(model={self._model_name}, "
-            f"device={self._device}, lang={self._language})"
+            f"SpeechToText(model={self._model_name}, device={self._device}, lang={self._language})"
         )

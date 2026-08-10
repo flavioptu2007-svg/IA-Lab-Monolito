@@ -10,15 +10,11 @@ Fornece endpoints REST para:
 
 from __future__ import annotations
 
-import json
 import os
 import time
-from pathlib import Path
-from typing import Any
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 app = FastAPI(
@@ -222,8 +218,8 @@ async def list_agents():
 @app.post("/api/chat", response_model=ChatResponse)
 async def chat(request: ChatRequest):
     """Envia uma mensagem para a IA com roteamento inteligente."""
+
     from ai.providers.base import TaskType
-    import asyncio
 
     service = get_service()
     start = time.monotonic()
@@ -235,7 +231,7 @@ async def chat(request: ChatRequest):
             try:
                 agent = registry.create(request.agent)
             except KeyError as exc:
-                raise HTTPException(status_code=404, detail=str(exc))
+                raise HTTPException(status_code=404, detail=str(exc)) from exc
 
             response_text = await agent.run(
                 request.prompt, provider=request.provider, use_rag=request.use_rag
@@ -288,7 +284,7 @@ async def chat(request: ChatRequest):
     except HTTPException:
         raise
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc))
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
 
 
 @app.get("/api/history")
@@ -309,7 +305,6 @@ async def clear_history():
 async def get_metrics():
     """Retorna um snapshot das métricas Prometheus."""
     from prometheus_client.registry import REGISTRY
-    from prometheus_client.openmetrics import exposition as openmetrics
 
     # Coleta amostras das métricas mais importantes
     samples = {}

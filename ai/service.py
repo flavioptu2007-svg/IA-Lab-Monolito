@@ -29,16 +29,16 @@ class AIService:
         if self._providers is not None:
             return self._providers
 
+        from ai.providers.bitnet import BitNetProvider
+        from ai.providers.ollama import OllamaProvider
         from ai.providers.providers import (
-            OpenAIProvider,
             ClaudeProvider,
             GeminiProvider,
-            GroqProvider,
             GLMProvider,
+            GroqProvider,
+            OpenAIProvider,
             PerplexityProvider,
         )
-        from ai.providers.ollama import OllamaProvider
-        from ai.providers.bitnet import BitNetProvider
 
         self._providers = {
             "openai": OpenAIProvider,
@@ -108,7 +108,7 @@ class AIService:
                 docs = await store.search(prompt)
                 if docs:
                     rag_context = "\n\n".join(
-                        f"[Documento {i+1}] {d['text']}" for i, d in enumerate(docs)
+                        f"[Documento {i + 1}] {d['text']}" for i, d in enumerate(docs)
                     )
                     final_prompt = (
                         f"Contexto relevante:\n{rag_context}\n\n"

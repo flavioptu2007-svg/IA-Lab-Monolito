@@ -37,7 +37,7 @@ class AgentRegistry:
         """Cria uma instância do agente pelo nome."""
         if name not in self._agents:
             available = ", ".join(self._agents.keys())
-            raise KeyError(f"Agente '{name}' não encontrado. " f"Disponíveis: [{available}]")
+            raise KeyError(f"Agente '{name}' não encontrado. Disponíveis: [{available}]")
         return self._agents[name]()
 
     def list_names(self) -> list[str]:
@@ -55,8 +55,8 @@ def get_agent_registry() -> AgentRegistry:
     if _registry is None:
         _registry = AgentRegistry()
         # Registra agentes built-in
-        from ai.agents.code_agent import CodeAgent
         from ai.agents.architect_agent import ArchitectAgent
+        from ai.agents.code_agent import CodeAgent
         from ai.agents.writer_agent import WriterAgent
 
         _registry.register(CodeAgent)

@@ -24,8 +24,9 @@ class TestE2EMonolito:
 
     @pytest.fixture
     def client(self):
-        from api.server import app
         from fastapi.testclient import TestClient
+
+        from api.server import app
 
         return TestClient(app)
 

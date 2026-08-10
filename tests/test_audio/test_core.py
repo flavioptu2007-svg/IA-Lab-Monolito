@@ -13,14 +13,13 @@ Todas as operações externas (subprocess, shutil) são mockadas.
 
 from __future__ import annotations
 
+import subprocess
 from typing import Any
 from unittest.mock import patch
 
-import subprocess
-
 import pytest
 
-from ai.audio.core import AudioEngine
+from ai.audio.core import AudioDeviceError, AudioEngine
 
 from .conftest import MockSubprocessResult
 
@@ -81,8 +80,7 @@ class TestAudioEngineListDevices:
 
     def test_list_sources(self) -> None:
         pactl_output = (
-            "0\talsa_input.pci-0000_00_1f.3.analog-stereo\tRUNNING\n"
-            "1\tia-lab-mic.monitor\tIDLE\n"
+            "0\talsa_input.pci-0000_00_1f.3.analog-stereo\tRUNNING\n1\tia-lab-mic.monitor\tIDLE\n"
         )
         with patch("subprocess.run") as mock_run:
             mock_run.return_value = MockSubprocessResult(returncode=0, stdout=pactl_output)
@@ -94,7 +92,7 @@ class TestAudioEngineListDevices:
 
     def test_list_sinks(self) -> None:
         pactl_output = (
-            "0\talsa_output.pci-0000_00_1f.3.analog-stereo\tRUNNING\n" "1\tia-lab-mic\tIDLE\n"
+            "0\talsa_output.pci-0000_00_1f.3.analog-stereo\tRUNNING\n1\tia-lab-mic\tIDLE\n"
         )
         with patch("subprocess.run") as mock_run:
             mock_run.return_value = MockSubprocessResult(returncode=0, stdout=pactl_output)
@@ -164,7 +162,7 @@ class TestAudioEngineInitializeAndShutdown:
         ):
             mock_run.return_value = MockSubprocessResult(returncode=1, stdout="")
             engine = AudioEngine()
-            with pytest.raises(Exception):
+            with pytest.raises(AudioDeviceError):
                 await engine.initialize()
             assert engine.is_initialized is False
 

@@ -5,8 +5,8 @@ Testa criacao, propriedades, record_fixed (mockado), save_to_file, e stop.
 
 from __future__ import annotations
 
-from pathlib import Path
 import subprocess
+from pathlib import Path
 from unittest.mock import patch
 
 import pytest

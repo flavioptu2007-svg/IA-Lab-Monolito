@@ -73,7 +73,7 @@ def detect_format(filepath: str | bytes) -> str:
             ext = Path(filepath).suffix.lower()
             if ext in SUPPORTED_FORMATS:
                 return ext
-            raise AudioFormatError("Arquivo nao encontrado", filepath)
+            raise AudioFormatError("Arquivo nao encontrado", filepath) from None
 
     # Detecta por magic bytes
     for fmt, magic in MAGIC_BYTES.items():
@@ -286,9 +286,11 @@ def convert(
             return b""
 
     except FileNotFoundError:
-        raise AudioConversionError("ffmpeg não encontrado", "Instale com: sudo apt install ffmpeg")
+        raise AudioConversionError(
+            "ffmpeg não encontrado", "Instale com: sudo apt install ffmpeg"
+        ) from None
     except subprocess.TimeoutExpired:
-        raise AudioConversionError("Timeout na conversão de áudio")
+        raise AudioConversionError("Timeout na conversão de áudio") from None
 
 
 # ── Conversões específicas ───────────────────────────────────────────────────

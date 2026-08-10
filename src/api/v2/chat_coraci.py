@@ -17,7 +17,7 @@ import json
 import logging
 import sqlite3
 import uuid
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -441,4 +441,4 @@ async def test_connection(req: TestConnectionRequest):
         model_list = [m.id for m in models]
         return {"status": "ok", "models": model_list}
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e

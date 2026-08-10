@@ -6,7 +6,6 @@ Todos os efeitos operam sobre arrays numpy de 16-bit PCM.
 
 from __future__ import annotations
 
-
 import numpy as np
 from scipy import signal as scipy_signal
 

@@ -13,8 +13,8 @@ from __future__ import annotations
 import subprocess
 import threading
 import time
-from pathlib import Path
 from collections.abc import Callable
+from pathlib import Path
 
 from ai.audio.exceptions import AudioCaptureError
 from ai.audio.settings import audio_settings
@@ -210,9 +210,11 @@ class AudioRecorder:
         except subprocess.TimeoutExpired:
             raise AudioCaptureError(
                 f"Timeout gravando de {src}", f"Limite de {duration + 10}s excedido"
-            )
+            ) from None
         except FileNotFoundError:
-            raise AudioCaptureError("ffmpeg não encontrado", "Instale com: sudo apt install ffmpeg")
+            raise AudioCaptureError(
+                "ffmpeg não encontrado", "Instale com: sudo apt install ffmpeg"
+            ) from None
 
     # ── Métodos auxiliares ────────────────────────────────────────────────
 
@@ -257,7 +259,7 @@ class AudioRecorder:
             return filepath
 
         except subprocess.TimeoutExpired:
-            raise AudioCaptureError("Timeout ao salvar arquivo de áudio")
+            raise AudioCaptureError("Timeout ao salvar arquivo de áudio") from None
 
     # ── Worker interno ────────────────────────────────────────────────────
 

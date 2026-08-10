@@ -7,8 +7,8 @@ from __future__ import annotations
 
 import struct
 import tempfile
-from pathlib import Path
 from collections.abc import Generator
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import numpy as np
@@ -99,7 +99,7 @@ def synthetic_noise(sample_rate: int) -> bytes:
 
 
 @pytest.fixture
-def synthetic_speech_chunk(sample_rate: int, frame_size: int) -> bytes:
+def synthetic_speech_chunk(sample_rate: int, frame_size: int) -> bytes:  # noqa: ARG001
     """Gera um frame VAD simulando fala (energia suficiente para disparar VAD)."""
     samples_per_frame = frame_size // 2  # 16-bit = 2 bytes/sample
     t = np.linspace(0, 30 / 1000, samples_per_frame, endpoint=False)

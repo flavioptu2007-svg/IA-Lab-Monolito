@@ -260,8 +260,9 @@ class TestOpenVINOEndpoints:
     @pytest.fixture
     def client(self):
         """Cria um TestClient com a app principal."""
-        from api.server import app
         from fastapi.testclient import TestClient
+
+        from api.server import app
 
         return TestClient(app)
 
@@ -306,7 +307,7 @@ class TestOpenVINOEndpoints:
             assert response.status_code == 503
             assert response.json()["detail"] == "openvino_not_available"
 
-    def test_health_router_registrado_na_app(self, client):
+    def test_health_router_registrado_na_app(self, client):  # noqa: ARG002
         """O router openvino deve estar registrado na app principal.
 
         Em FastAPI >=0.100, ``include_router()`` adiciona objetos
@@ -339,9 +340,9 @@ class TestOpenVINOEndpoints:
         for r in app.routes:
             all_paths.extend(_extrair_paths(r))
 
-        assert (
-            "/api/v2/openvino/health" in all_paths
-        ), f"Rota não encontrada. Paths disponíveis: {all_paths}"
+        assert "/api/v2/openvino/health" in all_paths, (
+            f"Rota não encontrada. Paths disponíveis: {all_paths}"
+        )
         assert "/api/v2/openvino/generate" in all_paths
         assert "/api/v2/openvino/transcribe" in all_paths
         assert "/api/v2/openvino/rag/query" in all_paths
@@ -368,8 +369,9 @@ class TestOpenVINOEndpointsSucesso:
     @pytest.fixture
     def client(self):
         """Cria um TestClient com a app principal."""
-        from api.server import app
         from fastapi.testclient import TestClient
+
+        from api.server import app
 
         return TestClient(app)
 
@@ -394,7 +396,7 @@ class TestOpenVINOEndpointsSucesso:
         pipe.close = AsyncMock()
         return pipe
 
-    def test_generate_retorna_200_com_output(self, client, mock_openvino_instalado):
+    def test_generate_retorna_200_com_output(self, client, mock_openvino_instalado):  # noqa: ARG002
         """POST /api/v2/openvino/generate deve retornar 200 com output."""
         mock_pipeline = self._make_mock_pipeline(
             generate=AsyncMock(return_value="resposta simulada do OpenVINO")
@@ -412,7 +414,7 @@ class TestOpenVINOEndpointsSucesso:
         assert "model" in data
         assert "device" in data
 
-    def test_generate_chama_close_ao_final(self, client, mock_openvino_instalado):
+    def test_generate_chama_close_ao_final(self, client, mock_openvino_instalado):  # noqa: ARG002
         """O método close() deve ser chamado no finally do endpoint."""
         mock_pipeline = self._make_mock_pipeline(generate=AsyncMock(return_value="ok"))
 
@@ -422,7 +424,7 @@ class TestOpenVINOEndpointsSucesso:
         # close() é chamado no finally do endpoint
         mock_pipeline.close.assert_awaited_once()
 
-    def test_generate_com_system_prompt(self, client, mock_openvino_instalado):
+    def test_generate_com_system_prompt(self, client, mock_openvino_instalado):  # noqa: ARG002
         """POST deve aceitar system_prompt opcional."""
         mock_pipeline = self._make_mock_pipeline(generate=AsyncMock(return_value="resposta"))
 
@@ -437,15 +439,14 @@ class TestOpenVINOEndpointsSucesso:
 
     # ── Transcribe ───────────────────────────────────────────────
 
-    def test_transcribe_retorna_200_com_texto(self, client, mock_openvino_instalado):
+    def test_transcribe_retorna_200_com_texto(self, client, mock_openvino_instalado):  # noqa: ARG002
         """POST /api/v2/openvino/transcribe deve retornar 200 com transcrição."""
         import tempfile
-        from pathlib import Path
 
         # Cria um arquivo WAV mínimo válido para upload
-
         # Gera bytes WAV válidos sem dependência do soundfile
         import wave
+        from pathlib import Path
 
         with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
             wav_path = tmp.name
@@ -492,7 +493,7 @@ class TestOpenVINOEndpointsSucesso:
 
     # ── RAG Query ────────────────────────────────────────────────
 
-    def test_rag_query_retorna_200_com_resposta(self, client, mock_openvino_instalado):
+    def test_rag_query_retorna_200_com_resposta(self, client, mock_openvino_instalado):  # noqa: ARG002
         """POST /api/v2/openvino/rag/query deve retornar 200 com resposta."""
         mock_pipeline = self._make_mock_pipeline(
             query_rag=AsyncMock(
@@ -518,7 +519,7 @@ class TestOpenVINOEndpointsSucesso:
         assert data["vector_count"] == 42
         assert data["latency_ms"] > 0
 
-    def test_rag_query_com_docs_dir_personalizado(self, client, mock_openvino_instalado):
+    def test_rag_query_com_docs_dir_personalizado(self, client, mock_openvino_instalado):  # noqa: ARG002
         """POST deve aceitar docs_dir personalizado."""
         mock_pipeline = self._make_mock_pipeline(
             query_rag=AsyncMock(

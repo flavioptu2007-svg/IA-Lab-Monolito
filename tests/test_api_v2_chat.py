@@ -142,7 +142,7 @@ class TestChatSSE:
         """Chat deve retornar media type text/event-stream."""
         with patch(
             "src.api.v2.chat_coraci._stream_chat_openai",
-            side_effect=lambda *a, **kw: _async_stream(['data: {"type": "done"}\n\n']),
+            side_effect=lambda *_a, **_kw: _async_stream(['data: {"type": "done"}\n\n']),
         ):
             response = client.post("/api/v2/chat", json={"message": "teste"})
             assert response.status_code == 200
@@ -152,7 +152,7 @@ class TestChatSSE:
         """O primeiro evento deve ser o conv_id."""
         with patch(
             "src.api.v2.chat_coraci._stream_chat_openai",
-            side_effect=lambda *a, **kw: _async_stream(['data: {"type": "done"}\n\n']),
+            side_effect=lambda *_a, **_kw: _async_stream(['data: {"type": "done"}\n\n']),
         ):
             response = client.post("/api/v2/chat", json={"message": "ola"})
             lines = response.text.strip().split("\n")
@@ -167,7 +167,7 @@ class TestChatSSE:
         """Após o chat, a resposta deve estar no histórico da conversa."""
         with patch(
             "src.api.v2.chat_coraci._stream_chat_openai",
-            side_effect=lambda *a, **kw: _async_stream(
+            side_effect=lambda *_a, **_kw: _async_stream(
                 [
                     'data: {"type": "content", "text": "Resposta do "}\n\n',
                     'data: {"type": "content", "text": "assistente"}\n\n',
@@ -199,7 +199,7 @@ class TestChatSSE:
         """Quando o stream lança exceção, deve retornar evento error."""
         with patch(
             "src.api.v2.chat_coraci._stream_chat_openai",
-            side_effect=lambda *a, **kw: _async_stream(
+            side_effect=lambda *_a, **_kw: _async_stream(
                 ['data: {"type": "error", "text": "Falha na conexão"}\n\n']
             ),
         ):
@@ -225,7 +225,7 @@ class TestChatSSE:
 
         with patch(
             "src.api.v2.chat_coraci._stream_chat_openai",
-            side_effect=lambda *a, **kw: _async_stream(
+            side_effect=lambda *_a, **_kw: _async_stream(
                 [
                     'data: {"type": "content", "text": "nova resposta"}\n\n',
                     'data: {"type": "done"}\n\n',

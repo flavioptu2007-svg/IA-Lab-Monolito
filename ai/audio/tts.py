@@ -210,7 +210,7 @@ class TextToSpeech:
             except Exception as fallback_e:
                 raise TTSError(
                     "Ambos os engines de TTS falharam", f"Primário: {e}; Fallback: {fallback_e}"
-                )
+                ) from fallback_e
 
     def synthesize_to_file(self, text: str, filepath: str | Path, voice: str | None = None) -> str:
         """Sintetiza e salva em arquivo WAV.
@@ -282,7 +282,6 @@ class TextToSpeech:
         if self._engine in ("edge-tts", "auto"):
             try:
                 import edge_tts
-                import asyncio
 
                 async def _list():
                     all_voices = await edge_tts.list_voices()
@@ -313,7 +312,7 @@ class TextToSpeech:
 
     # ── Engines internos ──────────────────────────────────────────────────
 
-    @lru_cache(maxsize=128)
+    @lru_cache(maxsize=128)  # noqa: B019  # cache intencional (self incluso); cache_clear() exposto via API
     def _synthesize_espeak(self, text: str, voice: str, rate: int, volume: int) -> bytes:
         """Síntese via espeak-ng (nativo, leve, offline).
 
@@ -368,9 +367,9 @@ class TextToSpeech:
         except FileNotFoundError:
             raise TTSError(
                 "espeak não encontrado", "Instale com: sudo apt install espeak espeak-ng"
-            )
+            ) from None
         except subprocess.TimeoutExpired:
-            raise TTSError("Timeout na síntese espeak")
+            raise TTSError("Timeout na síntese espeak") from None
         finally:
             if os.path.exists(tmp_path):
                 os.unlink(tmp_path)
@@ -437,7 +436,6 @@ class TextToSpeech:
     def _synthesize_edge(self, text: str, voice: str) -> bytes:
         """Síntese via edge-tts (vozes naturais, requer internet)."""
         try:
-            import asyncio
             import edge_tts
 
             edge_voice = self._resolve_edge_voice(voice)
@@ -468,9 +466,9 @@ class TextToSpeech:
             return pcm_data
 
         except ImportError:
-            raise TTSError("edge-tts não instalado", "Instale com: pip install edge-tts")
+            raise TTSError("edge-tts não instalado", "Instale com: pip install edge-tts") from None
         except Exception as e:
-            raise TTSError("Falha na síntese edge-tts", str(e))
+            raise TTSError("Falha na síntese edge-tts", str(e)) from e
 
     # ── Utilitários ───────────────────────────────────────────────────────
 
@@ -481,4 +479,4 @@ class TextToSpeech:
         return shutil.which(program)
 
     def __repr__(self) -> str:
-        return f"TextToSpeech(engine={self._engine}, " f"voice={self._voice}, rate={self._rate})"
+        return f"TextToSpeech(engine={self._engine}, voice={self._voice}, rate={self._rate})"

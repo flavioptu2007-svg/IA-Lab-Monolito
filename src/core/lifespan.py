@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(_app: FastAPI):
     """Gerencia o ciclo de vida da aplicação FastAPI.
 
     Startup (antes do ``yield``):
@@ -122,4 +122,6 @@ async def lifespan(app: FastAPI):
     if shutdown_ok:
         logger.info("IA-Lab Unified API encerrada — todos os recursos liberados")
     else:
-        logger.warning("IA-Lab Unified API encerrada — alguns recursos podem não ter sido liberados")
+        logger.warning(
+            "IA-Lab Unified API encerrada — alguns recursos podem não ter sido liberados"
+        )

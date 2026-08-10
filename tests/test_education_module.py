@@ -96,7 +96,7 @@ class TestEducationSchemas:
 
     def test_lesson_plan_create_completo(self):
         """Deve criar com todos os campos."""
-        from src.education.schemas import LessonPlanCreate, LessonMomentContent
+        from src.education.schemas import LessonMomentContent, LessonPlanCreate
 
         plan = LessonPlanCreate(
             title="Revolução Francesa",
@@ -167,6 +167,7 @@ class TestEducationSchemas:
     def test_calendar_event_create(self):
         """Deve criar evento de calendário."""
         from datetime import date
+
         from src.education.schemas import CalendarEventCreate
 
         event = CalendarEventCreate(
@@ -211,10 +212,9 @@ class TestEducationStore:
     @pytest.fixture
     def store(self):
         """Retorna uma instância limpa do EducationStore."""
-        from src.education.services import get_store
-
         # Reseta o singleton para cada teste
         import src.education.services as svc
+        from src.education.services import get_store
 
         svc._store = None
         return get_store()
@@ -280,7 +280,7 @@ class TestEducationStore:
         assert store.delete_lesson_plan(created.id) is True
         assert store.get_lesson_plan(created.id) is None
 
-    def test_delete_lesson_plan_inexistente(self, store):
+    def test_delete_lesson_plan_inexistente(self, store):  # noqa: ARG002
         """Deve retornar False ao remover ID inexistente."""
         from src.education.services import get_store
 
@@ -314,6 +314,7 @@ class TestEducationStore:
     def test_calendar_crud(self, store):
         """Deve criar e listar eventos do calendário."""
         from datetime import date
+
         from src.education.schemas import CalendarEventCreate
 
         store.create_event(
@@ -402,8 +403,9 @@ class TestEducationEndpoints:
     @pytest.fixture
     def client(self):
         """Cria um TestClient com a app principal."""
-        from api.server import app
         from fastapi.testclient import TestClient
+
+        from api.server import app
 
         return TestClient(app)
 
@@ -540,7 +542,7 @@ class TestEducationEndpoints:
         assert get_resp.status_code == 200
         assert get_resp.json()["total"] >= 1
 
-    def test_router_registrado_na_app(self, client):
+    def test_router_registrado_na_app(self, client):  # noqa: ARG002
         """O router education deve estar registrado na app principal."""
         from api.server import app
 

@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import logging
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from src.education.enums import BNCC_SKILLS
@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 
 def _utcnow() -> datetime:
     """Agora em UTC como datetime naive (equivalente ao removido ``utcnow()``)."""
-    return datetime.now(timezone.utc).replace(tzinfo=None)
+    return datetime.now(UTC).replace(tzinfo=None)
 
 
 # ═══════════════════════════════════════════════════════════════

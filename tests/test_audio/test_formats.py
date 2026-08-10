@@ -11,8 +11,8 @@ Testa:
 from __future__ import annotations
 
 import json
-from pathlib import Path
 from collections.abc import Generator
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -135,7 +135,7 @@ class TestGetAudioInfo:
             mock_run.return_value = MockSubprocessResult(returncode=0, stdout=json.dumps(mock_data))
             yield mock_run
 
-    def test_get_audio_info_basic(self, tmp_dir: Path, mock_ffprobe: MagicMock) -> None:
+    def test_get_audio_info_basic(self, tmp_dir: Path, mock_ffprobe: MagicMock) -> None:  # noqa: ARG002
         filepath = tmp_dir / "test.mp3"
         filepath.write_bytes(b"dummy")
 
@@ -171,12 +171,12 @@ class TestConvert:
             )
             yield mock_run
 
-    def test_convert_pcm_to_wav(self, mock_ffmpeg: MagicMock) -> None:
+    def test_convert_pcm_to_wav(self, mock_ffmpeg: MagicMock) -> None:  # noqa: ARG002
         result = convert(b"\x00\x00" * 100, ".wav")
         assert result is not None
         assert len(result) > 0
 
-    def test_convert_file_to_mp3(self, tmp_dir: Path, mock_ffmpeg: MagicMock) -> None:
+    def test_convert_file_to_mp3(self, tmp_dir: Path, mock_ffmpeg: MagicMock) -> None:  # noqa: ARG002
         input_file = tmp_dir / "input.wav"
         input_file.write_bytes(b"RIFF" + b"\x00" * 100)
 
@@ -184,7 +184,7 @@ class TestConvert:
         result = convert(str(input_file), ".mp3", output_path=output_path)
         assert result == b""  # retorna vazio quando salva em arquivo
 
-    def test_convert_with_custom_params(self, mock_ffmpeg: MagicMock) -> None:
+    def test_convert_with_custom_params(self, mock_ffmpeg: MagicMock) -> None:  # noqa: ARG002
         result = convert(b"\x00\x00" * 100, ".flac", sample_rate=44100, channels=2, bitrate="320k")
         assert result is not None
 
@@ -197,12 +197,14 @@ class TestConvert:
                 convert(b"\x00\x00" * 100, ".wav")
 
     def test_convert_ffmpeg_not_found(self) -> None:
-        with patch("subprocess.run", side_effect=FileNotFoundError):
-            with pytest.raises(AudioConversionError):
-                convert(b"\x00\x00" * 100, ".wav")
+        with (
+            patch("subprocess.run", side_effect=FileNotFoundError),
+            pytest.raises(AudioConversionError),
+        ):
+            convert(b"\x00\x00" * 100, ".wav")
 
     def test_convert_timeout(self) -> None:
-        with patch("subprocess.run", side_effect=TimeoutError), pytest.raises(Exception):
+        with patch("subprocess.run", side_effect=TimeoutError), pytest.raises(TimeoutError):
             convert(b"\x00\x00" * 100, ".wav")
 
 

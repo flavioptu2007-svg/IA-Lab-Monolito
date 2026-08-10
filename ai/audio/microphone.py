@@ -13,6 +13,7 @@ Uso típico:
 
 from __future__ import annotations
 
+import contextlib
 import subprocess
 import time
 from typing import Any
@@ -20,7 +21,6 @@ from typing import Any
 from ai.audio.exceptions import AudioDeviceError
 from ai.audio.settings import audio_settings
 from ai.telemetry import get_logger
-import contextlib
 
 logger = get_logger("ai.audio.microphone")
 

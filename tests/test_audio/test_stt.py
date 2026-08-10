@@ -89,9 +89,11 @@ class TestSpeechToTextTranscribe:
         """Transcrever sem speechbrain instalado deve levantar STTError."""
         stt = SpeechToText()
         audio = b"\x00\x01" * 1000
-        with patch("importlib.import_module", side_effect=ImportError("no module")):
-            with pytest.raises(STTError):
-                stt.transcribe(audio)
+        with (
+            patch("importlib.import_module", side_effect=ImportError("no module")),
+            pytest.raises(STTError),
+        ):
+            stt.transcribe(audio)
 
     def test_transcribe_file_not_found(self) -> None:
         stt = SpeechToText()

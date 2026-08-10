@@ -14,8 +14,8 @@ import os
 import subprocess
 import threading
 from collections import deque
-from dataclasses import dataclass
 from collections.abc import Callable
+from dataclasses import dataclass
 
 from ai.audio.settings import audio_settings
 from ai.telemetry import get_logger
@@ -394,7 +394,7 @@ class AudioPlayer:
                 self._play_item(current)
 
     @staticmethod
-    def _play_with_aplay(audio_data: bytes, volume: float) -> None:
+    def _play_with_aplay(audio_data: bytes, _volume: float) -> None:
         """Fallback: reproduz com aplay."""
         cmd = ["aplay", "-f", "S16_LE", "-r", str(audio_settings.sample_rate), "-c", "1"]
         try:

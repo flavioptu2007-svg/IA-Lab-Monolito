@@ -251,7 +251,7 @@ async def chat(request: ChatRequest):
             try:
                 agent = registry.create(request.agent)
             except KeyError as exc:
-                raise HTTPException(status_code=404, detail=str(exc))
+                raise HTTPException(status_code=404, detail=str(exc)) from exc
 
             response_text = await agent.run(
                 request.prompt, provider=request.provider, use_rag=request.use_rag
@@ -304,7 +304,7 @@ async def chat(request: ChatRequest):
     except HTTPException:
         raise
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc))
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
 
 
 @app.get("/api/history")
@@ -469,8 +469,9 @@ async def audio_record(request: AudioRecordRequest):
     Returns:
         Dados de áudio no formato solicitado, ou erro.
     """
-    from ai.audio import metrics as am
     import base64
+
+    from ai.audio import metrics as am
 
     engine = get_audio_engine()
     from ai.audio.recorder import AudioRecorder
@@ -508,7 +509,7 @@ async def audio_record(request: AudioRecordRequest):
 
     except Exception as e:
         am.audio_errors.labels(error_type="capture").inc()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
     finally:
         am.audio_recording.labels(source=request.source or "default").set(0)
 
@@ -519,9 +520,10 @@ async def audio_effects(request: AudioEffectsRequest):
 
     O áudio PCM 16-bit deve ser enviado como campo "audio_base64" no body.
     """
+    import base64
+
     from ai.audio import effects as ef
     from ai.audio import metrics as am
-    import base64
 
     if not request.audio_base64:
         raise HTTPException(
@@ -531,7 +533,7 @@ async def audio_effects(request: AudioEffectsRequest):
     try:
         audio_data = base64.b64decode(request.audio_base64)
     except Exception:
-        raise HTTPException(status_code=400, detail="audio_base64 inválido")
+        raise HTTPException(status_code=400, detail="audio_base64 inválido") from None
 
     try:
         # Aplica efeitos em cadeia
@@ -580,7 +582,7 @@ async def audio_effects(request: AudioEffectsRequest):
 
     except Exception as e:
         am.audio_errors.labels(error_type="config").inc()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @app.post("/api/audio/stt")
@@ -589,8 +591,9 @@ async def audio_stt(request: AudioSTTRequest):
 
     O áudio deve ser enviado como campo "audio_base64" no body JSON.
     """
-    from ai.audio import metrics as am
     import base64
+
+    from ai.audio import metrics as am
 
     if not request.audio_base64:
         raise HTTPException(status_code=400, detail="Campo 'audio_base64' é obrigatório no body")
@@ -598,7 +601,7 @@ async def audio_stt(request: AudioSTTRequest):
     try:
         audio_data = base64.b64decode(request.audio_base64)
     except Exception:
-        raise HTTPException(status_code=400, detail="audio_base64 inválido")
+        raise HTTPException(status_code=400, detail="audio_base64 inválido") from None
 
     from ai.audio.stt import SpeechToText
 
@@ -637,7 +640,7 @@ async def audio_stt(request: AudioSTTRequest):
     except Exception as e:
         am.stt_requests.labels(model=stt.model_name, status="error").inc()
         am.audio_errors.labels(error_type="stt").inc()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @app.post("/api/audio/tts")
@@ -654,10 +657,10 @@ async def audio_tts(request: AudioTTSRequest):
     Returns:
         Áudio em base64 no formato solicitado.
     """
-    from ai.audio import metrics as am
     import base64
     import time
 
+    from ai.audio import metrics as am
     from ai.audio.tts import TextToSpeech
 
     tts = TextToSpeech(engine=request.engine, voice=request.voice, rate=request.rate)
@@ -689,7 +692,9 @@ async def audio_tts(request: AudioTTSRequest):
 
         # Métricas
         audio_duration = len(audio_data) / 16000 / 2  # estimativa PCM 16kHz
-        am.tts_duration.labels(engine=real_engine, voice=request.voice or tts.voice).observe(elapsed)
+        am.tts_duration.labels(engine=real_engine, voice=request.voice or tts.voice).observe(
+            elapsed
+        )
         am.tts_audio_duration.labels(engine=real_engine).observe(audio_duration)
         am.tts_characters.labels(engine=real_engine, voice=request.voice or tts.voice).inc(
             len(request.text)
@@ -712,14 +717,14 @@ async def audio_tts(request: AudioTTSRequest):
     except Exception as e:
         am.tts_requests.labels(engine=tts.engine, status="error").inc()
         am.audio_errors.labels(error_type="tts").inc()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @app.get("/api/audio/mic/status")
 async def audio_mic_status():
     """Status do microfone virtual."""
-    from ai.audio.microphone import VirtualMicrophone
     from ai.audio import metrics as am
+    from ai.audio.microphone import VirtualMicrophone
 
     vmic = VirtualMicrophone()
     status = vmic.get_status()
@@ -737,8 +742,8 @@ async def audio_mic_status():
 @app.post("/api/audio/mic/create")
 async def audio_mic_create(request: AudioMicRequest):
     """Cria o microfone virtual no PipeWire."""
-    from ai.audio.microphone import VirtualMicrophone
     from ai.audio import metrics as am
+    from ai.audio.microphone import VirtualMicrophone
 
     vmic = VirtualMicrophone(sink_name=request.sink_name, description=request.description)
 
@@ -752,14 +757,14 @@ async def audio_mic_create(request: AudioMicRequest):
             raise HTTPException(status_code=500, detail="Falha ao criar microfone virtual")
     except Exception as e:
         am.audio_errors.labels(error_type="device").inc()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @app.post("/api/audio/mic/remove")
 async def audio_mic_remove(request: AudioMicRequest):
     """Remove o microfone virtual do PipeWire."""
-    from ai.audio.microphone import VirtualMicrophone
     from ai.audio import metrics as am
+    from ai.audio.microphone import VirtualMicrophone
 
     vmic = VirtualMicrophone(sink_name=request.sink_name, description=request.description)
 
@@ -771,7 +776,7 @@ async def audio_mic_remove(request: AudioMicRequest):
         return {"status": "ok", "removed": result}
     except Exception as e:
         am.audio_errors.labels(error_type="device").inc()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @app.get("/api/audio/metrics")
