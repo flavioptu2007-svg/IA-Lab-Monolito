@@ -12,6 +12,7 @@
 #
 #  Uso:
 #    ./chat_local.sh                 # sobe o servidor + testa o chat
+#    ./chat_local.sh --lan           # expõe na LAN (outros computadores acessam)
 #    ./chat_local.sh --pergunta "..." # sobe e testa com pergunta customizada
 #    ./chat_local.sh --status         # mostra se o servidor está no ar
 #    ./chat_local.sh --parar          # derruba o servidor
@@ -20,13 +21,19 @@
 #  Requisitos:
 #    - Python 3.10+ com as deps do monolito (pip install -r requirements.txt)
 #    - Arquivo .env na raiz com IA_LAB_GEMINI_API_KEY (ver .env.example)
+#
+#  🏫 Modo LAN (--lan): os computadores da sala acessam pelo IP da máquina,
+#    ex.: http://192.168.15.17:8099/docs — só a máquina precisa de internet
+#    (o chat chama a API Gemini da nuvem; os alunos não precisam de internet).
+#    O CORS da API já libera qualquer IP 192.168.x.x para o portal.
 # =============================================================================
 set -u
 
 # ── Config ──────────────────────────────────────────────────────────────────
 RAIZ="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PORTA="${PORTA:-8099}"
-URL="http://127.0.0.1:${PORTA}"
+HOST="127.0.0.1"
+URL="http://${HOST}:${PORTA}"
 LOG="${TMPDIR:-/tmp}/chat_local_${PORTA}.log"
 PID_FILE="${TMPDIR:-/tmp}/chat_local_${PORTA}.pid"
 PERGUNTA="Quem descobriu o Brasil? Responda em 2 frases."
@@ -35,11 +42,12 @@ COMANDO_TESTE="sobe"
 # ── Parsing de argumentos ───────────────────────────────────────────────────
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --porta)   PORTA="$2"; URL="http://127.0.0.1:${PORTA}"; LOG="${TMPDIR:-/tmp}/chat_local_${PORTA}.log"; PID_FILE="${TMPDIR:-/tmp}/chat_local_${PORTA}.pid"; shift 2 ;;
+    --porta)   PORTA="$2"; URL="http://${HOST}:${PORTA}"; LOG="${TMPDIR:-/tmp}/chat_local_${PORTA}.log"; PID_FILE="${TMPDIR:-/tmp}/chat_local_${PORTA}.pid"; shift 2 ;;
+    --lan)     HOST="0.0.0.0"; shift ;;
     --pergunta) PERGUNTA="$2"; shift 2 ;;
     --status)  COMANDO_TESTE="status"; shift ;;
     --parar)   COMANDO_TESTE="parar"; shift ;;
-    -h|--help) sed -n '2,24p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    -h|--help) sed -n '2,28p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
     *) echo "❌ Argumento desconhecido: $1 (use --help)" >&2; exit 1 ;;
   esac
 done
@@ -113,7 +121,8 @@ else
 
   # Desacopla do terminal (sobrevive ao fim do shell) — aprendizado:
   # rodar direto em background faz o processo morrer junto com o shell.
-  setsid nohup python3 -m uvicorn api.server:app --host 127.0.0.1 --port "$PORTA" \
+  # --lan usa --host 0.0.0.0 (acessível pelos computadores da escola).
+  setsid nohup python3 -m uvicorn api.server:app --host "$HOST" --port "$PORTA" \
     > "$LOG" 2>&1 < /dev/null &
   echo $! > "$PID_FILE"
   COMANDO_TESTE="subindo"
@@ -130,6 +139,11 @@ if esta_no_ar; then
   echo "✅ Servidor NO AR — ${URL}"
   echo "   Swagger: ${URL}/docs"
   echo "   Provider: $(curl -s --max-time 5 "${URL}/api/config" 2>/dev/null | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('primary_provider','?'))" 2>/dev/null || echo '?')"
+  if [[ "$HOST" == "0.0.0.0" ]]; then
+    # Descobre o IP da máquina na LAN para os alunos acessarem
+    LAN_IP="$(ip -4 addr show 2>/dev/null | grep -oE 'inet 192\.168\.[0-9.]+' | head -1 | awk '{print $2}')"
+    echo "   🏫 LAN:  http://${LAN_IP:-<IP-da-maquina>}:${PORTA}/docs  (computadores da escola)"
+  fi
   echo
   echo "🧪 Testando /api/chat..."
   echo "   Pergunta: $PERGUNTA"
