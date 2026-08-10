@@ -41,6 +41,7 @@ class TestSpeechToTextCreation:
 
 class TestSpeechToTextModelLoading:
     def test_load_model_success(self) -> None:
+        pytest.importorskip("speechbrain")
         with patch("speechbrain.inference.ASR.EncoderASR"):
             stt = SpeechToText()
             result = stt.load_model()
@@ -53,6 +54,7 @@ class TestSpeechToTextModelLoading:
             assert result is False
 
     def test_load_model_twice(self) -> None:
+        pytest.importorskip("speechbrain")
         with patch("speechbrain.inference.ASR.EncoderASR"):
             stt = SpeechToText()
             r1 = stt.load_model()
