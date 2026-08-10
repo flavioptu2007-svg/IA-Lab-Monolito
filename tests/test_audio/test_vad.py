@@ -19,6 +19,11 @@ import pytest
 from ai.audio.exceptions import VADError
 from ai.audio.vad import VoiceActivityDetector
 
+# webrtcvad é uma extensão C antiga: em alguns Pythons (ex.: 3.12 no CI) o
+# import falha em runtime mesmo compilando. O módulo já lida com a ausência
+# (VoiceActivityDetector levanta VADError) — os testes são pulados nesse caso.
+pytest.importorskip("webrtcvad")
+
 
 class TestVADCreation:
     """Criação do VoiceActivityDetector com parâmetros válidos/inválidos."""
