@@ -5,6 +5,33 @@
 
 ---
 
+## v2.1.0 — IA-Lab Unified (monolito)
+
+**Data:** Agosto de 2026
+**Bump:** `2.0.0 → 2.1.0` (minor — 6 features, sem breaking changes)
+
+### Adicionado
+
+- **LeituraIA Brasil** — integração do módulo de leitura adaptativa ao monolito (auth JWT + RBAC com perfis, biblioteca de textos, geração de texto com IA)
+- **Chat local com IA** — `scripts/chat_local.sh` (sobe o servidor na porta 8099 e testa `/api/chat` com um clique; flags `--status`/`--parar`/`--pergunta`/`--porta`; modo `--lan` para a rede da escola) e `scripts/abrir_chat_ia.sh` (atalhos de desktop)
+- **Providers gratuitos sem cartão** — Groq e Gemini (AI Studio) como providers primários no Render
+- **Deploy na nuvem** — `Dockerfile.cloudrun` + `render.yaml` (Render grátis) + CI do dashboard no GitHub Pages
+- **Guia de desenvolvimento local** — `ENV_LOCAL_GEMINI.md` + `.env.example` (chave Gemini local sem cartão)
+
+### Corrigido
+
+- **TTS edge-tts funcional** — `asyncio.run` em thread (não quebra em loop ativo), mapeamento de vozes espeak→edge (pt-BR-AntonioNeural), extração de PCM por chunks, header WAV válido no pipe do ffmpeg; + testes (508 no total)
+- **Modelo Gemini** — padrão atualizado para `gemini-3.5-flash` (2.5-flash-001 descontinuado) e depois `gemini-3.1-flash-lite` (perf: 1.5s com respostas completas)
+- **CORS** — origens do portal educacional liberadas (web.app, LAN, domínio) para `/api/chat` e `/api/audio/*`
+- **Deploy** — região trocada para Virginia (menor latência p/ Brasil), `leituraia/` e `requirements.txt` no repo, espeak/ffmpeg e extra `education` na imagem
+
+### Interno (sem mudança de comportamento)
+
+- Lint 100% limpo (`ruff check` + `ruff format`) em todo o código de primeira parte (~600k → 0 erros com `extend-exclude` de terceiros)
+- Documentação versionada: `ARCHITECTURE.md`, `LICENSE` (MIT), `VERSION`, `HISTORY.md`
+
+---
+
 ## Manutenção — Limpeza de Lint (ruff)
 
 **Data:** Agosto de 2026

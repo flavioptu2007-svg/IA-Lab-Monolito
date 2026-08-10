@@ -25,7 +25,7 @@ from src.core.routers import register_routers
 
 app = FastAPI(
     title="IA-Lab Unified API",
-    version="2.0.0",
+    version="2.1.0",
     description="Monolito FastAPI unificado — IA, Áudio, RAG, OpenVINO e Educação",
     lifespan=lifespan,
 )
@@ -165,7 +165,7 @@ async def health():
         hs.labels(component="ollama").set(0)
 
     overall = "ok" if all(v == "ok" for v in checks.values()) else "degraded"
-    return {"status": overall, "checks": checks, "version": "2.0.0"}
+    return {"status": overall, "checks": checks, "version": "2.1.0"}
 
 
 @app.get("/api/providers")

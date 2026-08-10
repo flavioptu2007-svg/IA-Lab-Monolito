@@ -32,7 +32,7 @@ FROM python:3.12-slim
 
 LABEL org.opencontainers.image.title="IA-Lab API (Cloud Run)"
 LABEL org.opencontainers.image.description="Monolito FastAPI — chat, áudio e educação (deploy nuvem)"
-LABEL org.opencontainers.image.version="2.0.0"
+LABEL org.opencontainers.image.version="2.1.0"
 
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
