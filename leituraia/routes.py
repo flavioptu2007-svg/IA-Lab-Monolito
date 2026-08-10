@@ -9,7 +9,6 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import HTMLResponse
 
-from leituraia import config
 from leituraia.auth import (
     criar_access_token,
     criar_refresh_token,
@@ -20,11 +19,11 @@ from leituraia.auth import (
 from leituraia.generator import gerar_texto
 from leituraia.library import get_library
 from leituraia.models import (
+    NIVEL_ROTULO,
     DashboardOut,
     GerarTextoRequest,
     LeituraRegistro,
     LoginRequest,
-    NIVEL_ROTULO,
     RegistroRequest,
     TextoCreate,
     TextoGerado,
@@ -42,9 +41,7 @@ leitor_pages = APIRouter(tags=["leituraia-leitor"])
 @router.post("/auth/registro", response_model=TokenPair, status_code=201)
 def registrar(dados: RegistroRequest) -> TokenPair:
     try:
-        usuario = get_user_store().criar(
-            dados.nome, dados.email, dados.senha, dados.perfil
-        )
+        usuario = get_user_store().criar(dados.nome, dados.email, dados.senha, dados.perfil)
     except ValueError as exc:
         raise HTTPException(409, str(exc)) from exc
     return _token_par(usuario)
@@ -138,9 +135,7 @@ def remover_texto(texto_id: str, _=Depends(require("biblioteca:gerenciar"))):
 
 # ── Leitura ──────────────────────────────────────────────────────────
 @router.get("/biblioteca/{texto_id}/leitura", response_model=dict)
-def payload_leitura(
-    texto_id: str, _=Depends(require("textos:ler"))
-) -> dict:
+def payload_leitura(texto_id: str, _=Depends(require("textos:ler"))) -> dict:
     texto = get_library().obter(texto_id)
     if texto is None:
         raise HTTPException(404, "texto nao encontrado")
@@ -264,9 +259,7 @@ def leitor_html(texto_id: str) -> HTMLResponse:
     import html as _html
 
     paragrafos = "".join(
-        f"<p>{_html.escape(p)}</p>"
-        for p in texto.conteudo.split("\n\n")
-        if p.strip()
+        f"<p>{_html.escape(p)}</p>" for p in texto.conteudo.split("\n\n") if p.strip()
     )
     glossario = (
         f"<div class='glossario'><b>Glossário:</b> "
@@ -274,9 +267,7 @@ def leitor_html(texto_id: str) -> HTMLResponse:
         if texto.glossario
         else ""
     )
-    perguntas = "".join(
-        f"<li>{_html.escape(p.pergunta)}</li>" for p in texto.perguntas
-    )
+    perguntas = "".join(f"<li>{_html.escape(p.pergunta)}</li>" for p in texto.perguntas)
     perguntas_html = (
         "<div class='perguntas'><h3>Perguntas de compreensão leitora</h3>"
         f"<ol>{perguntas}</ol></div>"

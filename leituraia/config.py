@@ -38,7 +38,7 @@ DEFAULT_MODEL = "glm-4.7"
 
 # ── JWT ──────────────────────────────────────────────────────────────
 _DEV_SECRET = "leituraia-dev-secret-nao-use-em-producao"
-ACCESS_TOKEN_MIN = 60 * 30          # 30 min
+ACCESS_TOKEN_MIN = 60 * 30  # 30 min
 REFRESH_TOKEN_DAYS = 7
 
 _aviso_secreto = False

@@ -17,7 +17,7 @@ import secrets
 import time
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -62,15 +62,15 @@ def _gerar_token(sub: str, perfil: str, exp: datetime) -> str:
 
 
 def criar_access_token(uid: str, perfil: str) -> str:
-    return _gerar_token(uid, perfil, datetime.now(timezone.utc) + timedelta(minutes=30))
+    return _gerar_token(uid, perfil, datetime.now(UTC) + timedelta(minutes=30))
 
 
 def criar_refresh_token(uid: str, perfil: str) -> str:
-    return _gerar_token(uid, perfil, datetime.now(timezone.utc) + timedelta(days=7))
+    return _gerar_token(uid, perfil, datetime.now(UTC) + timedelta(days=7))
 
 
 def decodificar_token(token: str) -> dict | None:
-    from jose import jwt, JWTError
+    from jose import JWTError, jwt
 
     try:
         return jwt.decode(token, config.get_jwt_secret(), algorithms=["HS256"])
@@ -86,7 +86,7 @@ class Usuario:
     email: str
     perfil: Profile
     senha_hash: str
-    criado_em: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    criado_em: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 class UserStore:

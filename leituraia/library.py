@@ -296,8 +296,7 @@ class LibraryStore:
         if tags:
             tags_list = [s.strip().lower() for s in str(tags).split(",") if s.strip()]
             textos = [
-                t for t in textos
-                if any(tag in [x.lower() for x in t.tags] for tag in tags_list)
+                t for t in textos if any(tag in [x.lower() for x in t.tags] for tag in tags_list)
             ]
 
         bncc = filtros.get("bncc")

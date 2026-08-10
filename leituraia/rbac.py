@@ -10,12 +10,12 @@ Uso:
 
 from __future__ import annotations
 
-from enum import Enum
+from enum import StrEnum
 
 from fastapi import Depends, HTTPException, status
 
 
-class Profile(str, Enum):
+class Profile(StrEnum):
     ADMIN = "admin"
     SECRETARIA = "secretaria"
     DIRETOR = "diretor"

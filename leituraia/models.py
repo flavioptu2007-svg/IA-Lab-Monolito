@@ -9,8 +9,14 @@ from pydantic import BaseModel, EmailStr, Field
 from leituraia.rbac import Profile
 
 Nivel = Literal[
-    "iniciante", "fundamental1", "fundamental2", "ensino_medio", "eja",
-    "tea", "tdah", "dislexia",
+    "iniciante",
+    "fundamental1",
+    "fundamental2",
+    "ensino_medio",
+    "eja",
+    "tea",
+    "tdah",
+    "dislexia",
 ]
 
 NIVEL_ROTULO = {
@@ -25,8 +31,15 @@ NIVEL_ROTULO = {
 }
 
 TipoQuestao = Literal[
-    "multipla_escolha", "verdadeiro_falso", "dissertativa", "resposta_curta",
-    "lacunas", "ordenacao", "associacao", "inferencia", "linha_tempo",
+    "multipla_escolha",
+    "verdadeiro_falso",
+    "dissertativa",
+    "resposta_curta",
+    "lacunas",
+    "ordenacao",
+    "associacao",
+    "inferencia",
+    "linha_tempo",
 ]
 
 

@@ -23,9 +23,9 @@ import httpx
 
 from leituraia import config
 from leituraia.models import (
+    NIVEL_ROTULO,
     GerarTextoRequest,
     LinhaTempoItem,
-    NIVEL_ROTULO,
     Pergunta,
     TextoGerado,
 )
@@ -143,7 +143,7 @@ def _gerar_template(req: GerarTextoRequest) -> TextoGerado:
 
     perguntas = [
         Pergunta(
-            pergunta=f"Qual é o tema principal deste texto?",
+            pergunta="Qual é o tema principal deste texto?",
             tipo="multipla_escolha",
             resposta=f"O tema principal é {tema}.",
         ),

@@ -16,7 +16,7 @@ __version__ = "0.1.0"
 
 from leituraia.auth import UserStore, get_user_store
 from leituraia.library import LibraryStore, get_library
-from leituraia.rbac import Profile, PERMISSIONS, require, tem_permissao
+from leituraia.rbac import PERMISSIONS, Profile, require, tem_permissao
 
 __all__ = [
     "__version__",
