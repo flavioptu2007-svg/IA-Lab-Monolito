@@ -25,7 +25,7 @@ COPY pyproject.toml requirements.txt ./
 # Instala o pacote (core + extra education p/ leituraia: jose/passlib/argon2)
 # Sem extras pesados (OpenVINO, speechbrain, dev tools)
 RUN pip install --no-cache-dir build wheel && \
-    pip install --no-cache-dir --prefix=/install '.[education]'
+    pip install --no-cache-dir --prefix=/install '.[education]' edge-tts
 
 # ── Stage 2: Runtime ────────────────────────────────────────────────────────
 FROM python:3.12-slim
