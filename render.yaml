@@ -24,12 +24,15 @@ services:
         value: "false"
       # ── CHAT ────────────────────────────────────────────────────────────
       # Provider primário do chat. Opções gratuitas SEM cartão:
-      #   groq   → console.groq.com (conta Google, chave gsk_...) — RECOMENDADO
-      #   gemini → aistudio.google.com (chave AIza...)
+      #   gemini → aistudio.google.com (chave AIza...) — RECOMENDADO (usado hoje)
+      #   groq   → console.groq.com (conta Google, chave gsk_...)
       #   openai → exige chave paga (evitar)
       - key: IA_LAB_PRIMARY_PROVIDER
-        value: "groq"
-      # Chave Groq (grátis, sem cartão) — preencher no dashboard do Render
+        value: "gemini"
+      # Chave Gemini (grátis, sem cartão) — preencher no dashboard do Render
+      - key: IA_LAB_GEMINI_API_KEY
+        sync: false
+      # Chave Groq (alternativa gratuita) — preencher se um dia trocar de provider
       - key: IA_LAB_GROQ_API_KEY
         sync: false
       # Chave OpenAI — apenas se usar openai como provider
