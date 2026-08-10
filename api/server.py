@@ -671,6 +671,9 @@ async def audio_tts(request: AudioTTSRequest):
 
         elapsed = time.monotonic() - start
 
+        # Engine real (pode ser fallback — ex.: edge-tts quando espeak ausente)
+        real_engine = tts.last_engine or tts.engine
+
         if not audio_data:
             raise HTTPException(status_code=500, detail="Falha na síntese de áudio — retorno vazio")
 
@@ -686,12 +689,12 @@ async def audio_tts(request: AudioTTSRequest):
 
         # Métricas
         audio_duration = len(audio_data) / 16000 / 2  # estimativa PCM 16kHz
-        am.tts_duration.labels(engine=tts.engine, voice=request.voice or tts.voice).observe(elapsed)
-        am.tts_audio_duration.labels(engine=tts.engine).observe(audio_duration)
-        am.tts_characters.labels(engine=tts.engine, voice=request.voice or tts.voice).inc(
+        am.tts_duration.labels(engine=real_engine, voice=request.voice or tts.voice).observe(elapsed)
+        am.tts_audio_duration.labels(engine=real_engine).observe(audio_duration)
+        am.tts_characters.labels(engine=real_engine, voice=request.voice or tts.voice).inc(
             len(request.text)
         )
-        am.tts_requests.labels(engine=tts.engine, status="success").inc()
+        am.tts_requests.labels(engine=real_engine, status="success").inc()
 
         return {
             "status": "ok",
@@ -699,7 +702,7 @@ async def audio_tts(request: AudioTTSRequest):
             "text_length": len(request.text),
             "audio_duration_sec": round(audio_duration, 2),
             "latency_ms": int(elapsed * 1000),
-            "engine": tts.engine,
+            "engine": real_engine,
             "voice": request.voice or tts.voice,
             "audio_base64": base64.b64encode(audio_data).decode(),
         }

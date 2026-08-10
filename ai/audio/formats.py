@@ -261,8 +261,26 @@ def convert(
             raise AudioConversionError(f"Falha na conversão para {output_format}", stderr)
 
         if is_pipe:
-            logger.debug("Conversão concluída: %d bytes", len(result.stdout))
-            return result.stdout
+            out = result.stdout
+            # ffmpeg em modo pipe grava tamanhos 0xFFFFFFFF no WAV (streaming).
+            # Corrige os campos de tamanho para o WAV ficar válido em qualquer player.
+            if output_format == ".wav" and out[:4] == b"RIFF" and len(out) > 44:
+                import struct
+
+                out = bytearray(out)
+                struct.pack_into("<I", out, 4, len(out) - 8)  # RIFF size
+                # Encontra o chunk 'data' e corrige seu tamanho
+                pos = 12
+                while pos < len(out) - 8:
+                    cid = out[pos : pos + 4]
+                    csize = struct.unpack_from("<I", out, pos + 4)[0]
+                    if cid == b"data":
+                        struct.pack_into("<I", out, pos + 4, len(out) - (pos + 8))
+                        break
+                    pos += 8 + csize
+                out = bytes(out)
+            logger.debug("Conversão concluída: %d bytes", len(out))
+            return out
         else:
             logger.debug("Arquivo salvo: %s", output_path)
             return b""

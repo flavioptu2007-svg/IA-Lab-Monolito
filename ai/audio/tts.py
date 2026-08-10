@@ -47,6 +47,7 @@ class TextToSpeech:
         self._voice = voice or audio_settings.tts_voice
         self._rate = rate or audio_settings.tts_rate
         self._volume = volume or audio_settings.tts_volume
+        self._last_engine: str | None = None  # engine real após fallback
 
         # Cache LRU de frases
         self._cache_enabled = True
@@ -63,6 +64,12 @@ class TextToSpeech:
     @property
     def engine(self) -> str:
         return self._engine
+
+    @property
+    def last_engine(self) -> str | None:
+        """Engine que realmente gerou o último áudio (pode diferir do configurado
+        quando houve fallback — ex.: edge-tts usado no lugar de espeak)."""
+        return self._last_engine
 
     @engine.setter
     def engine(self, value: str) -> None:
@@ -127,6 +134,28 @@ class TextToSpeech:
         self._synthesize_espeak.cache_clear()
         logger.info("Cache de TTS limpo")
 
+    @staticmethod
+    def _run_async(coro):
+        """Executa uma coroutine em qualquer contexto (sync ou dentro de um
+        event loop já rodando — ex.: handler async do FastAPI).
+
+        ``asyncio.run()`` falha com "cannot be called from a running event
+        loop" quando chamado dentro de um loop ativo; neste caso a coroutine
+        é executada numa thread separada (onde ``asyncio.run`` funciona).
+        """
+        import asyncio
+        import concurrent.futures
+
+        try:
+            asyncio.get_running_loop()  # levanta RuntimeError se não houver loop
+        except RuntimeError:
+            # Sem loop ativo — execução direta (CLI/scripts)
+            return asyncio.run(coro)
+
+        # Loop ativo (FastAPI async) — roda numa thread isolada
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+            return pool.submit(asyncio.run, coro).result(timeout=120)
+
     # ── Síntese principal ─────────────────────────────────────────────────
 
     def synthesize(
@@ -172,9 +201,12 @@ class TextToSpeech:
             )
             try:
                 if fallback_engine == "espeak":
-                    return self._synthesize_espeak(text, v, r, vol)
+                    result = self._synthesize_espeak(text, v, r, vol)
                 else:
-                    return self._synthesize_edge(text, v)
+                    result = self._synthesize_edge(text, v)
+                # Registra o engine que realmente gerou o áudio (para reporte)
+                self._last_engine = fallback_engine
+                return result
             except Exception as fallback_e:
                 raise TTSError(
                     "Ambos os engines de TTS falharam", f"Primário: {e}; Fallback: {fallback_e}"
@@ -259,7 +291,7 @@ class TextToSpeech:
                         for v in all_voices
                     ]
 
-                edge_voices = asyncio.run(_list())
+                edge_voices = self._run_async(_list())
                 voices.extend(edge_voices)
             except (ImportError, Exception):
                 pass
@@ -343,19 +375,79 @@ class TextToSpeech:
             if os.path.exists(tmp_path):
                 os.unlink(tmp_path)
 
+    @staticmethod
+    def _extract_pcm_from_wav(wav_data: bytes) -> bytes:
+        """Extrai o payload PCM de um WAV percorrendo seus chunks.
+
+        O edge-tts gera WAV com chunks extras (ex.: 'LIST', 'fact') além de
+        'fmt ' e 'data' — assumir header fixo de 44 bytes corrompe o áudio.
+        Esta função localiza o chunk 'data' de forma robusta.
+        """
+        if len(wav_data) < 12 or wav_data[:4] != b"RIFF":
+            return wav_data  # já é PCM bruto
+        import struct
+
+        pos = 12
+        while pos + 8 <= len(wav_data):
+            cid = wav_data[pos : pos + 4]
+            csize = struct.unpack_from("<I", wav_data, pos + 4)[0]
+            if cid == b"data":
+                start = pos + 8
+                return wav_data[start : start + csize]
+            pos += 8 + csize
+            if cid in (b"fmt ", b"data") and csize % 2:
+                pos += 1  # alinhamento ímpar (especificação RIFF)
+        return wav_data
+
+    # Mapeia códigos de idioma espeak (ex: 'pt-br') para vozes neurais edge-tts
+    _EDGE_VOICE_MAP = {
+        "pt-br": "pt-BR-AntonioNeural",
+        "pt": "pt-BR-AntonioNeural",
+        "en-us": "en-US-AriaNeural",
+        "en": "en-US-AriaNeural",
+        "en-gb": "en-GB-SoniaNeural",
+        "es": "es-ES-ElviraNeural",
+        "fr": "fr-FR-DeniseNeural",
+        "de": "de-DE-KatjaNeural",
+        "it": "it-IT-ElsaNeural",
+        "ja": "ja-JP-NanamiNeural",
+        "zh": "zh-CN-XiaoxiaoNeural",
+        "ko": "ko-KR-SunHiNeural",
+        "ru": "ru-RU-SvetlanaNeural",
+    }
+
+    def _resolve_edge_voice(self, voice: str) -> str:
+        """Converte voz espeak ('pt-br') em voz edge-tts ('pt-BR-AntonioNeural').
+
+        Se a voz já estiver no formato edge-tts (ex.: contém 'Neural' ou segue
+        o padrão XX-YY-Nome), usa direto; senão, procura no mapa de idiomas.
+        """
+        v = (voice or "").strip()
+        if not v:
+            return audio_settings.tts_edge_voice
+        # Já é formato edge-tts (ex: 'pt-BR-AntonioNeural', 'en-US-JennyMultilingualNeural')
+        if "Neural" in v or (len(v) > 8 and "-" in v and v.count("-") >= 2):
+            return v
+        key = v.lower()
+        if key in self._EDGE_VOICE_MAP:
+            return self._EDGE_VOICE_MAP[key]
+        # Fallback: voz padrão edge-tts configurada
+        return audio_settings.tts_edge_voice
+
     def _synthesize_edge(self, text: str, voice: str) -> bytes:
         """Síntese via edge-tts (vozes naturais, requer internet)."""
         try:
             import asyncio
             import edge_tts
 
+            edge_voice = self._resolve_edge_voice(voice)
             output_file = tempfile.mktemp(suffix=".wav")
 
             async def _run():
-                communicate = edge_tts.Communicate(text, voice)
+                communicate = edge_tts.Communicate(text, edge_voice)
                 await communicate.save(output_file)
 
-            asyncio.run(_run())
+            self._run_async(_run())
 
             if not os.path.exists(output_file):
                 raise TTSError("edge-tts não gerou arquivo de saída")
@@ -365,8 +457,9 @@ class TextToSpeech:
 
             os.unlink(output_file)
 
-            # Extrai PCM do WAV
-            pcm_data = wav_data[44:] if len(wav_data) > 44 else wav_data
+            # Extrai o PCM percorrendo os chunks do WAV (edge-tts gera chunks
+            # adicionais como LIST/fact — não é seguro assumir header fixo 44B).
+            pcm_data = self._extract_pcm_from_wav(wav_data)
 
             logger.debug(
                 "edge-tts: %d caracteres → %d bytes PCM (voz=%s)", len(text), len(pcm_data), voice

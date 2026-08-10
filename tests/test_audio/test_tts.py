@@ -106,10 +106,34 @@ class TestTextToSpeechSynthesize:
         assert result == b""
 
     def test_synthesize_espeak_not_found(self) -> None:
-        with patch("shutil.which", return_value=None):
+        """Sem espeak e sem edge-tts funcional → TTSError."""
+        with (
+            patch("shutil.which", return_value=None),
+            patch.object(
+                TextToSpeech, "_synthesize_edge", side_effect=TTSError("edge indisponível", "teste")
+            ),
+        ):
             tts = TextToSpeech()
             with pytest.raises(TTSError):
                 tts.synthesize("ola mundo")
+
+    def test_synthesize_espeak_fallback_to_edge(self) -> None:
+        """Sem espeak, mas com edge-tts funcional → usa edge-tts (fallback)."""
+        with (
+            patch("shutil.which", return_value=None),
+            patch.object(TextToSpeech, "_synthesize_edge", return_value=b"\x00\x01" * 100),
+        ):
+            tts = TextToSpeech()
+            result = tts.synthesize("ola mundo")
+            assert result == b"\x00\x01" * 100
+            assert tts.last_engine == "edge-tts"
+
+    def test_synthesize_edge_voice_resolved(self) -> None:
+        """Voz espeak ('pt-br') é mapeada para voz edge-tts válida."""
+        tts = TextToSpeech()
+        assert tts._resolve_edge_voice("pt-br") == "pt-BR-AntonioNeural"
+        assert tts._resolve_edge_voice("en-us") == "en-US-AriaNeural"
+        assert tts._resolve_edge_voice("pt-BR-AntonioNeural") == "pt-BR-AntonioNeural"
 
 
 class TestTextToSpeechSynthesizeToFile:
