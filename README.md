@@ -650,6 +650,48 @@ Executar o Office (Word/Excel/PowerPoint) no Linux via Wine num **prefixo isolad
 >
 > O script **não depende do diretório** — `bash /caminho/absoluto/scripts/diagnose_office_linux.sh` funciona de qualquer pasta. O erro `Ficheiro ou pasta inexistente` ocorre quando se roda `./scripts/...` fora da raiz do projeto.
 
+#### `install_office2016_msi.sh` — instalação do Office 2016 MSI
+
+Instala o **Office 2016 (versão MSI — NÃO Click-to-Run)** no prefixo Wine isolado `~/.wine-office`, com log completo em `~/office2016_install.log`. É a **única versão do Office com chance real de funcionar no Wine** (veredito do [case study](docs/microsoft-office-linux-wine.md)).
+
+**Pré-requisitos:**
+
+| Item | Detalhe |
+|------|---------|
+| Wine | `wine` instalado (o script não instala — ver `setup_office_wine.sh` acima) |
+| 7z (`p7zip-full`) | **Apenas** quando o argumento for um `.iso` (extração automática) |
+| DISPLAY | Interface gráfica para o instalador (a instalação é GUI) |
+| Mídia | `.iso` ou `setup.exe` **MSI** legítimo do Office 2016 (Volume License / chave de produto / DVD) |
+
+**Uso:**
+
+```bash
+# A partir de um .iso (extrai com 7z automaticamente):
+bash scripts/install_office2016_msi.sh ~/Downloads/Office2016ProPlus.iso
+
+# Ou direto do executável:
+bash scripts/install_office2016_msi.sh ~/Downloads/setup.exe
+```
+
+**Fluxo do script:** extrai o `.iso` com `7z` (limpando extrações antigas) → detecta se a mídia é **MSI ou Click-to-Run** (aviso, não bloqueia) → cria ou reutiliza o prefixo `~/.wine-office` → executa o instalador → verifica se `WINWORD.EXE`/`EXCEL.EXE` foram instalados.
+
+```bash
+# Resultado esperado (mídia MSI válida):
+### >>> Resumo final
+Office 2016 instalado. Para abrir os aplicativos:
+  export WINEPREFIX="$HOME/.wine-office"
+  wine "$WINEPREFIX/drive_c/Program Files (x86)/Microsoft Office/Office16/WINWORD.EXE"
+
+# Diagnóstico se algo falhar (o script nunca sai com erro por instalação incompleta):
+tail -n 60 ~/office2016_install.log
+```
+
+> ⚠️ Mídia **Click-to-Run** (ODT — `configuration.xml`/`stream.*.dat` na raiz) gera aviso: a instalação pode falhar. Para o Wine, use apenas a **mídia MSI** (pasta `ProPlus.WW` + `setup.exe`).
+>
+> 🔒 Ativação apenas por **licença legítima** — o script não fornece nem sugere cracks, ativadores ou serial keys.
+>
+> 💡 Override do prefixo: `WINEPREFIX=/caminho/do/prefixo bash scripts/install_office2016_msi.sh ...`
+
 ---
 
 ## Troubleshooting
