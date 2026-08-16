@@ -390,7 +390,7 @@ def remove_silence(
     num_frames = len(samples) // frame_size
     frames = samples[: num_frames * frame_size].reshape(-1, frame_size)
     rms = np.sqrt(np.mean(frames**2, axis=1))
-    rms_db = gain_to_db(rms)
+    rms_db = np.asarray(gain_to_db(rms))
 
     # Encontra primeiro e último frame acima do limiar
     active_frames = np.where(rms_db > threshold_db)[0]
