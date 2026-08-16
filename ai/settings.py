@@ -40,21 +40,21 @@ class Settings(BaseSettings):
 
     # --- GLM (Zhipu) ---
     glm_api_key: SecretStr = SecretStr("")
-    glm_model: str = "glm-4-plus"
+    glm_model: str = "glm-5"
     glm_base_url: str = "https://open.bigmodel.cn/api/paas/v4"
 
     # --- Ollama (sem API key — autenticação local) ---
-    ollama_model: str = "qwen2.5:7b"
+    ollama_model: str = "qwen3:latest"  # modelo local instalado (qwen2.5:7b não existia no ollama)
     ollama_base_url: str = "http://localhost:11434"
 
     # --- OpenAI ---
     openai_api_key: SecretStr = SecretStr("")
-    openai_model: str = "gpt-4o"
+    openai_model: str = "gpt-5.6-terra"
     openai_base_url: str = "https://api.openai.com/v1"
 
     # --- Claude (Anthropic) ---
     claude_api_key: SecretStr = SecretStr("")
-    claude_model: str = "claude-sonnet-4-20250514"
+    claude_model: str = "claude-sonnet-5"
     claude_base_url: str = "https://api.anthropic.com/v1"
 
     # --- Gemini ---

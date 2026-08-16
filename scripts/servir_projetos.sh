@@ -121,7 +121,7 @@ montar_portal() {
   local pwa; pwa=$(backup_pwa_assets)
   rm -rf "$PORTAL"
   mkdir -p "$PORTAL"
-  cd "$FONTES"
+  cd "$FONTES" || exit 1
 
   # 1) HTMLs educacionais — todos
   for f in *.html; do
@@ -261,7 +261,7 @@ if [ -z "$IP" ]; then
   exit 1
 fi
 
-cd "$PORTAL"
+cd "$PORTAL" || exit 1
 # setsid: desacopla o processo em nova sessão — sobrevive ao fechamento do
 # terminal (nohup sozinho pode morrer junto com o shell em alguns ambientes).
 setsid python3 -m http.server "$PORT" --bind 0.0.0.0 > "$LOG" 2>&1 < /dev/null &

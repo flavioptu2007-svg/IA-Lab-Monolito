@@ -103,5 +103,31 @@ storage/
 .openclaw/
 .config/openclaw/
 
-# dotfiles com secrets
+# ── Dotfiles pessoais (contêm secrets/histórico — NUNCA versionar) ──
 /.bashrc
+/.bashrc.*
+/.bash_aliases
+/.bash_aliases.*
+/.bash_logout
+/.bash_profile
+/.bash_history*
+/.python_history
+/.profile
+/.zprofile
+/.zshrc
+/.zai*
+/.npmrc*
+/.gitconfig*
+/.gitignore.bak*
+/.wget-hsts
+/.claude.json
+/.cloud-locale-test.skip
+/.coverage
+htmlcov/
+
+# ── Mídia pessoal (screenshots/vídeos/imagens na raiz) ──────────
+/*.png
+/*.jpeg
+/*.jpg
+/*.webp
+/*.mp4

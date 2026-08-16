@@ -89,7 +89,7 @@ class OpenVINOPipeline:
         self.device = device
         self.max_new_tokens = max_new_tokens
         self.temperature = temperature
-        self._pipeline = None
+        self._pipeline: Any = None
 
     async def _ensure_loaded(self) -> None:
         """Carrega o pipeline (lazy, apenas quando necessário)."""

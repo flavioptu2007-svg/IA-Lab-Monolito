@@ -259,8 +259,8 @@ async def chat(request: ChatRequest):
             task_type = agent.task_type.value
             provider = request.provider or agent.default_provider or "auto"
         else:
-            # TaskType a partir da string
-            task_type_enum = None
+            # TaskType a partir da string (pode continuar str se inválido)
+            task_type_enum: TaskType | str | None = None
             if request.task_type:
                 try:
                     task_type_enum = TaskType(request.task_type)

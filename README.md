@@ -635,7 +635,11 @@ Executar o Office (Word/Excel/PowerPoint) no Linux via Wine num **prefixo isolad
 | Ferramenta | O que faz |
 |------------|-----------|
 | [`scripts/diagnose_office_linux.sh`](scripts/diagnose_office_linux.sh) | Diagnóstico **somente leitura** (SO, kernel, CPU, RAM, disco, Wine, Winetricks, CUPS, locale, prefixos e instaladores do Office) — nada é instalado ou alterado |
-| [`docs/microsoft-office-linux-wine.md`](docs/microsoft-office-linux-wine.md) | Guia completo em 8 etapas: diagnóstico → recomendação → autorização → instalação → configuração → testes → correções → relatório |
+| [`scripts/setup_office_wine.sh`](scripts/setup_office_wine.sh) | Prepara o prefixo Wine isolado (`~/wineprefixes/M365`, win64) com as dependências winetricks para M365/Office — opção `--skip-wine-upgrade` para usar o Wine da distro |
+| [`scripts/install_office2016_msi.sh`](scripts/install_office2016_msi.sh) | Instala o **Office 2016 MSI** (a única versão com chance real no Wine) a partir de um `.iso` ou `setup.exe`, no prefixo `~/.wine-office`, com log completo em `~/office2016_install.log` |
+| [`docs/microsoft-office-linux-wine.md`](docs/microsoft-office-linux-wine.md) | Guia completo em 8 etapas: diagnóstico → recomendação → autorização → instalação → configuração → testes → correções → relatório (inclui case study de ago/2026 com o veredito técnico por versão e o registro da preparação do Office 2016 MSI) |
+
+> 📌 **Estado atual (ago/2026):** o prefixo `~/.wine-office` está **preparado** para receber o Office 2016 MSI (Wine 10, Windows 10 build 19045, DLLs nativas `gdiplus`/`msxml3`/`msxml6`/`riched20` + overrides, validadas por checksum). Falta apenas a **mídia MSI legítima** — detalhes no final do [guia](docs/microsoft-office-linux-wine.md).
 
 > ⚠️ Execute **a partir da raiz do repositório** ou por **caminho absoluto**:
 >

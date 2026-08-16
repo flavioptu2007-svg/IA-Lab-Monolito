@@ -267,18 +267,18 @@ def convert(
             if output_format == ".wav" and out[:4] == b"RIFF" and len(out) > 44:
                 import struct
 
-                out = bytearray(out)
-                struct.pack_into("<I", out, 4, len(out) - 8)  # RIFF size
+                wav = bytearray(out)
+                struct.pack_into("<I", wav, 4, len(wav) - 8)  # RIFF size
                 # Encontra o chunk 'data' e corrige seu tamanho
                 pos = 12
-                while pos < len(out) - 8:
-                    cid = out[pos : pos + 4]
-                    csize = struct.unpack_from("<I", out, pos + 4)[0]
+                while pos < len(wav) - 8:
+                    cid = wav[pos : pos + 4]
+                    csize = struct.unpack_from("<I", wav, pos + 4)[0]
                     if cid == b"data":
-                        struct.pack_into("<I", out, pos + 4, len(out) - (pos + 8))
+                        struct.pack_into("<I", wav, pos + 4, len(wav) - (pos + 8))
                         break
                     pos += 8 + csize
-                out = bytes(out)
+                out = bytes(wav)
             logger.debug("Conversão concluída: %d bytes", len(out))
             return out
         else:

@@ -45,8 +45,8 @@ def float_to_bytes(audio_array: np.ndarray) -> bytes:
     return samples_int16.tobytes()
 
 
-def db_to_gain(db: float) -> float:
-    """Converte dB para ganho linear."""
+def db_to_gain(db: float | np.ndarray) -> float | np.ndarray:
+    """Converte dB para ganho linear (aceita escalares e arrays numpy)."""
     return 10.0 ** (db / 20.0)
 
 
@@ -106,7 +106,7 @@ def normalize(audio_data: bytes | np.ndarray, target_level_db: float = -3.0) -> 
     if peak <= 0:
         return float_to_bytes(samples)
 
-    current_db = gain_to_db(peak)
+    current_db = float(gain_to_db(peak))
     gain_needed = target_level_db - current_db
 
     logger.debug(
@@ -155,7 +155,7 @@ def noise_gate(
     # RMS por frame
     frames = samples[: num_frames * frame_size].reshape(-1, frame_size)
     rms = np.sqrt(np.mean(frames**2, axis=1))
-    rms_db = gain_to_db(rms)
+    rms_db = np.asarray(gain_to_db(rms))
 
     # Gate
     gate_open = rms_db > threshold
@@ -230,7 +230,7 @@ def compressor(
 
     # Converte para dB
     abs_samples = np.abs(samples)
-    db_samples = gain_to_db(abs_samples + 1e-10)
+    db_samples = np.asarray(gain_to_db(abs_samples + 1e-10))
 
     # Curva de compressão
     above_threshold = db_samples > threshold

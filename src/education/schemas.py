@@ -34,7 +34,7 @@ class BNCCSkillSchema(BaseModel):
 
     code: str = Field(..., description="Código da habilidade (ex: EF06HI01)")
     description: str = Field("", description="Descrição da habilidade")
-    competence_area: str = Field("História", description="Área de competência")
+    competence_area: str = Field(default="História", description="Área de competência")
     academic_year: str = Field("", description="Ano/série")
     object_knowledge: str = Field("", description="Objeto de conhecimento")
 

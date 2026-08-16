@@ -3,8 +3,12 @@
 from __future__ import annotations
 
 import logging
+from typing import TYPE_CHECKING
 
 from ai.settings import settings
+
+if TYPE_CHECKING:
+    from qdrant_client import QdrantClient
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +21,7 @@ class VectorStore:
     """
 
     _instance: VectorStore | None = None
-    _client: object | None = None
+    _client: QdrantClient | None = None
 
     def __new__(cls) -> VectorStore:
         if cls._instance is None:

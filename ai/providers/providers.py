@@ -2,10 +2,15 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import httpx
 
 from ai.providers.base import BaseProvider
 from ai.settings import settings
+
+if TYPE_CHECKING:
+    from openai.types.chat import ChatCompletionMessageParam
 
 # ---- OpenAI ----
 
@@ -29,7 +34,7 @@ class OpenAIProvider(BaseProvider):
         from openai import AsyncOpenAI
 
         client = AsyncOpenAI(api_key=self.api_key, base_url=self.base_url)
-        messages = []
+        messages: list[ChatCompletionMessageParam] = []
         if system_prompt:
             messages.append({"role": "system", "content": system_prompt})
         messages.append({"role": "user", "content": prompt})
@@ -151,7 +156,7 @@ class GroqProvider(BaseProvider):
         from openai import AsyncOpenAI
 
         client = AsyncOpenAI(api_key=self.api_key, base_url=self.base_url)
-        messages = []
+        messages: list[ChatCompletionMessageParam] = []
         if system_prompt:
             messages.append({"role": "system", "content": system_prompt})
         messages.append({"role": "user", "content": prompt})
@@ -187,7 +192,7 @@ class GLMProvider(BaseProvider):
         from openai import AsyncOpenAI
 
         client = AsyncOpenAI(api_key=self.api_key, base_url=self.base_url)
-        messages = []
+        messages: list[ChatCompletionMessageParam] = []
         if system_prompt:
             messages.append({"role": "system", "content": system_prompt})
         messages.append({"role": "user", "content": prompt})
@@ -223,7 +228,7 @@ class PerplexityProvider(BaseProvider):
         from openai import AsyncOpenAI
 
         client = AsyncOpenAI(api_key=self.api_key, base_url=self.base_url)
-        messages = []
+        messages: list[ChatCompletionMessageParam] = []
         if system_prompt:
             messages.append({"role": "system", "content": system_prompt})
         messages.append({"role": "user", "content": prompt})

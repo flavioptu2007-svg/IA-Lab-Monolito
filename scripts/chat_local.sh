@@ -60,7 +60,8 @@ esta_no_ar() {
 pid_atual() {
   # 1) PID guardado pelo próprio script
   if [[ -f "$PID_FILE" ]]; then
-    local pid="$(cat "$PID_FILE" 2>/dev/null)"
+    local pid
+    pid="$(cat "$PID_FILE" 2>/dev/null)"
     [[ -n "$pid" && -d "/proc/$pid" ]] && { echo "$pid"; return; }
   fi
   # 2) fallback: descobre o PID escutando a porta (ex.: servidor via tmux)

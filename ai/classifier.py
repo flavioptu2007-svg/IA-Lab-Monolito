@@ -91,4 +91,4 @@ class TaskClassifier:
             return TaskType.general
 
         # Retorna o tipo com maior pontuação
-        return max(scores, key=scores.get)
+        return max(scores, key=scores.__getitem__)

@@ -19,11 +19,15 @@ import sqlite3
 import uuid
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any, cast
 
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
+
+if TYPE_CHECKING:
+    from openai import AsyncStream
+    from openai.types.chat import ChatCompletionChunk, ChatCompletionMessageParam
 
 logger = logging.getLogger(__name__)
 
@@ -242,7 +246,7 @@ def _sse_event(data: dict) -> str:
 
 
 async def _stream_chat_openai(
-    messages: list[dict],
+    messages: list[ChatCompletionMessageParam],
     model: str | None = None,
     temperature: float | None = None,
     max_tokens: int | None = None,
@@ -263,13 +267,15 @@ async def _stream_chat_openai(
             max_tokens=max_tokens or cfg.get("max_tokens", DEFAULT_CONFIG["max_tokens"]),
             stream=True,
         )
-        async for chunk in response:
+        stream = cast("AsyncStream[ChatCompletionChunk]", response)
+        async for chunk in stream:
             if chunk.choices and len(chunk.choices) > 0:
-                delta = chunk.choices[0].delta
+                delta: Any = chunk.choices[0].delta
                 if delta.content:
                     yield _sse_event({"type": "content", "text": delta.content})
-                if getattr(delta, "reasoning_content", None):
-                    yield _sse_event({"type": "reasoning", "text": delta.reasoning_content})
+                reasoning = getattr(delta, "reasoning_content", None)
+                if reasoning:
+                    yield _sse_event({"type": "reasoning", "text": reasoning})
         yield _sse_event({"type": "done"})
     except Exception as e:
         yield _sse_event({"type": "error", "text": str(e)})
@@ -315,7 +321,9 @@ async def chat_sse(request: ChatRequest):
 
     db_save_conversation(conv)
 
-    api_messages = [{"role": m["role"], "content": m["content"]} for m in conv["messages"]]
+    api_messages: list[ChatCompletionMessageParam] = [
+        {"role": m["role"], "content": m["content"]} for m in conv["messages"]
+    ]
 
     async def event_generator():
         # Envia o ID da conversa primeiro

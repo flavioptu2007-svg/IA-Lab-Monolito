@@ -6,10 +6,15 @@ BitNet (porta 8080), que fornece uma API compatível com OpenAI.
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import httpx
 
 from ai.providers.base import BaseProvider
 from ai.settings import settings
+
+if TYPE_CHECKING:
+    from openai.types.chat import ChatCompletionMessageParam
 
 
 class BitNetProvider(BaseProvider):
@@ -39,7 +44,7 @@ class BitNetProvider(BaseProvider):
         from openai import AsyncOpenAI
 
         client = AsyncOpenAI(api_key=self.api_key, base_url=self.base_url)
-        messages = []
+        messages: list[ChatCompletionMessageParam] = []
         if system_prompt:
             messages.append({"role": "system", "content": system_prompt})
         messages.append({"role": "user", "content": prompt})

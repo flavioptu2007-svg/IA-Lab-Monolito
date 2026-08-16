@@ -19,7 +19,7 @@ set -uo pipefail
 
 # ── Cores ────────────────────────────────────────────────────────────────────
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; BLUE='\033[0;34m'
-CYAN='\033[0;36m'; NC='\033[0m'
+NC='\033[0m'
 ok()   { echo -e "${GREEN}  ✅ $1${NC}"; }
 info() { echo -e "${BLUE}  ℹ️  $1${NC}"; }
 warn() { echo -e "${YELLOW}  ⚠️  $1${NC}"; }
@@ -157,6 +157,38 @@ for p in "${PROJETOS[@]}"; do
     ok "$p concluído. $transferred"
   fi
 done
+
+# ── Extras: monitor MCP (script + estado do pin mcp<2) ─────────────────────
+MCP_SCRIPT="$HOME_DIR/scripts/check_mcp_pin.sh"
+MCP_STATE_DIR="$HOME_DIR/.cache/mcp-pin-check"
+MCP_REMOTE="$REMOTE/mcp-pin-check"
+
+if [ -f "$MCP_SCRIPT" ] || [ -d "$MCP_STATE_DIR" ]; then
+  echo
+  echo "  ── mcp-pin-check (monitor do pin mcp<2) ─────────────"
+
+  if [ "$APPLY" = false ]; then
+    [ -f "$MCP_SCRIPT" ] && timeout 60 rclone copy "$MCP_SCRIPT" "$MCP_REMOTE/" --dry-run 2>&1 | tail -2
+    [ -d "$MCP_STATE_DIR" ] && timeout 60 rclone copy "$MCP_STATE_DIR" "$MCP_REMOTE/state/" --dry-run 2>&1 | tail -2
+  else
+    if [ -f "$MCP_SCRIPT" ]; then
+      if timeout 60 rclone copy "$MCP_SCRIPT" "$MCP_REMOTE/" --log-level ERROR > "$LOG_FILE" 2>&1; then
+        ok "check_mcp_pin.sh"
+      else
+        erro "Falha ao copiar check_mcp_pin.sh — veja $LOG_FILE"
+        failed=$((failed + 1))
+      fi
+    fi
+    if [ -d "$MCP_STATE_DIR" ]; then
+      if timeout 60 rclone copy "$MCP_STATE_DIR" "$MCP_REMOTE/state/" --log-level ERROR > "$LOG_FILE" 2>&1; then
+        ok "estado mcp-pin-check"
+      else
+        erro "Falha ao copiar estado mcp-pin-check — veja $LOG_FILE"
+        failed=$((failed + 1))
+      fi
+    fi
+  fi
+fi
 
 echo
 echo "══════════════════════════════════════════════════"

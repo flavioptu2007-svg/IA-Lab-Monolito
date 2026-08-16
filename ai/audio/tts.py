@@ -65,17 +65,17 @@ class TextToSpeech:
     def engine(self) -> str:
         return self._engine
 
-    @property
-    def last_engine(self) -> str | None:
-        """Engine que realmente gerou o último áudio (pode diferir do configurado
-        quando houve fallback — ex.: edge-tts usado no lugar de espeak)."""
-        return self._last_engine
-
     @engine.setter
     def engine(self, value: str) -> None:
         if value not in ("espeak", "edge-tts"):
             raise TTSError(f"Engine inválido: {value}", "Use 'espeak' ou 'edge-tts'")
         self._engine = value
+
+    @property
+    def last_engine(self) -> str | None:
+        """Engine que realmente gerou o último áudio (pode diferir do configurado
+        quando houve fallback — ex.: edge-tts usado no lugar de espeak)."""
+        return self._last_engine
 
     @property
     def voice(self) -> str:
