@@ -253,7 +253,10 @@ indent-style = "space"
 line-ending = "auto"
 
 [tool.mypy]
-python_version = "3.11"
+# 3.12: numpy >= 2.5 usa stubs com `type` statements (PEP 695), que o mypy só
+# aceita com python_version >= 3.12. O CI de typecheck roda em Python 3.12; os
+# jobs de teste em 3.11 continuam garantindo compatibilidade de runtime.
+python_version = "3.12"
 strict = false
 ignore_missing_imports = true
 allow_untyped_defs = true
