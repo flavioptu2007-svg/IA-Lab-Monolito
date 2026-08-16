@@ -14,3 +14,23 @@ repos:
     hooks:
       - id: ruff
         args: [--fix, --exit-non-zero-on-fix]
+
+  # Mypy — usa o mypy do ambiente (mesmo comando do job typecheck-python do CI).
+  # `language: system` porque o mypy precisa acessar os stubs das libs instaladas
+  # (numpy/openai/fastapi...) — rodando num venv isolado do pre-commit ele veria
+  # todos os imports como missing e o typecheck perderia o sentido.
+  - repo: local
+    hooks:
+      - id: mypy
+        name: mypy (typecheck)
+        entry: python3 -m mypy src ai api --ignore-missing-imports
+        language: system
+        pass_filenames: false
+        types: [python]
+
+  # Shellcheck — mesmos avisos do job test-shell do CI (-S warning).
+  - repo: https://github.com/koalaman/shellcheck-precommit
+    rev: v0.11.0
+    hooks:
+      - id: shellcheck
+        args: [-S, warning]

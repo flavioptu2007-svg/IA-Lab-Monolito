@@ -35,7 +35,6 @@ MAX_BACKUP_DAYS=30 # Remove backups com mais de 30 dias
 # Flags
 DRY_RUN=true
 ACTION="backup"   # backup, restore, list, clean
-RESTORE_ID=""
 
 # ── Parse de argumentos ──────────────────────────────────────────────────────
 for arg in "$@"; do
@@ -75,7 +74,8 @@ mkdir -p "$BACKUP_DIR" "$LOG_DIR"
 # ── Funções ───────────────────────────────────────────────────────────────────
 
 log() {
-    local msg="$(date '+%Y-%m-%d %H:%M:%S') - $1"
+    local msg
+    msg="$(date '+%Y-%m-%d %H:%M:%S') - $1"
     echo -e "$msg" | tee -a "$LOG_FILE"
 }
 

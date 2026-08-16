@@ -74,7 +74,8 @@ mkdir -p "$LOG_DIR" "$RECORDING_DIR"
 # ── Funções ───────────────────────────────────────────────────────────────────
 
 log() {
-    local msg="$(date '+%Y-%m-%d %H:%M:%S') - $1"
+    local msg
+    msg="$(date '+%Y-%m-%d %H:%M:%S') - $1"
     echo -e "$msg" | tee -a "$LOG_FILE"
 }
 
@@ -92,7 +93,6 @@ run_cmd() {
 }
 
 check_dependencies() {
-    local missing=0
     for cmd in pactl arecord ffmpeg sox; do
         if ! command -v "$cmd" &>/dev/null; then
             echo -e "${YELLOW}AVISO:${NC} $cmd não encontrado (funcionalidade limitada)"

@@ -55,7 +55,8 @@ mkdir -p "$LOG_DIR"
 # ── Funções ───────────────────────────────────────────────────────────────────
 
 log() {
-    local msg="$(date '+%Y-%m-%d %H:%M:%S') - $1"
+    local msg
+    msg="$(date '+%Y-%m-%d %H:%M:%S') - $1"
     echo -e "$msg" | tee -a "$LOG_FILE"
 }
 

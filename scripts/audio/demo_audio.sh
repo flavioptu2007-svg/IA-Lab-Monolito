@@ -72,7 +72,8 @@ trap 'rm -f "$RESULTS_FILE" 2>/dev/null' EXIT
 # ── Funções ───────────────────────────────────────────────────────────────────
 
 log() {
-    local msg="$(date '+%Y-%m-%d %H:%M:%S') - $1"
+    local msg
+    msg="$(date '+%Y-%m-%d %H:%M:%S') - $1"
     echo -e "$msg" | tee -a "$LOG_FILE"
 }
 

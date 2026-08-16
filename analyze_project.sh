@@ -344,8 +344,8 @@ echo "_Não é necessariamente um problema, mas útil para identificar candidato
 echo ""
 } >> "$OUT_FILE"
 
-LARGE_FILES=$(find "$PROJECT_DIR" -type f \( -name "*.py" -o -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" -o -name "*.go" \) "${EXCLUDE_ARGS[@]}" 2>/dev/null \
-    | xargs -I{} sh -c 'wc -l "{}" 2>/dev/null' \
+LARGE_FILES=$(find "$PROJECT_DIR" -type f \( -name "*.py" -o -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" -o -name "*.go" \) "${EXCLUDE_ARGS[@]}" -print0 2>/dev/null \
+    | xargs -0 -I{} sh -c 'wc -l "{}" 2>/dev/null' \
     | awk '$1 > 400 {print}' \
     | sort -rn | head -20)
 

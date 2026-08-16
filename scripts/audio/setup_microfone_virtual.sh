@@ -31,8 +31,6 @@ LOG_FILE="$LOG_DIR/${SCRIPT_NAME}_${TIMESTAMP}.log"
 # Nomes dos dispositivos virtuais
 NULL_SINK_NAME="ia-lab-mic"
 NULL_SINK_DESCRIPTION="IA-Lab Microfone Virtual"
-LOOPBACK_SOURCE_NAME="ia-lab-loopback"
-LOOPBACK_SOURCE_DESCRIPTION="IA-Lab Loopback (sistema → virtual)"
 
 # Flags
 DRY_RUN=true
@@ -71,7 +69,8 @@ mkdir -p "$LOG_DIR"
 # ── Funções ───────────────────────────────────────────────────────────────────
 
 log() {
-    local msg="$(date '+%Y-%m-%d %H:%M:%S') - $1"
+    local msg
+    msg="$(date '+%Y-%m-%d %H:%M:%S') - $1"
     echo -e "$msg" | tee -a "$LOG_FILE"
 }
 
