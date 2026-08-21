@@ -20,106 +20,106 @@ INBOX.mkdir(parents=True, exist_ok=True)
 # Prioridade: mais específico primeiro
 RULES = [
     # --- INSTALADORES / SOFTWARE → Inbox para revisão ---
-    (re.compile(r"\.(deb|rpm|exe|dmg|pkg|msi)$", re.I), None),  # vai para Inbox
-    (re.compile(r"\.(tar\.gz|tar\.xz|AppImage)$", re.I), None),  # vai para Inbox
+    (re.compile(r"\.(deb|rpm|exe|dmg|pkg|msi)$", re.IGNORECASE), None),  # vai para Inbox
+    (re.compile(r"\.(tar\.gz|tar\.xz|AppImage)$", re.IGNORECASE), None),  # vai para Inbox
     # --- PLANO DE AULA / PLANEJAMENTO (antes de EJA genérico) ---
-    (re.compile(r"plano.*de.*aula|plano.*aula", re.I), "31-Atividades-e-Exercicios"),
-    (re.compile(r"plano.*de.*curso|plano.*curso|planodecurso", re.I), "12-Planejamentos-2026"),
-    (re.compile(r"planejamento.*ensino|planejamento.*aula", re.I), "12-Planejamentos-2026"),
+    (re.compile(r"plano.*de.*aula|plano.*aula", re.IGNORECASE), "31-Atividades-e-Exercicios"),
+    (re.compile(r"plano.*de.*curso|plano.*curso|planodecurso", re.IGNORECASE), "12-Planejamentos-2026"),
+    (re.compile(r"planejamento.*ensino|planejamento.*aula", re.IGNORECASE), "12-Planejamentos-2026"),
     (
-        re.compile(r"planej.*(anual|semestral|curso)|plano.*(anual|semestral|curso)", re.I),
+        re.compile(r"planej.*(anual|semestral|curso)|plano.*(anual|semestral|curso)", re.IGNORECASE),
         "12-Planejamentos-2026",
     ),
     # --- EJA (regras de período ANTES da genérica) ---
     (
         re.compile(
-            r"eja.*(4|4[ºo]).*periodo|4.*periodo.*eja|4.*ciclo.*eja|4.*semestre.*eja|eja.*4", re.I
+            r"eja.*(4|4[ºo]).*periodo|4.*periodo.*eja|4.*ciclo.*eja|4.*semestre.*eja|eja.*4", re.IGNORECASE
         ),
         "22-EJA/22.4-4Periodo",
     ),
     (
         re.compile(
-            r"eja.*(3|3[ºo]).*periodo|3.*periodo.*eja|3.*ciclo.*eja|3.*semestre.*eja|eja.*3", re.I
+            r"eja.*(3|3[ºo]).*periodo|3.*periodo.*eja|3.*ciclo.*eja|3.*semestre.*eja|eja.*3", re.IGNORECASE
         ),
         "22-EJA/22.3-3Periodo",
     ),
     (
         re.compile(
-            r"eja.*(2|2[ºo]).*periodo|2.*periodo.*eja|2.*ciclo.*eja|2.*semestre.*eja|eja.*2", re.I
+            r"eja.*(2|2[ºo]).*periodo|2.*periodo.*eja|2.*ciclo.*eja|2.*semestre.*eja|eja.*2", re.IGNORECASE
         ),
         "22-EJA/22.2-2Periodo",
     ),
     (
         re.compile(
-            r"eja.*(1|1[ºo]).*periodo|1.*periodo.*eja|1.*ciclo.*eja|1.*semestre.*eja|eja.*1", re.I
+            r"eja.*(1|1[ºo]).*periodo|1.*periodo.*eja|1.*ciclo.*eja|1.*semestre.*eja|eja.*1", re.IGNORECASE
         ),
         "22-EJA/22.1-1Periodo",
     ),
     (
-        re.compile(r"\d[ºo].*periodo.*eja|eja.*\d[ºo].*periodo", re.I),
+        re.compile(r"\d[ºo].*periodo.*eja|eja.*\d[ºo].*periodo", re.IGNORECASE),
         "22-EJA",
     ),  # fallback com número
-    (re.compile(r"eja", re.I), "22-EJA"),  # genérico
+    (re.compile(r"eja", re.IGNORECASE), "22-EJA"),  # genérico
     # --- AVALIAÇÕES ---
     (
-        re.compile(r"prova.*bimestral|prova.*trimestral|avalia.*bimestr", re.I),
+        re.compile(r"prova.*bimestral|prova.*trimestral|avalia.*bimestr", re.IGNORECASE),
         "32-Avaliacoes-e-Simulados",
     ),
     (
-        re.compile(r"avaliacao|avaliação|prova|saeb|simave|caed|inep|diagnóstica", re.I),
+        re.compile(r"avaliacao|avaliação|prova|saeb|simave|caed|inep|diagnóstica", re.IGNORECASE),
         "32-Avaliacoes-e-Simulados",
     ),
     # --- BNCC / CURRÍCULO ---
-    (re.compile(r"bncc|curriculo|currículo|crmg|referencia", re.I), "33-BNCC-e-Curriculos"),
+    (re.compile(r"bncc|curriculo|currículo|crmg|referencia", re.IGNORECASE), "33-BNCC-e-Curriculos"),
     # --- ATIVIDADES / EXERCÍCIOS / TEMAS DE HISTÓRIA ---
-    (re.compile(r"ativ|exercic|simulado|gabarito|quest", re.I), "31-Atividades-e-Exercicios"),
+    (re.compile(r"ativ|exercic|simulado|gabarito|quest", re.IGNORECASE), "31-Atividades-e-Exercicios"),
     (
-        re.compile(r"reforma.*protestante|luter|calvin|zwingl|contrareforma|contra.reforma", re.I),
+        re.compile(r"reforma.*protestante|luter|calvin|zwingl|contrareforma|contra.reforma", re.IGNORECASE),
         "31-Atividades-e-Exercicios",
     ),
-    (re.compile(r"revolu.*frances|napoleon", re.I), "31-Atividades-e-Exercicios"),
-    (re.compile(r"revolu.*russa|bolchev|lenin|trotsk", re.I), "31-Atividades-e-Exercicios"),
-    (re.compile(r"egito.*antigo|egipcio", re.I), "31-Atividades-e-Exercicios"),
-    (re.compile(r"feudalis", re.I), "31-Atividades-e-Exercicios"),
-    (re.compile(r"pr.?colomb|maia|asteca|inca", re.I), "31-Atividades-e-Exercicios"),
-    (re.compile(r"haiti|independencia.*haiti", re.I), "31-Atividades-e-Exercicios"),
-    (re.compile(r"darwin|evolu", re.I), "31-Atividades-e-Exercicios"),
-    (re.compile(r"islam|islami|muçulmano|oriente.*medio", re.I), "31-Atividades-e-Exercicios"),
-    (re.compile(r"colonial|colonia|brasil.*colonia|aucareira", re.I), "31-Atividades-e-Exercicios"),
-    (re.compile(r"histo.*ri.*a|historia|historiograf", re.I), "31-Atividades-e-Exercicios"),
+    (re.compile(r"revolu.*frances|napoleon", re.IGNORECASE), "31-Atividades-e-Exercicios"),
+    (re.compile(r"revolu.*russa|bolchev|lenin|trotsk", re.IGNORECASE), "31-Atividades-e-Exercicios"),
+    (re.compile(r"egito.*antigo|egipcio", re.IGNORECASE), "31-Atividades-e-Exercicios"),
+    (re.compile(r"feudalis", re.IGNORECASE), "31-Atividades-e-Exercicios"),
+    (re.compile(r"pr.?colomb|maia|asteca|inca", re.IGNORECASE), "31-Atividades-e-Exercicios"),
+    (re.compile(r"haiti|independencia.*haiti", re.IGNORECASE), "31-Atividades-e-Exercicios"),
+    (re.compile(r"darwin|evolu", re.IGNORECASE), "31-Atividades-e-Exercicios"),
+    (re.compile(r"islam|islami|muçulmano|oriente.*medio", re.IGNORECASE), "31-Atividades-e-Exercicios"),
+    (re.compile(r"colonial|colonia|brasil.*colonia|aucareira", re.IGNORECASE), "31-Atividades-e-Exercicios"),
+    (re.compile(r"histo.*ri.*a|historia|historiograf", re.IGNORECASE), "31-Atividades-e-Exercicios"),
     (
-        re.compile(r"bingo|domino|jogo.*ensino|jogo.*historia|ludic", re.I),
+        re.compile(r"bingo|domino|jogo.*ensino|jogo.*historia|ludic", re.IGNORECASE),
         "31-Atividades-e-Exercicios",
     ),
     # --- IMAGENS / DIAGRAMAS / MAPAS ---
-    (re.compile(r"mapa.*mental|diagrama|ilustr|caricatura|charge", re.I), "34-Midias-e-Imagens"),
+    (re.compile(r"mapa.*mental|diagrama|ilustr|caricatura|charge", re.IGNORECASE), "34-Midias-e-Imagens"),
     # --- GRP / SISTEMA ---
-    (re.compile(r"grp|sistema.*paracatu", re.I), "24-Administracao/24.1-GRP-e-Sistema"),
+    (re.compile(r"grp|sistema.*paracatu", re.IGNORECASE), "24-Administracao/24.1-GRP-e-Sistema"),
     # --- PESSOAL ---
     (
-        re.compile(r"milha|viagem|promoc|promoção|azul|latam|mestre.*milha", re.I),
+        re.compile(r"milha|viagem|promoc|promoção|azul|latam|mestre.*milha", re.IGNORECASE),
         "50-Pessoal/52-Viagens",
     ),
     (
-        re.compile(r"torrent|filme|bludv|dublad|legendad|revolucao.*dos.*bichos", re.I),
+        re.compile(r"torrent|filme|bludv|dublad|legendad|revolucao.*dos.*bichos", re.IGNORECASE),
         "50-Pessoal/59-Lazer",
     ),
-    (re.compile(r"mochila|compra|plus.size|camisa|adesao.bonus", re.I), "50-Pessoal/53-Compras"),
-    (re.compile(r"contracheque|cnh|documento.*flavio|notas.*ag", re.I), "50-Pessoal/51-Financas"),
-    (re.compile(r"proton.*recovery|github.*recovery", re.I), "50-Pessoal/51-Financas"),
+    (re.compile(r"mochila|compra|plus.size|camisa|adesao.bonus", re.IGNORECASE), "50-Pessoal/53-Compras"),
+    (re.compile(r"contracheque|cnh|documento.*flavio|notas.*ag", re.IGNORECASE), "50-Pessoal/51-Financas"),
+    (re.compile(r"proton.*recovery|github.*recovery", re.IGNORECASE), "50-Pessoal/51-Financas"),
     # --- FORMATAÇÃO / CONTINUADA ---
-    (re.compile(r"formacao.*continuada", re.I), "24-Administracao/24.2-Formacao-Continuada"),
+    (re.compile(r"formacao.*continuada", re.IGNORECASE), "24-Administracao/24.2-Formacao-Continuada"),
     # --- CHATGPT / IA IMAGES → imagens ---
-    (re.compile(r"chatgpt.*image|gemini.*image|gemini.*generated", re.I), "34-Midias-e-Imagens"),
+    (re.compile(r"chatgpt.*image|gemini.*image|gemini.*generated", re.IGNORECASE), "34-Midias-e-Imagens"),
     # --- FONTES / TEMPLATES ---
-    (re.compile(r"font", re.I), "36-Templates-e-Modelos"),
+    (re.compile(r"font", re.IGNORECASE), "36-Templates-e-Modelos"),
     # --- DOCUMENTOS PESSOAIS GENÉRICOS ---
     (
-        re.compile(r"diario.*classe|diario.*eja|freq.*encia", re.I),
+        re.compile(r"diario.*classe|diario.*eja|freq.*encia", re.IGNORECASE),
         "24-Administracao/24.3-Documentos-Funcionais",
     ),
     (
-        re.compile(r"ata.*resultado|conselho.*classe", re.I),
+        re.compile(r"ata.*resultado|conselho.*classe", re.IGNORECASE),
         "24-Administracao/24.3-Documentos-Funcionais",
     ),
 ]
@@ -191,7 +191,7 @@ def generate_new_name(original, category, _subfolder):
 
     # Remove hashes UUID
     stem_clean = re.sub(
-        r"^[0-9a-f]{8,}-[0-9a-f]{4,}-[0-9a-f]{4,}-[0-9a-f]{4,}-[0-9a-f]{12,}", "", stem, flags=re.I
+        r"^[0-9a-f]{8,}-[0-9a-f]{4,}-[0-9a-f]{4,}-[0-9a-f]{4,}-[0-9a-f]{12,}", "", stem, flags=re.IGNORECASE
     )
     # Remove padrões de numeração soltos no início (ex: "33-+REFORMA...")
     stem_clean = re.sub(r"^\d+[-+]+", "", stem_clean)

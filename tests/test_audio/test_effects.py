@@ -17,7 +17,6 @@ Cobertura:
 from __future__ import annotations
 
 import numpy as np
-
 from ai.audio import effects
 
 

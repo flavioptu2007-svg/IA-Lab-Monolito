@@ -10,10 +10,9 @@ from __future__ import annotations
 from functools import lru_cache
 from typing import Literal
 
+from ai.settings import settings as legacy_settings  # noqa: F401 — re-export
 from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
-
-from ai.settings import settings as legacy_settings  # noqa: F401 — re-export
 
 
 class UnifiedSettings(BaseSettings):

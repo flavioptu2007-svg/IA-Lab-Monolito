@@ -280,7 +280,7 @@ class TestEducationStore:
         assert store.delete_lesson_plan(created.id) is True
         assert store.get_lesson_plan(created.id) is None
 
-    def test_delete_lesson_plan_inexistente(self, store):  # noqa: ARG002
+    def test_delete_lesson_plan_inexistente(self, store):
         """Deve retornar False ao remover ID inexistente."""
         from src.education.services import get_store
 
@@ -542,7 +542,7 @@ class TestEducationEndpoints:
         assert get_resp.status_code == 200
         assert get_resp.json()["total"] >= 1
 
-    def test_router_registrado_na_app(self, client):  # noqa: ARG002
+    def test_router_registrado_na_app(self, client):
         """O router education deve estar registrado na app principal."""
         from api.server import app
 
@@ -581,6 +581,6 @@ class TestEducationModule:
 
     def test_version_exportada(self):
         """O módulo deve exportar __version__."""
-        import src.education  # noqa: F811
+        import src.education
 
         assert hasattr(src.education, "__version__")

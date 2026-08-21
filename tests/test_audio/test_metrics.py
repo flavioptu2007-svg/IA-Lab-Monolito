@@ -48,7 +48,7 @@ class TestAudioMetricsRegistration:
         Importa o modulo de metricas dentro do test para garantir
         que os side effects (registro no registry) ocorram.
         """
-        import ai.audio.metrics as m  # noqa: F811
+        import ai.audio.metrics as m
 
         # Verifica as metricas diretamente pelos objetos do modulo
         # (em vez de pelo REGISTRY.collect(), que pode ter comportamento
@@ -81,7 +81,7 @@ class TestAudioMetricsRegistration:
 
     def test_total_metrics_count(self) -> None:
         """Verifica o numero total de metricas de audio registradas."""
-        import ai.audio.metrics as m  # noqa: F811
+        import ai.audio.metrics as m
 
         # Conta os atributos publicos do modulo que sao metricas
         metric_count = sum(1 for name in dir(m) if not name.startswith("_"))

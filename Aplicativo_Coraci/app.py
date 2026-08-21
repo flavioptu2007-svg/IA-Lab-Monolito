@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 Coraci Chat — Aplicativo de Chat com IA
 ========================================
@@ -17,7 +16,7 @@ import os
 import sqlite3
 import threading
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -111,7 +110,7 @@ def db_save_conversation(conv: dict) -> None:
             conn.execute(
                 """INSERT OR REPLACE INTO conversations (id, title, created_at, updated_at)
                    VALUES (?, ?, ?, ?)""",
-                (conv["id"], conv["title"], conv["created_at"], datetime.now().isoformat()),
+                (conv["id"], conv["title"], conv["created_at"], datetime.now(tz=timezone.utc).isoformat()),
             )
             # Apaga mensagens antigas e reinsere
             conn.execute("DELETE FROM messages WHERE conv_id = ?", (conv["id"],))
@@ -122,7 +121,7 @@ def db_save_conversation(conv: dict) -> None:
                         conv["id"],
                         msg["role"],
                         msg["content"],
-                        msg.get("timestamp", datetime.now().isoformat()),
+                        msg.get("timestamp", datetime.now(tz=timezone.utc).isoformat()),
                     ),
                 )
     except sqlite3.Error as e:
@@ -257,7 +256,7 @@ def stream_chat(messages, model=None, temperature=None, max_tokens=None):
         yield f"data: {json.dumps({'type': 'error', 'text': f'⏳ Limite de taxa: {e}'})}\n\n"
     except openai.APIStatusError as e:
         yield f"data: {json.dumps({'type': 'error', 'text': f'⚠️ Erro da API ({e.status_code}): {e}'})}\n\n"
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         yield f"data: {json.dumps({'type': 'error', 'text': f'🚫 Erro inesperado: {e}'})}\n\n"
 
 
@@ -294,13 +293,13 @@ def chat():
                 "id": conv_id,
                 "title": message[:60] + ("…" if len(message) > 60 else ""),
                 "messages": [],
-                "created_at": datetime.now().isoformat(),
+                "created_at": datetime.now(tz=timezone.utc).isoformat(),
             }
 
         conv = conversations[conv_id]
 
         # Adiciona mensagem do usuário
-        user_msg = {"role": "user", "content": message, "timestamp": datetime.now().isoformat()}
+        user_msg = {"role": "user", "content": message, "timestamp": datetime.now(tz=timezone.utc).isoformat()}
         conv["messages"].append(user_msg)
 
         # Abrevia o título se for a primeira mensagem
@@ -338,7 +337,7 @@ def chat():
                         {
                             "role": "assistant",
                             "content": full_response,
-                            "timestamp": datetime.now().isoformat(),
+                            "timestamp": datetime.now(tz=timezone.utc).isoformat(),
                         }
                     )
                     # Persiste no SQLite
@@ -455,7 +454,7 @@ def test_connection():
         ), 400
     except openai.AuthenticationError:
         return jsonify({"status": "error", "message": "❌ Chave de API inválida"}), 400
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         return jsonify({"status": "error", "message": f"❌ {e}"}), 400
 
 

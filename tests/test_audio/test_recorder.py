@@ -10,7 +10,6 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
-
 from ai.audio.exceptions import AudioCaptureError
 from ai.audio.recorder import AudioRecorder
 

@@ -10,7 +10,6 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
-
 from ai.audio.exceptions import STTError
 from ai.audio.stt import SpeechToText
 

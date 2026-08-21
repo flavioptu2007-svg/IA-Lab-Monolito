@@ -8,7 +8,6 @@ from __future__ import annotations
 from unittest.mock import patch
 
 import pytest
-
 from ai.audio.exceptions import AudioDeviceError
 from ai.audio.microphone import VirtualMicrophone
 

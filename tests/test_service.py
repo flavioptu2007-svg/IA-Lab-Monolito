@@ -11,7 +11,6 @@ from __future__ import annotations
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-
 from ai.service import AIService
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -147,7 +146,7 @@ class TestComplete:
     async def test_complete_sem_provider_usa_primary(
         self,
         service: AIService,
-        mock_providers_patch,  # noqa: ARG002
+        mock_providers_patch,
     ):
         """Deve usar primary_provider quando nenhum provider é especificado."""
         with (
@@ -161,7 +160,7 @@ class TestComplete:
             assert response == "Resposta da OpenAI"
 
     @pytest.mark.asyncio
-    async def test_complete_inclui_contexto_rag(self, service: AIService, mock_providers_patch):  # noqa: ARG002
+    async def test_complete_inclui_contexto_rag(self, service: AIService, mock_providers_patch):
         """Deve incluir contexto RAG no prompt quando habilitado.
 
         VectorStore é importado dentro de complete() via
@@ -186,7 +185,7 @@ class TestComplete:
     async def test_complete_ignora_rag_quando_desabilitado(
         self,
         service: AIService,
-        mock_providers_patch,  # noqa: ARG002
+        mock_providers_patch,
     ):
         """Não deve consultar RAG se rag_enabled=False."""
         with (
@@ -203,7 +202,7 @@ class TestComplete:
     async def test_complete_nao_quebra_quando_rag_falha(
         self,
         service: AIService,
-        mock_providers_patch,  # noqa: ARG002
+        mock_providers_patch,
     ):
         """Deve continuar mesmo se o RAG lançar exceção."""
         mock_store = MagicMock()
@@ -223,7 +222,7 @@ class TestComplete:
     async def test_complete_retorna_erro_quando_fallback_tambem_falha(
         self,
         service: AIService,
-        mock_providers_patch,  # noqa: ARG002
+        mock_providers_patch,
     ):
         """Deve retornar mensagem de erro se todos os providers falharem."""
         mock_providers_patch["ollama"].complete = AsyncMock(side_effect=Exception("Falha Ollama"))
@@ -243,7 +242,7 @@ class TestComplete:
     async def test_complete_lanca_erro_para_provider_inexistente(
         self,
         service: AIService,
-        mock_providers_patch,  # noqa: ARG002
+        mock_providers_patch,
     ):
         """Deve levantar ValueError para provider não registrado."""
         with (
@@ -259,7 +258,7 @@ class TestComplete:
     async def test_complete_classifica_task_type_automaticamente(
         self,
         service: AIService,
-        mock_providers_patch,  # noqa: ARG002
+        mock_providers_patch,
     ):
         """Deve classificar o task_type automaticamente se não fornecido."""
         with (

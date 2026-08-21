@@ -399,8 +399,7 @@ async def get_conversation(conv_id: str):
 @router.delete("/conversations/{conv_id}")
 async def delete_conversation(conv_id: str):
     """Apaga uma conversa."""
-    if conv_id in _conversations:
-        del _conversations[conv_id]
+    _conversations.pop(conv_id, None)
     db_delete_conversation(conv_id)
     return {"status": "ok"}
 

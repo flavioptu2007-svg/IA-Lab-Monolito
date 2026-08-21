@@ -13,7 +13,6 @@ import os
 from collections.abc import Generator
 
 import pytest
-
 from ai.audio.settings import AudioSettings, audio_settings, get_audio_settings
 
 

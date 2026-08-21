@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import pytest
 from fastapi.testclient import TestClient
-
 from leituraia import get_library
 from leituraia.auth import hash_senha, verificar_senha
 
