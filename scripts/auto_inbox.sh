@@ -8,6 +8,11 @@ INBOX_DIR="/home/flavio/Documentos/Escola/00-Inbox"
 TODAY=$(date +%Y-%m-%d)
 LOG="/home/flavio/.local/log/inbox_$TODAY.log"
 
+# Extensões ignoradas — arquivos com estas extensões NÃO são movidos para a
+# Inbox (ficam em Transferências). Adicione/remova conforme necessário.
+# Ex.: instaladores que você ainda vai executar (.deb, .AppImage, .exe, .msi, .run).
+IGNORE_EXTS="deb appimage exe msi run"
+
 mkdir -p "$INBOX_DIR" "$(dirname "$LOG")"
 
 moved=0
@@ -20,6 +25,12 @@ for f in "$WATCH_DIR"/*; do
     case "$filename" in
         .*) continue ;;
     esac
+
+    # Pula extensões ignoradas (case-insensitive)
+    ext="${filename##*.}"
+    if [ -n "$ext" ] && [[ " $IGNORE_EXTS " == *" ${ext,,} "* ]]; then
+        continue
+    fi
 
     # Pula arquivos com menos de 5 minutos (ainda baixando)
     if [ "$(find "$f" -mmin +5 2>/dev/null | wc -l)" -eq 0 ]; then
