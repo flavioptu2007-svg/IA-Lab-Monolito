@@ -394,8 +394,7 @@ def get_conversation(conv_id):
 def delete_conversation(conv_id):
     """Apaga uma conversa."""
     with conv_lock:
-        if conv_id in conversations:
-            del conversations[conv_id]
+        conversations.pop(conv_id, None)
         db_delete_conversation(conv_id)
     return jsonify({"status": "ok"})
 

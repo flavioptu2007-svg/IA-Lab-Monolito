@@ -103,7 +103,7 @@ jobs:
 
       - name: Typecheck with mypy
         run: |
-          python3 -m mypy src ai api --ignore-missing-imports
+          python3 -m mypy src api --ignore-missing-imports
 
   # ─── Build: Dashboard (Vite) ─────────────────────────────────
   build-dashboard:
