@@ -20,6 +20,7 @@ import uuid
 from datetime import datetime
 from pathlib import Path
 
+from dotenv import load_dotenv
 from flask import (
     Flask,
     Response,
@@ -28,6 +29,9 @@ from flask import (
     request,
     stream_with_context,
 )
+
+# Carrega .env antes de qualquer leitura de variáveis de ambiente
+load_dotenv()
 
 # ---------------------------------------------------------------------------
 # Configuração
@@ -190,14 +194,24 @@ def db_load_all() -> dict[str, dict]:
 
 
 def load_config() -> dict:
-    """Carrega configuração do arquivo JSON ou retorna defaults."""
+    """Carrega configuração do arquivo JSON ou retorna defaults.
+
+    A API key pode vir de duas fontes (em ordem de precedência):
+    1. Variável de ambiente CORACI_API_KEY (recomendado)
+    2. Campo "api_key" no config.json (fallback)
+    """
+    cfg = dict(DEFAULT_CONFIG)
     if CONFIG_FILE.exists():
         try:
             data = json.loads(CONFIG_FILE.read_text())
-            return {**DEFAULT_CONFIG, **data}
+            cfg.update(data)
         except (json.JSONDecodeError, OSError):
             pass
-    return dict(DEFAULT_CONFIG)
+    # Env var takes precedence over config.json for secrets
+    env_key = os.environ.get("CORACI_API_KEY")
+    if env_key:
+        cfg["api_key"] = env_key
+    return cfg
 
 
 def save_config(config: dict) -> None:
