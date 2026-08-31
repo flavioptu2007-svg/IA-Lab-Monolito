@@ -236,9 +236,8 @@ def stream_chat(messages, model=None, temperature=None, max_tokens=None):
         response = client.chat.completions.create(
             model=model or current_config.get("model", DEFAULT_CONFIG["model"]),
             messages=messages,
-            temperature=temperature
-            or current_config.get("temperature", DEFAULT_CONFIG["temperature"]),
-            max_tokens=max_tokens or current_config.get("max_tokens", DEFAULT_CONFIG["max_tokens"]),
+            temperature=temperature if temperature is not None else current_config.get("temperature", DEFAULT_CONFIG["temperature"]),
+            max_tokens=max_tokens if max_tokens is not None else current_config.get("max_tokens", DEFAULT_CONFIG["max_tokens"]),
             stream=True,
         )
         for chunk in response:
@@ -279,6 +278,8 @@ def index():
 def chat():
     """Envia mensagem e recebe resposta em streaming (SSE)."""
     data = request.get_json(force=True)
+    if not isinstance(data, dict):
+        return jsonify({"error": "Body deve ser um objeto JSON"}), 400
     conv_id = data.get("conversation_id")
     message = data.get("message", "").strip()
 
@@ -427,6 +428,15 @@ def update_config():
     """Atualiza a configuração."""
     data = request.get_json(force=True)
     allowed_keys = {"api_base_url", "api_key", "model", "temperature", "max_tokens", "theme"}
+    # Validação antes de modificar o config
+    if "temperature" in data:
+        temp = data["temperature"]
+        if not isinstance(temp, (int, float)) or temp < 0 or temp > 2:
+            return jsonify({"error": "Temperature deve ser um número entre 0 e 2"}), 400
+    if "max_tokens" in data:
+        mt = data["max_tokens"]
+        if not isinstance(mt, int) or mt < 0:
+            return jsonify({"error": "max_tokens deve ser um inteiro positivo"}), 400
     with config_lock:
         for key, value in data.items():
             if key in allowed_keys:
