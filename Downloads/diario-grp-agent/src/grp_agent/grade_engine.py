@@ -24,7 +24,19 @@ _HEADER_ALIASES: dict[str, list[str]] = {
     "periodo": ["período", "periodo", "bimestre", "avaliação", "avaliacao", "trimestre"],
     "escala": ["escala", "nota máxima", "nota maxima", "nota max", "máxima", "maxima", "max"],
     "fonte_nota": ["nota", "prova", "trabalho", "participação", "participacao"],
+    "acertos": ["acertos"],
+    "total": ["total"],
+    "portugues": ["portug", "português", "portugues"],
+    "matematica": ["matem", "matemática", "matematica"],
+    "ciencias": ["ciênc", "ciência", "ciencias"],
+    "criterios": ["critérios", "criterios"],
 }
+
+# Class name patterns: "TURMA: ..." in a cell
+_CLASS_PATTERN = re.compile(r"turma[:\s]*(.+)", re.IGNORECASE)
+# Period/evaluation patterns: "NOTA AGT DO Xº TRIMESTRE", "PROVA DO CICLO II DO Xº TRIMESTRE"
+_PERIOD_PATTERN = re.compile(r"(\d)[ºo]\s*(trimestre|bimestre|semestre)", re.IGNORECASE)
+_EVALUATION_PATTERN = re.compile(r"(NOTA\s+AGT|PROVA\s+DO\s+CICLO|AVALIAÇÃO|AVALIACAO)", re.IGNORECASE)
 
 _VALID_FORMULAS = frozenset({"average", "weighted_average", "sum", "max", "min"})
 
@@ -200,23 +212,114 @@ class InconsistencyResult:
 
 
 def _detect_aliases_from_ws(ws) -> dict[str, list[int]]:
-    """Classify headers in the first row of a worksheet."""
+    """Classify headers in the first few rows of a worksheet.
+
+    Scans rows 1-5 to handle real-world spreadsheets where:
+    - Row 1 contains section headers (e.g., 'NOTA AGT DO 2º TRIMESTRE')
+    - Row 2 contains class names (e.g., 'TURMA: 6º ANO ALFA')
+    - Row 3 contains actual column headers (e.g., 'NOME', 'ACERTOS', 'TOTAL')
+    """
     aliases: dict[str, list[int]] = {}
-    for col in range(1, ws.max_column + 1):
-        cell_value = ws.cell(1, col).value
-        if cell_value is None:
-            continue
-        category = _classify_header(str(cell_value))
-        if category:
-            aliases.setdefault(category, []).append(col)
+    header_row: int | None = None
+    # Scan rows 1-5 to find the actual header row
+    for row_idx in range(1, min(6, (ws.max_row or 1) + 1)):
+        for col in range(1, (ws.max_column or 1) + 1):
+            cell_value = ws.cell(row_idx, col).value
+            if cell_value is None:
+                continue
+            text = str(cell_value).strip()
+            if not text:
+                continue
+            # Check if this looks like a header row (has known aliases)
+            category = _classify_header(text)
+            if category:
+                if header_row is None:
+                    header_row = row_idx
+                if row_idx == header_row:
+                    aliases.setdefault(category, []).append(col)
     return aliases
 
 
+def _extract_class_from_ws(ws) -> str:
+    """Extract class name from rows 1-2 (e.g., 'TURMA: 6º ANO ALFA')."""
+    for row_idx in range(1, min(3, (ws.max_row or 1) + 1)):
+        for col in range(1, (ws.max_column or 1) + 1):
+            cell_value = ws.cell(row_idx, col).value
+            if cell_value is None:
+                continue
+            text = str(cell_value).strip()
+            match = _CLASS_PATTERN.search(text)
+            if match:
+                return match.group(1).strip()
+    return ""
+
+
+def _extract_period_from_ws(ws) -> str:
+    """Extract period/evaluation from rows 1-2 (e.g., '2º TRIMESTRE')."""
+    for row_idx in range(1, min(3, (ws.max_row or 1) + 1)):
+        for col in range(1, (ws.max_column or 1) + 1):
+            cell_value = ws.cell(row_idx, col).value
+            if cell_value is None:
+                continue
+            text = str(cell_value).strip()
+            period_match = _PERIOD_PATTERN.search(text)
+            if period_match:
+                return period_match.group(0)
+    return ""
+
+
+def _extract_evaluation_from_ws(ws) -> str:
+    """Extract evaluation type from rows 1-2 (e.g., 'NOTA AGT')."""
+    for row_idx in range(1, min(3, (ws.max_row or 1) + 1)):
+        for col in range(1, (ws.max_column or 1) + 1):
+            cell_value = ws.cell(row_idx, col).value
+            if cell_value is None:
+                continue
+            text = str(cell_value).strip()
+            eval_match = _EVALUATION_PATTERN.search(text)
+            if eval_match:
+                return eval_match.group(0).strip()
+    return ""
+
+
+def _find_header_row(ws) -> int:
+    """Find the row that contains the actual column headers.
+
+    Scans rows 1-5 looking for the row with the most known aliases.
+    """
+    best_row = 1
+    best_count = 0
+    for row_idx in range(1, min(6, (ws.max_row or 1) + 1)):
+        count = 0
+        for col in range(1, (ws.max_column or 1) + 1):
+            cell_value = ws.cell(row_idx, col).value
+            if cell_value is None:
+                continue
+            text = str(cell_value).strip()
+            if not text:
+                continue
+            category = _classify_header(text)
+            if category:
+                count += 1
+        if count > best_count:
+            best_count = count
+            best_row = row_idx
+    return best_row
+
+
 def _data_row_count(ws) -> int:
-    """Count non-empty data rows (rows after header that have a non-empty first cell)."""
+    """Count non-empty data rows after the header row."""
+    header_row = _find_header_row(ws)
     count = 0
-    for row in range(2, ws.max_row + 1):
-        if ws.cell(row, 1).value not in (None, ""):
+    for row in range(header_row + 1, (ws.max_row or 1) + 1):
+        # Check if any cell in this row is non-empty
+        has_data = False
+        for col in range(1, (ws.max_column or 1) + 1):
+            val = ws.cell(row, col).value
+            if val is not None and str(val).strip():
+                has_data = True
+                break
+        if has_data:
             count += 1
     return count
 
@@ -345,13 +448,17 @@ def parse_grades(
     If *sheet_name* is ``None`` the active (first) sheet is used.
     Optionally reads a max-value column when one is detected via the
     ``escala`` semantic alias.
+
+    Handles multi-row headers: scans rows 1-5 to find the header row,
+    then reads data from the row after the header.
     """
     wb = load_workbook(path, data_only=True)
     ws = wb[sheet_name] if sheet_name else wb.active
+    header_row = _find_header_row(ws)
     name_col: int | None = None
     max_col: int | None = None
-    for col in range(1, ws.max_column + 1):
-        cell_value = ws.cell(1, col).value
+    for col in range(1, (ws.max_column or 1) + 1):
+        cell_value = ws.cell(header_row, col).value
         if cell_value is None:
             continue
         category = _classify_header(str(cell_value))
@@ -362,11 +469,14 @@ def parse_grades(
     if name_col is None:
         raise ValueError("no student name column found")
     result: list[GradeSource] = []
-    for row in range(2, ws.max_row + 1):
+    for row in range(header_row + 1, (ws.max_row or 1) + 1):
         raw_name = ws.cell(row, name_col).value
         if raw_name is None or str(raw_name).strip() == "":
             continue
         raw_value = ws.cell(row, grade_column).value
+        # Skip rows with formula errors like #NAME?
+        if raw_value is not None and str(raw_value).strip().startswith("#"):
+            continue
         if raw_value is None or str(raw_value).strip() == "":
             continue
         try:

@@ -35,6 +35,7 @@ class GrpStudentGrade:
 
     name: str
     value: float | None
+    registration: str | None = None
 
 
 @dataclass(frozen=True)
@@ -141,10 +142,84 @@ def read_grp_context(page: Any) -> GrpContext:
 def read_grp_grades(page: Any) -> list[GrpStudentGrade]:
     """Read student names and grades from the GRP table.
 
-    The GRP displays students in a <table> with the student name in the first
-    <td> and the grade input in the last <td> of each <tr>.
+    Supports both standard HTML tables and DevExtreme dx-data-grid.
+    Detects columns by header names (Aluno, Nome, Matrícula, Nota, etc.).
     """
     result: list[GrpStudentGrade] = []
+
+    # Strategy 1: DevExtreme dx-data-grid
+    # Find ALL header grids and look for one with student-related columns
+    all_header_grids = page.locator(".dx-datagrid-headers")
+    for gi in range(all_header_grids.count()):
+        header_grid = all_header_grids.nth(gi)
+        header_cells = header_grid.locator(
+            "td[role='columnheader'], th[role='columnheader']"
+        )
+        if header_cells.count() == 0:
+            continue
+
+        # Detect column indices using aria-label (most reliable)
+        name_col: int | None = None
+        grade_col: int | None = None
+        mat_col: int | None = None
+        for i in range(header_cells.count()):
+            aria = (header_cells.nth(i).get_attribute("aria-label") or "").lower()
+            txt = header_cells.nth(i).inner_text().strip().lower()
+            # Check aria-label first, then text
+            combined = aria + " " + txt
+            if "aluno" in combined or "estudante" in combined:
+                name_col = i
+            elif "nota" in combined and "valor" not in combined.replace("nota", ""):
+                grade_col = i
+            elif "matricula" in combined or "matrícula" in combined:
+                mat_col = i
+
+        # Only use this grid if it has BOTH aluno and nota columns
+        if name_col is not None and grade_col is not None:
+            # Find the corresponding data grid (sibling or next)
+            # DevExtreme grids have headers and rowsview as siblings
+            parent_grid = header_grid.locator("xpath=ancestor::dx-data-grid[1]")
+            if not parent_grid.count():
+                continue
+            data_rows = parent_grid.locator(
+                ".dx-datagrid-rowsview .dx-data-row, "
+                ".dx-datagrid-rowsview tr.dx-row:not(.dx-freespace-row)"
+            )
+            if data_rows.count() == 0:
+                continue
+            for i in range(data_rows.count()):
+                row = data_rows.nth(i)
+                cells = row.locator("td")
+                if cells.count() <= name_col:
+                    continue
+                name = cells.nth(name_col).inner_text().strip()
+                if not name or _norm(name) in ("aluno", "nome", "situacao"):
+                    continue
+                value: float | None = None
+                if grade_col is not None and cells.count() > grade_col:
+                    grade_cell = cells.nth(grade_col)
+                    inputs = grade_cell.locator("input")
+                    if inputs.count():
+                        raw = inputs.first.input_value().strip()
+                    else:
+                        raw = grade_cell.inner_text().strip()
+                    if raw:
+                        try:
+                            value = float(raw.replace(",", "."))
+                        except ValueError:
+                            value = None
+                registration: str | None = None
+                if mat_col is not None and cells.count() > mat_col:
+                    raw_mat = cells.nth(mat_col).inner_text().strip()
+                    if raw_mat:
+                        registration = raw_mat
+                result.append(
+                    GrpStudentGrade(name=name, value=value, registration=registration)
+                )
+            if result:
+                return result
+
+    # Strategy 2: Standard HTML table (fallback)
     rows = page.locator("table tr")
     for i in range(rows.count()):
         row = rows.nth(i)
@@ -154,9 +229,8 @@ def read_grp_grades(page: Any) -> list[GrpStudentGrade]:
         name = cells.first.inner_text().strip()
         if not name:
             continue
-        # Grade is in the last cell's input
         inputs = row.locator("input")
-        value: float | None = None
+        value = None
         if inputs.count():
             raw = inputs.last.input_value().strip()
             if raw:

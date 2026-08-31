@@ -111,27 +111,120 @@ def audit():
 @app.command("audit-preview")
 def audit_preview(
     file: Path = typer.Option(..., "--file", exists=True, readable=True),  # noqa: B008
-    grade_column: str = typer.Option(..., "--grade-column", help="Coluna com as notas na planilha (ex: F, G, NOTA 1)"),
+    sheet: str = typer.Option(None, "--sheet", help="Limitar a análise a uma aba/turma"),
+    target_max: float = typer.Option(None, "--target-max", help="Escala de destino (ex: 10). Sem este parâmetro nenhuma conversão é feita."),
+    final_column: str = typer.Option(None, "--final-column", help="MODO MANUAL: força a coluna da nota final (não é regra de negócio)"),
+    compare_grp: bool = typer.Option(False, "--compare-grp", help="Após a análise, abrir o GRP (SOMENTE LEITURA) para comparar notas existentes"),
+    save_json: bool = typer.Option(True, "--save-json / --no-save-json", help="Salvar relatório JSON em artifacts/audit"),
 ):
-    """Comparar notas do Excel com o GRP e gerar prévia sem alterar nada."""
+    """Simulação de lançamento a partir da planilha — NUNCA escreve no GRP.
+
+    Modo padrão: 100% offline. Analisa cada aba por estrutura semântica
+    (cabeçalhos, blocos e fórmulas), identifica turma, alunos, fontes de nota,
+    regra de cálculo e escalas. Nenhuma posição de coluna é assumida.
+    Regra insuficiente ou ambiguidade não resolvida => aluno/aba BLOQUEADO.
+    """
     ensure_dirs()
-    from .grade_engine import parse_grades
+    from .audit_preview import analyze_workbook, audit_to_dict
+
+    console.print("[bold]Modo: SIMULAÇÃO / AUDIT-PREVIEW (somente leitura)[/bold]")
+    console.print("[yellow]Nenhuma escrita no GRP é possível neste comando — nem com flags.[/yellow]")
+
+    audit = analyze_workbook(
+        file,
+        target_scale=target_max,
+        final_column=final_column,
+    )
+    sheets = [s for s in audit.sheets if sheet is None or s.sheet == sheet]
+
+    for s in sheets:
+        header = f"[bold underline]{s.sheet}[/bold underline]"
+        if s.turma:
+            header += f" — turma: {s.turma}"
+        if s.period:
+            header += f" — período declarado: {s.period}"
+        console.print(f"\n{header}")
+        console.print(
+            f"cabeçalho na linha {s.header_row}; aluno na coluna {s.student_column}; "
+            f"matrícula: {s.registration_column or '—'}"
+        )
+
+        fontes = Table("Fonte", "Coluna", "Escala", show_header=True)
+        for f in s.sources:
+            fontes.add_row(f.label, f.column_letter, f"{f.max_value:g}" if f.max_value else "bruta")
+        console.print(fontes)
+
+        if s.final_column:
+            fc = s.final_column
+            destino = f"{target_max:g}" if target_max else "não configurada"
+            console.print(
+                f"[green]nota final: coluna {fc.column_letter} — regra {fc.formula} "
+                f"(escala de origem {fc.scale:g} → destino {destino})[/green]"
+            )
+        else:
+            console.print("[red]nota final: NÃO DETERMINÁVEL — aba BLOQUEADA[/red]")
+
+        alunos = Table("Aluno", "Cálculo", "Escala", "Nota", "Status", show_header=True)
+        for st in s.students:
+            escala = (
+                f"{st.scale_from:g}→{f'{st.scale_to:g}' if st.scale_to else '?'}"
+                if st.scale_from
+                else "—"
+            )
+            alunos.add_row(
+                st.name,
+                st.calculation or "—",
+                escala,
+                f"{st.final_value:g}" if st.final_value is not None else "—",
+                st.status,
+            )
+        console.print(alunos)
+
+        for msg in s.pendencias:
+            console.print(f"[yellow]PENDÊNCIA:[/yellow] {msg}")
+        for msg in s.ambiguidades:
+            console.print(f"[magenta]AMBIGUIDADE:[/magenta] {msg}")
+        console.print(
+            f"resumo: {s.ok_count} OK · {s.pending_count} pendentes · "
+            f"{s.blocked_count} bloqueados · {len(s.students)} alunos"
+        )
+
+    for msg in audit.pendencias:
+        console.print(f"[yellow]PENDÊNCIA GLOBAL:[/yellow] {msg}")
+    for msg in audit.ambiguidades:
+        console.print(f"[magenta]AMBIGUIDADE GLOBAL:[/magenta] {msg}")
+
+    if save_json:
+        out_dir = ARTIFACT_DIR / "audit"
+        out_dir.mkdir(parents=True, exist_ok=True)
+        stamp = audit.generated_at.replace(":", "").replace("-", "")
+        out = out_dir / f"audit-preview-{stamp}.json"
+        out.write_text(
+            json.dumps(audit_to_dict(audit), ensure_ascii=False, indent=2), encoding="utf-8"
+        )
+        console.print(f"\nRelatório JSON salvo em: {out}")
+
+    audit_event(
+        "audit_preview_offline",
+        file=str(file),
+        sheets=len(sheets),
+        target_scale=target_max,
+        wrote_to_grp=False,
+    )
+
+    if compare_grp:
+        _compare_with_grp(file, final_column, target_max)
+
+
+def _compare_with_grp(file: Path, final_column: str | None, target_max: float | None) -> None:
+    """Fluxo opcional SOMENTE LEITURA: compara prévia com notas já existentes no GRP."""
+    from .audit_preview import analyze_workbook
     from .grp_audit import generate_audit_preview, read_grp_context, read_grp_grades
     from .models import StudentRef
 
-    console.print("[bold]Modo: AUDITORIA / PRÉVIA[/bold]")
-    console.print("Nenhuma alteração será salva no GRP.")
+    console.print("\n[bold]Modo adicional: COMPARAÇÃO GRP (somente leitura)[/bold]")
+    audit = analyze_workbook(file, target_scale=target_max, final_column=final_column)
 
-    # Parse Excel
-    if not file.exists():
-        raise typer.BadParameter(f"arquivo não encontrado: {file}", param_hint="--file")
-
-    # Resolve column letter to number
-    col_num = _column_letter_to_number(grade_column)
-    grades = parse_grades(file, grade_column=col_num)
-    console.print(f"Planilha: {len(grades)} alunos carregados da coluna {grade_column}")
-
-    # Connect to GRP
     session = BrowserSession.start(headless=False, state_dir=STATE_DIR)
     try:
         page = session.open_grp()
@@ -142,37 +235,27 @@ def audit_preview(
         grp_grades = read_grp_grades(page)
         console.print(f"GRP: {ctx.class_name} — {ctx.subject} — {ctx.period} — {len(grp_grades)} alunos")
 
-        # Build comparison data
-        excel_students = [StudentRef(name=g.name) for g in grades]
-        excel_grades_dict = {
-            g.name: float(g.value)
-            for g in grades
-            if isinstance(g.value, (int, float))
-        }
-
-        preview = generate_audit_preview(ctx, excel_students, excel_grades_dict, grp_grades)
-
-        # Display results
-        table = Table("Aluno", "Tipo", "GRP", "Excel")
-        for item in preview.diff.items:
-            old = str(item.old_value) if item.old_value is not None else "—"
-            new = str(item.new_value) if item.new_value is not None else "—"
-            table.add_row(item.student, item.change_type, old, new)
-        console.print(table)
-
-        if preview.blocked:
-            console.print(f"[bold red]BLOQUEADO[/bold red] — {sum(1 for i in preview.diff.items if i.change_type == 'not_found')} aluno(s) não encontrado(s) no GRP")
-        elif preview.has_changes:
-            console.print(f"[bold yellow]{preview.changes_count} alteração(ões) detectada(s)[/bold yellow]")
-        else:
-            console.print("[bold green]Nenhuma alteração necessária[/bold green]")
-
-        audit_event(
-            "audit_preview",
-            file=str(file),
-            changes=preview.changes_count,
-            blocked=preview.blocked,
-        )
+        for s in audit.sheets:
+            if s.final_column is None:
+                continue
+            excel_students = [
+                StudentRef(name=st.name) for st in s.students if st.final_value is not None
+            ]
+            excel_grades = {
+                st.name: st.final_value for st in s.students if st.final_value is not None
+            }
+            preview = generate_audit_preview(ctx, excel_students, excel_grades, grp_grades)
+            table = Table(f"{s.sheet}: Aluno", "Tipo", "GRP", "Planilha")
+            for item in preview.diff.items:
+                old = str(item.old_value) if item.old_value is not None else "—"
+                new = str(item.new_value) if item.new_value is not None else "—"
+                table.add_row(item.student, item.change_type, old, new)
+            console.print(table)
+            if preview.blocked:
+                console.print(
+                    f"[red]{s.sheet}: BLOQUEADO[/red] — aluno(s) da planilha não encontrado(s) no GRP"
+                )
+        audit_event("audit_preview_compare_grp", file=str(file), wrote_to_grp=False)
     finally:
         session.close()
 
@@ -185,8 +268,18 @@ def grades(
     column: str = typer.Option("L", "--column"),
     apply: bool = typer.Option(False, "--apply", help="Permite preparar execução de escrita; ainda exige confirmação."),
 ):
-    """Ler notas do Excel e preparar lançamento no GRP."""
+    """[MODO LEGADO/MANUAL] Inspecionar notas do Excel por coluna fixa.
+
+    AVISO DE SEGURANÇA: a coluna fixa (padrão 'L') NÃO é regra de negócio —
+    a posição da nota varia entre planilhas. Este comando existe apenas para
+    inspeção manual e compatibilidade. O fluxo padrão do agente é o motor
+    flexível: use 'grp-agent audit-preview --file <arquivo>'.
+    """
     ensure_dirs()
+    console.print("[bold red]⚠ MODO LEGADO/MANUAL[/bold red] — coluna fixa não é regra de negócio.")
+    if column.upper() == "L":
+        console.print("[red]A coluna 'L' é apenas o padrão legado; a nota pode estar em qualquer coluna.[/red]")
+    console.print("[dim]Fluxo padrão (motor flexível): grp-agent audit-preview --file <arquivo>[/dim]")
     console.print(f"[bold]{_mode(apply)}[/bold] — período: {period} — avaliação: {evaluation} — coluna: {column}")
     console.print("Sem --apply, nenhuma escrita no GRP é permitida. Com --apply, o contexto ainda precisa ser confirmado.")
     if not file.exists():
