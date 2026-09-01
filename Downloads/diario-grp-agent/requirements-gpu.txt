@@ -1,0 +1,32 @@
+# =============================================================================
+# DeepSeek-R1 Evaluation — GPU Environment Requirements
+# Install:  pip install -r requirements-gpu.txt
+# Tested on: Python 3.10-3.12, CUDA 12.1+
+# =============================================================================
+
+# ─── Core evaluation harness ────────────────────────────────────────────────
+lm-eval>=0.4.4,<0.5
+openai>=1.0                    # for local-chat-completions backend
+openrouter>=1.0                # optional: OpenRouter API client
+
+# ─── Local inference (vLLM backend) ────────────────────────────────────────
+vllm>=0.6,<1.0
+transformers>=4.45
+accelerate>=0.30
+sentencepiece                   # tokenizer backend for Qwen models
+
+# ─── CUDA PyTorch (uncomment ONE) ──────────────────────────────────────────
+# Option A: pip index (recommended)
+# --extra-index-url https://download.pytorch.org/whl/cu121
+# torch>=2.3
+
+# Option B: conda (uncomment and remove Option A)
+# conda install pytorch torchvision torchaudio pytorch-cuda=12.1 -c pytorch -c nvidia
+
+# ─── Optional: reproducibility & logging ────────────────────────────────────
+wandb>=0.16                    # optional experiment tracking
+tensorboard>=2.15              # optional metrics visualization
+
+# ─── Pinned versions for reproducibility (uncomment if needed) ─────────────
+# numpy<2
+# pandas<2.2
