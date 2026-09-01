@@ -1,0 +1,219 @@
+# =============================================================================
+# DeepSeek-R1 Evaluation CI
+# =============================================================================
+# Runs the multi-model comparison suite on schedule or manual trigger.
+# Uses OpenRouter for API-based evaluations (no GPU required).
+#
+# Triggers:
+#   - Manual dispatch (with model/task overrides)
+#   - Weekly schedule (Sundays at 06:00 UTC — off-peak for DeepSeek API)
+#   - Push to main (changed eval scripts only)
+#
+# Required secrets:
+#   OPENROUTER_API_KEY — Your OpenRouter API key
+# =============================================================================
+
+name: DeepSeek-R1 Evaluation
+
+on:
+  # Manual trigger with inputs
+  workflow_dispatch:
+    inputs:
+      models:
+        description: "Comma-separated model keys (empty = all)"
+        required: false
+        default: ""
+      tasks:
+        description: "Space-separated tasks"
+        required: false
+        default: "gsm8k_cot gpqa_diamond_cot_zeroshot aime24"
+      limit:
+        description: "Questions per task"
+        required: false
+        default: "10"
+      free_only:
+        description: "Run free models only"
+        required: false
+        default: "false"
+        type: boolean
+
+  # Weekly run — Sundays 06:00 UTC (off-peak)
+  schedule:
+    - cron: "0 6 * * 0"
+
+  # Run on changes to eval scripts
+  push:
+    branches: [main]
+    paths:
+      - "Downloads/diario-grp-agent/run_quick_compare.sh"
+      - "Downloads/diario-grp-agent/run_deepseek_eval.sh"
+      - "Downloads/diario-grp-agent/parse_sc_results.py"
+      - ".github/workflows/deepseek-eval.yml"
+
+env:
+  RESULTS_DIR: ./compare_results
+  PYTHON_VERSION: "3.12"
+
+jobs:
+  # ─── Free Models (fast, no cost) ──────────────────────────────────────────
+  compare-free:
+    name: "Free Models Comparison"
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    if: >
+      github.event_name == 'schedule' ||
+      (github.event_name == 'workflow_dispatch' && (inputs.free_only == 'true' || inputs.models == ''))
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: pip install lm-eval[openai]
+
+      - name: Run free models comparison
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: |
+          chmod +x Downloads/diario-grp-agent/run_quick_compare.sh
+          cd Downloads/diario-grp-agent
+          ./run_quick_compare.sh \
+            --free-only \
+            --limit ${{ inputs.limit || '10' }} \
+            --tasks ${{ inputs.tasks || 'gsm8k_cot gpqa_diamond_cot_zeroshot aime24' }} \
+            --output ${{ github.workspace }}/results-free
+
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-results-free-${{ github.run_number }}
+          path: results-free/
+          retention-days: 30
+
+  # ─── Paid Models (full comparison) ────────────────────────────────────────
+  compare-paid:
+    name: "Paid Models Comparison"
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    needs: compare-free
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      github.event.schedule == '0 6 * * 0'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: pip install lm-eval[openai]
+
+      - name: Run paid models comparison
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: |
+          chmod +x Downloads/diario-grp-agent/run_quick_compare.sh
+          cd Downloads/diario-grp-agent
+
+          # Build model list (exclude free models)
+          MODELS="${{ inputs.models }}"
+          if [ -z "$MODELS" ]; then
+            MODELS="r1,r1_0528,llama4_mav,llama4_sct,llama33_70b,qwen3_32b,qwen3_235b,qwen3_think,gemini25_flash,gemini25_pro"
+          fi
+
+          ./run_quick_compare.sh \
+            --models "$MODELS" \
+            --limit ${{ inputs.limit || '10' }} \
+            --tasks ${{ inputs.tasks || 'gsm8k_cot gpqa_diamond_cot_zeroshot aime24' }} \
+            --output ${{ github.workspace }}/results-paid
+
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-results-paid-${{ github.run_number }}
+          path: results-paid/
+          retention-days: 30
+
+  # ─── Generate Summary Report ──────────────────────────────────────────────
+  report:
+    name: "Generate Report"
+    runs-on: ubuntu-latest
+    needs: [compare-free, compare-paid]
+    if: always()
+
+    steps:
+      - name: Download all results
+        uses: actions/download-artifact@v4
+        with:
+          path: all-results/
+
+      - name: Generate markdown report
+        run: |
+          cat > eval-report.md << 'REPORT_EOF'
+          # DeepSeek-R1 Evaluation Report
+
+          **Run:** #${{ github.run_number }}
+          **Date:** $(date -u +"%Y-%m-%d %H:%M UTC")
+          **Trigger:** ${{ github.event_name }}
+
+          ## Results
+
+          ### Accuracy Summary
+
+          | Model | GSM8K CoT | GPQA Diamond | AIME 2024 |
+          |-------|-----------|--------------|-----------|
+
+          REPORT_EOF
+
+          # Parse results and append to report
+          for result_dir in all-results/*/; do
+            for json_file in "$result_dir"*.json; do
+              [ -f "$json_file" ] || continue
+              filename=$(basename "$json_file" .json)
+
+              # Extract model name and task
+              model=$(echo "$filename" | cut -d'_' -f1-2)
+              task=$(echo "$filename" | cut -d'_' -f3-)
+
+              # Extract accuracy
+              acc=$(python3 -c "
+          import json, sys
+          try:
+              d = json.load(open('$json_file'))
+              for key in ['acc,none', 'acc', 'exact_match,none']:
+                  for tk, tv in d.get('results', {}).items():
+                      if key in tv:
+                          print(f'{tv[key]*100:.1f}%')
+                          sys.exit(0)
+              print('N/A')
+          except:
+              print('N/A')
+          " 2>/dev/null)
+
+              echo "| $model | $task | $acc |" >> eval-report.md
+            done
+          done
+
+          echo "" >> eval-report.md
+          echo "---" >> eval-report.md
+          echo "*Generated by GitHub Actions*" >> eval-report.md
+
+      - name: Upload report
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-report-${{ github.run_number }}
+          path: eval-report.md
+          retention-days: 90
+
+      # Post summary as PR comment or workflow summary
+      - name: Write to job summary
+        run: cat eval-report.md >> $GITHUB_STEP_SUMMARY
