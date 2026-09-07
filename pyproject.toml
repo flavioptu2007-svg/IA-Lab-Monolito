@@ -1,0 +1,63 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ia-lab-unified"
+version = "2.1.1"
+description = "IA-Lab Unified — monolito FastAPI: IA, Áudio, RAG, OpenVINO e Educação (HistóriaIA)"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    # Web framework
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.30.0",
+    "pydantic>=2.7.0",
+    "pydantic-settings>=2.2.0",
+    "python-multipart>=0.0.9",
+    # HTTP / métricas / IA remota
+    "httpx>=0.27.0",
+    "prometheus-client>=0.20.0",
+    "openai>=1.40.0",
+]
+
+[project.optional-dependencies]
+education = [
+    # RAG / Educação (HistóriaIA)
+    "langchain-core>=0.3.0",
+    "langchain-community>=0.3.0",
+    "langchain-classic>=0.1.0",
+    "langchain-huggingface>=0.2.0",
+    "langchain-text-splitters>=0.3.0",
+    "transformers>=4.51.0",
+    "soundfile>=0.13.0",
+    # OpenVINO (opcional, inferência Intel)
+    "openvino>=2026.2.0",
+    "optimum-intel>=2.0.0",
+]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+    "pytest-cov>=5.0.0",
+    "ruff>=0.6.0",
+    "mypy>=1.10.0",
+]
+
+[tool.setuptools.packages.find]
+include = ["api*", "src*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.12"  # stubs de numpy usam `type` statement (>=3.12); CI typecheck roda em 3.12
+ignore_missing_imports = true

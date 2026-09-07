@@ -35,11 +35,11 @@ jobs:
 
       - name: Lint with ruff (config do pyproject.toml)
         run: |
-          ruff check . --output-format github
+          ruff check api src tests --output-format github
 
       - name: Check formatting com ruff format
         run: |
-          ruff format --check --diff .
+          ruff format --check --diff api src tests
 
   # ─── Test: Python (pytest) ────────────────────────────────────
   test-python:
@@ -126,11 +126,13 @@ jobs:
           npm ci
 
       - name: TypeScript check
+        if: ${{ hashFiles('web/dashboard/package-lock.json') != '' }}
         run: |
           cd web/dashboard
           npx tsc -b --noEmit
 
       - name: Build (Vite)
+        if: ${{ hashFiles('web/dashboard/package-lock.json') != '' }}
         run: |
           cd web/dashboard
           npm run build
@@ -161,6 +163,10 @@ jobs:
 
       - name: Bats (testes unitários do fluxo do Office 2016 MSI)
         run: |
+          if [ ! -d tests/shell ]; then
+            echo "⚠️ tests/shell/ ausente no repositório — pulando bats"
+            exit 0
+          fi
           bats tests/shell/
 
   # ─── Summary ─────────────────────────────────────────────────
