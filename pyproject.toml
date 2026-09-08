@@ -44,7 +44,7 @@ dev = [
 ]
 
 [tool.setuptools.packages.find]
-include = ["api*", "src*"]
+include = ["ai*", "api*", "src*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
