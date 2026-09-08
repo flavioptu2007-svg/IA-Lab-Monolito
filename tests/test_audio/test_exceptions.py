@@ -9,6 +9,7 @@ Verifica:
 from __future__ import annotations
 
 import pytest
+
 from ai.audio.exceptions import (
     AudioCaptureError,
     AudioConfigError,

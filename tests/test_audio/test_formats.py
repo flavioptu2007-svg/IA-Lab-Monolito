@@ -16,6 +16,7 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
+
 from ai.audio.exceptions import AudioConversionError, AudioFormatError
 from ai.audio.formats import (
     SUPPORTED_FORMATS,

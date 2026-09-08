@@ -9,8 +9,12 @@ from __future__ import annotations
 
 import pytest
 from fastapi.testclient import TestClient
-from leituraia import get_library
-from leituraia.auth import hash_senha, verificar_senha
+
+leituraia = pytest.importorskip(
+    "leituraia", reason="pacote leituraia (projeto irmão) não empacotado neste repo"
+)
+from leituraia import get_library  # noqa: E402
+from leituraia.auth import hash_senha, verificar_senha  # noqa: E402
 
 
 @pytest.fixture(scope="module")

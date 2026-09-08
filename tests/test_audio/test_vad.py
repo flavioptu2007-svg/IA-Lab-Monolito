@@ -15,6 +15,7 @@ Cobertura:
 from __future__ import annotations
 
 import pytest
+
 from ai.audio.exceptions import VADError
 from ai.audio.vad import VoiceActivityDetector
 

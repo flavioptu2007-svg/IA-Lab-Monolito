@@ -18,6 +18,7 @@ from typing import Any
 from unittest.mock import patch
 
 import pytest
+
 from ai.audio.core import AudioDeviceError, AudioEngine
 
 from .conftest import MockSubprocessResult

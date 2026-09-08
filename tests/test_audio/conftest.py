@@ -13,6 +13,7 @@ from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pytest
+
 from ai.audio.settings import AudioSettings
 
 # ── Helpers de mock ───────────────────────────────────────────────────────────

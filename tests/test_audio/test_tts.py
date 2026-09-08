@@ -9,6 +9,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
+
 from ai.audio.exceptions import TTSError
 from ai.audio.tts import TextToSpeech
 
