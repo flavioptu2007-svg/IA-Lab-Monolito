@@ -41,6 +41,11 @@ dev = [
     "pytest-cov>=5.0.0",
     "ruff>=0.6.0",
     "mypy>=1.10.0",
+    # Flask + python-dotenv: usados apenas pelo app legado em Aplicativo_Coraci/
+    # (exercitado por tests/test_coraci_app.py). Sem isto a suíte falha com
+    # ModuleNotFoundError: No module named 'flask'.
+    "flask>=3.0.0",
+    "python-dotenv>=1.0.0",
 ]
 
 [tool.setuptools.packages.find]
