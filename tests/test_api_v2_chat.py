@@ -290,6 +290,7 @@ class TestConfig:
 
     def test_config_nao_persiste_api_key(self, tmp_path, client):
         import json
+
         import src.api.v2.chat_coraci as chat_mod
 
         config_file = tmp_path / "config.json"
@@ -326,10 +327,10 @@ class TestConfig:
         assert cfg["model"] == "glm4:latest"
         assert cfg["api_key"] == "sk-env"
 
-
     @pytest.mark.asyncio
     async def test_stream_preserva_temperature_e_max_tokens_zero(self, monkeypatch):
         import openai
+
         import src.api.v2.chat_coraci as chat_mod
 
         class FakeStream:
