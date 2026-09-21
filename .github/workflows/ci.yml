@@ -80,7 +80,7 @@ jobs:
         with:
           name: coverage-report
           path: coverage_html/
-          retention-days: 7
+          retention-days: 3
 
   # ─── Typecheck: Python (mypy) ────────────────────────────────
   typecheck-python:
@@ -147,7 +147,7 @@ jobs:
         with:
           name: dashboard-dist
           path: web/dashboard/dist/
-          retention-days: 7
+          retention-days: 3
 
   # ─── Test: Shell scripts (shellcheck + bats) ──────────────────
   test-shell:

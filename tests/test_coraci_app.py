@@ -150,6 +150,44 @@ def test_get_config_mascara_api_key(client, coraci):
     assert key.startswith("sk-s")
 
 
+def test_save_config_nao_persiste_api_key(tmp_path, coraci):
+    config_file = tmp_path / "config.json"
+    with patch.object(coraci, "CONFIG_FILE", config_file):
+        coraci.save_config(
+            {
+                "api_base_url": "http://localhost:11434/v1",
+                "api_key": "sk-test-secret",
+                "model": "glm4:latest",
+                "temperature": 0.7,
+                "max_tokens": 4096,
+                "theme": "dark",
+            }
+        )
+    saved = json.loads(config_file.read_text())
+    assert saved["api_key"] == ""
+
+
+def test_load_config_env_sobrescreve_config(tmp_path, coraci, monkeypatch):
+    config_file = tmp_path / "config.json"
+    config_file.write_text(
+        json.dumps(
+            {
+                "api_base_url": "http://file:8000/v1",
+                "model": "arquivo-modelo",
+                "api_key": "",
+            }
+        )
+    )
+    monkeypatch.setenv("CORACI_API_BASE_URL", "http://localhost:11434/v1")
+    monkeypatch.setenv("CORACI_MODEL", "glm4:latest")
+    monkeypatch.setenv("CORACI_API_KEY", "sk-env")
+    with patch.object(coraci, "CONFIG_FILE", config_file):
+        cfg = coraci.load_config()
+    assert cfg["api_base_url"] == "http://localhost:11434/v1"
+    assert cfg["model"] == "glm4:latest"
+    assert cfg["api_key"] == "sk-env"
+
+
 def test_post_config_valida_atualiza(client, coraci):
     resp = client.post(
         "/api/config",

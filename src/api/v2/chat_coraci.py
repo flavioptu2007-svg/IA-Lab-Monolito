@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import sqlite3
 import uuid
 from datetime import UTC, datetime
@@ -23,7 +24,7 @@ from typing import TYPE_CHECKING, Any, cast
 
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 if TYPE_CHECKING:
     from openai import AsyncStream
@@ -65,8 +66,8 @@ class ConfigUpdate(BaseModel):
     api_base_url: str | None = None
     api_key: str | None = None
     model: str | None = None
-    temperature: float | None = None
-    max_tokens: int | None = None
+    temperature: float | None = Field(default=None, ge=0, le=2)
+    max_tokens: int | None = Field(default=None, ge=0)
     theme: str | None = None
 
 
@@ -82,9 +83,9 @@ DB_PATH = str(BASE_DIR / "coraci.db")
 CONFIG_PATH = str(BASE_DIR / "Aplicativo_Coraci" / "config.json")
 
 DEFAULT_CONFIG: dict[str, Any] = {
-    "api_base_url": "http://localhost:8000/v1",
+    "api_base_url": "http://localhost:11434/v1",
     "api_key": "",
-    "model": "glm-5.2-colibri",
+    "model": "glm4:latest",
     "temperature": 0.7,
     "max_tokens": 4096,
     "theme": "dark",
@@ -217,19 +218,33 @@ def close_db() -> None:
 
 def load_config() -> dict:
     config_file = Path(CONFIG_PATH)
+    cfg = dict(DEFAULT_CONFIG)
     if config_file.exists():
         try:
             data = json.loads(config_file.read_text())
-            return {**DEFAULT_CONFIG, **data}
+            if isinstance(data, dict):
+                cfg.update(data)
         except (json.JSONDecodeError, OSError):
             pass
-    return dict(DEFAULT_CONFIG)
+
+    env_base = os.environ.get("CORACI_API_BASE_URL")
+    env_model = os.environ.get("CORACI_MODEL")
+    env_key = os.environ.get("CORACI_API_KEY")
+    if env_base:
+        cfg["api_base_url"] = env_base
+    if env_model:
+        cfg["model"] = env_model
+    if env_key:
+        cfg["api_key"] = env_key
+    return cfg
 
 
 def save_config(config: dict) -> None:
     config_file = Path(CONFIG_PATH)
     config_file.parent.mkdir(parents=True, exist_ok=True)
-    config_file.write_text(json.dumps(config, indent=2, ensure_ascii=False))
+    safe_config = dict(config)
+    safe_config["api_key"] = ""
+    config_file.write_text(json.dumps(safe_config, indent=2, ensure_ascii=False))
 
 
 # Cache em memória
@@ -263,8 +278,16 @@ async def _stream_chat_openai(
         response = await client.chat.completions.create(
             model=model or cfg.get("model", DEFAULT_CONFIG["model"]),
             messages=messages,
-            temperature=temperature or cfg.get("temperature", DEFAULT_CONFIG["temperature"]),
-            max_tokens=max_tokens or cfg.get("max_tokens", DEFAULT_CONFIG["max_tokens"]),
+            temperature=(
+                temperature
+                if temperature is not None
+                else cfg.get("temperature", DEFAULT_CONFIG["temperature"])
+            ),
+            max_tokens=(
+                max_tokens
+                if max_tokens is not None
+                else cfg.get("max_tokens", DEFAULT_CONFIG["max_tokens"])
+            ),
             stream=True,
         )
         stream = cast("AsyncStream[ChatCompletionChunk]", response)

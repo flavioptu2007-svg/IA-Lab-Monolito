@@ -41,9 +41,9 @@ CONFIG_FILE = BASE_DIR / "config.json"
 DB_PATH = str(BASE_DIR / "coraci.db")
 
 DEFAULT_CONFIG = {
-    "api_base_url": "http://localhost:8000/v1",
+    "api_base_url": "http://localhost:11434/v1",
     "api_key": "",
-    "model": "glm-5.2-colibri",
+    "model": "glm4:latest",
     "temperature": 0.7,
     "max_tokens": 4096,
     "theme": "dark",
@@ -206,16 +206,24 @@ def load_config() -> dict:
             cfg.update(data)
         except (json.JSONDecodeError, OSError):
             pass
-    # Env var takes precedence over config.json for secrets
+    # Variáveis de ambiente têm precedência sobre config.json.
+    env_base = os.environ.get("CORACI_API_BASE_URL")
+    env_model = os.environ.get("CORACI_MODEL")
     env_key = os.environ.get("CORACI_API_KEY")
+    if env_base:
+        cfg["api_base_url"] = env_base
+    if env_model:
+        cfg["model"] = env_model
     if env_key:
         cfg["api_key"] = env_key
     return cfg
 
 
 def save_config(config: dict) -> None:
-    """Persiste configuração no arquivo JSON."""
-    CONFIG_FILE.write_text(json.dumps(config, indent=2, ensure_ascii=False))
+    """Persiste configuração sem gravar segredos em disco."""
+    safe_config = dict(config)
+    safe_config["api_key"] = ""
+    CONFIG_FILE.write_text(json.dumps(safe_config, indent=2, ensure_ascii=False))
 
 
 def load_openai_client():
@@ -427,6 +435,8 @@ def get_config():
 def update_config():
     """Atualiza a configuração."""
     data = request.get_json(force=True)
+    if not isinstance(data, dict):
+        return jsonify({"error": "Body deve ser um objeto JSON"}), 400
     allowed_keys = {"api_base_url", "api_key", "model", "temperature", "max_tokens", "theme"}
     # Validação antes de modificar o config
     if "temperature" in data:

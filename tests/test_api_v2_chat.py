@@ -269,7 +269,7 @@ class TestConfig:
         assert "temperature" in data
         assert "max_tokens" in data
         assert "theme" in data
-        assert data["model"] == "glm-5.2-colibri"
+        assert data["model"] == "glm4:latest"
 
     def test_get_config_esconde_api_key(self, client):
         """A API key não deve ser exposta completamente."""
@@ -280,6 +280,95 @@ class TestConfig:
         assert response.status_code == 200
         assert "sk-1234567890" not in response.json()["api_key"]
         assert "sk-" in response.json()["api_key"]  # apenas prefixo visível
+
+    def test_config_update_rejeita_valores_fora_da_faixa(self, client):
+        response = client.post("/api/v2/config", json={"temperature": 2.1})
+        assert response.status_code == 422
+
+        response = client.post("/api/v2/config", json={"max_tokens": -1})
+        assert response.status_code == 422
+
+    def test_config_nao_persiste_api_key(self, tmp_path, client):
+        import json
+
+        import src.api.v2.chat_coraci as chat_mod
+
+        config_file = tmp_path / "config.json"
+        with patch.object(chat_mod, "CONFIG_PATH", str(config_file)):
+            chat_mod.save_config(
+                {
+                    "api_base_url": "http://localhost:11434/v1",
+                    "api_key": "sk-test-secret",
+                    "model": "glm4:latest",
+                    "temperature": 0.7,
+                    "max_tokens": 4096,
+                    "theme": "dark",
+                }
+            )
+
+        saved = json.loads(config_file.read_text())
+        assert saved["api_key"] == ""
+
+    def test_load_config_env_sobrescreve_arquivo(self, tmp_path, monkeypatch):
+        import src.api.v2.chat_coraci as chat_mod
+
+        config_file = tmp_path / "config.json"
+        config_file.write_text(
+            '{"api_base_url":"http://file:8000/v1","model":"arquivo-modelo","api_key":""}'
+        )
+        monkeypatch.setattr(chat_mod, "CONFIG_PATH", str(config_file))
+        monkeypatch.setenv("CORACI_API_BASE_URL", "http://localhost:11434/v1")
+        monkeypatch.setenv("CORACI_MODEL", "glm4:latest")
+        monkeypatch.setenv("CORACI_API_KEY", "sk-env")
+
+        cfg = chat_mod.load_config()
+
+        assert cfg["api_base_url"] == "http://localhost:11434/v1"
+        assert cfg["model"] == "glm4:latest"
+        assert cfg["api_key"] == "sk-env"
+
+    @pytest.mark.asyncio
+    async def test_stream_preserva_temperature_e_max_tokens_zero(self, monkeypatch):
+        import openai
+
+        import src.api.v2.chat_coraci as chat_mod
+
+        class FakeStream:
+            def __aiter__(self):
+                async def iterator():
+                    if False:
+                        yield None
+                return iterator()
+
+        class FakeCompletions:
+            def __init__(self):
+                self.kwargs = None
+
+            async def create(self, **kwargs):
+                self.kwargs = kwargs
+                return FakeStream()
+
+        completions = FakeCompletions()
+        fake_client = type("FakeClient", (), {})()
+        fake_client.chat = type(
+            "FakeChat", (), {"completions": completions}
+        )()
+
+        monkeypatch.setattr(openai, "AsyncOpenAI", lambda **_kwargs: fake_client)
+        chat_mod._config = dict(chat_mod.DEFAULT_CONFIG)
+
+        events = [
+            event
+            async for event in chat_mod._stream_chat_openai(
+                [{"role": "user", "content": "oi"}],
+                temperature=0,
+                max_tokens=0,
+            )
+        ]
+
+        assert completions.kwargs["temperature"] == 0
+        assert completions.kwargs["max_tokens"] == 0
+        assert any('"type": "done"' in event for event in events)
 
     def test_update_config_altera_valores(self, client):
         """Atualizar config deve persistir os valores."""
