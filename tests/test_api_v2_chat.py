@@ -269,7 +269,7 @@ class TestConfig:
         assert "temperature" in data
         assert "max_tokens" in data
         assert "theme" in data
-        assert data["model"] == "glm-5.2-colibri"
+        assert data["model"] == "glm4:latest"
 
     def test_get_config_esconde_api_key(self, client):
         """A API key não deve ser exposta completamente."""
@@ -280,6 +280,14 @@ class TestConfig:
         assert response.status_code == 200
         assert "sk-1234567890" not in response.json()["api_key"]
         assert "sk-" in response.json()["api_key"]  # apenas prefixo visível
+
+    def test_config_update_rejeita_valores_fora_da_faixa(self, client):
+        response = client.post("/api/v2/config", json={"temperature": 2.1})
+        assert response.status_code == 422
+
+        response = client.post("/api/v2/config", json={"max_tokens": -1})
+        assert response.status_code == 422
+
 
     def test_update_config_altera_valores(self, client):
         """Atualizar config deve persistir os valores."""
