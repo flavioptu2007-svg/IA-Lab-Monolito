@@ -288,7 +288,6 @@ class TestConfig:
         response = client.post("/api/v2/config", json={"max_tokens": -1})
         assert response.status_code == 422
 
-
     def test_config_nao_persiste_api_key(self, tmp_path, client):
         import json
         import src.api.v2.chat_coraci as chat_mod
@@ -308,7 +307,6 @@ class TestConfig:
 
         saved = json.loads(config_file.read_text())
         assert saved["api_key"] == ""
-
 
     def test_load_config_env_sobrescreve_arquivo(self, tmp_path, monkeypatch):
         import src.api.v2.chat_coraci as chat_mod
@@ -370,7 +368,6 @@ class TestConfig:
         assert completions.kwargs["temperature"] == 0
         assert completions.kwargs["max_tokens"] == 0
         assert any('"type": "done"' in event for event in events)
-
 
     def test_update_config_altera_valores(self, client):
         """Atualizar config deve persistir os valores."""
