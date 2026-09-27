@@ -41,11 +41,12 @@ app.add_middleware(
         "http://localhost:8765",
         "http://127.0.0.1:8765",
         "https://jogos-5f131.web.app",
-        "http://192.168.15.17:8765",
         "https://educacionai.com.br",
     ],
     allow_origin_regex=r"https?://192\.168\.\d{1,3}\.\d{1,3}:\d+",
-    allow_credentials=True,
+    # A API não usa cookies/sessão: habilitar credenciais junto do regex de
+    # LAN ampliava a superfície de ataque sem necessidade.
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )

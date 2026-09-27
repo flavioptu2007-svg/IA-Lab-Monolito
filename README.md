@@ -1,6 +1,6 @@
 # IA-Lab Unified
 
-[![🇧🇷 Português](README.md)](README.md) [![🇺🇸 English](README.en.md)](README.en.md)
+[![🇧🇷 Português](README.md)](README.md) [![🇺🇸 English](README.en.md)](README.en.md) [![🇨🇳 中文](README_zh.md)](README_zh.md) [![🇯🇵 日本語](README_ja.md)](README_ja.md) [![🇰🇷 한국어](README_ko.md)](README_ko.md)
 [![CI](https://github.com/flavioptu2007-svg/IA-Lab-Monolito/actions/workflows/ci.yml/badge.svg)](https://github.com/flavioptu2007-svg/IA-Lab-Monolito/actions/workflows/ci.yml)
 
 **Monolito FastAPI** que unifica 5 projetos em um único ecossistema de IA, áudio, RAG, educação e inferência local.

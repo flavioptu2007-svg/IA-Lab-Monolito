@@ -36,14 +36,17 @@ load_dotenv()
 # Configuração
 # ---------------------------------------------------------------------------
 
+# Estado local do app. Os caminhos efetivos são resolvidos por
+# get_config_file()/get_db_path(), que respeitam override por env var — assim a
+# suíte de testes não escreve em arquivos do repositório (Achado 10).
 BASE_DIR = Path(__file__).parent
 CONFIG_FILE = BASE_DIR / "config.json"
 DB_PATH = str(BASE_DIR / "coraci.db")
 
 DEFAULT_CONFIG = {
-    "api_base_url": "http://localhost:8000/v1",
+    "api_base_url": "http://localhost:11434/v1",
     "api_key": "",
-    "model": "glm-5.2-colibri",
+    "model": "glm4:latest",
     "temperature": 0.7,
     "max_tokens": 4096,
     "theme": "dark",
@@ -69,8 +72,13 @@ current_config = dict(DEFAULT_CONFIG)
 
 
 def get_db_path() -> str:
-    """Retorna o caminho do banco de dados."""
-    return DB_PATH
+    """Retorna o caminho do banco de dados (override: IA_LAB_CORACI_FLASK_DB)."""
+    return os.environ.get("IA_LAB_CORACI_FLASK_DB", DB_PATH)
+
+
+def get_config_file() -> Path:
+    """Retorna o caminho do config.json (override: IA_LAB_CORACI_FLASK_CONFIG)."""
+    return Path(os.environ.get("IA_LAB_CORACI_FLASK_CONFIG", CONFIG_FILE))
 
 
 def init_db(db_path: str | None = None) -> None:
@@ -200,9 +208,10 @@ def load_config() -> dict:
     2. Campo "api_key" no config.json (fallback)
     """
     cfg = dict(DEFAULT_CONFIG)
-    if CONFIG_FILE.exists():
+    config_file = get_config_file()
+    if config_file.exists():
         try:
-            data = json.loads(CONFIG_FILE.read_text())
+            data = json.loads(config_file.read_text())
             cfg.update(data)
         except (json.JSONDecodeError, OSError):
             pass
@@ -215,7 +224,7 @@ def load_config() -> dict:
 
 def save_config(config: dict) -> None:
     """Persiste configuração no arquivo JSON."""
-    CONFIG_FILE.write_text(json.dumps(config, indent=2, ensure_ascii=False))
+    get_config_file().write_text(json.dumps(config, indent=2, ensure_ascii=False))
 
 
 def load_openai_client():

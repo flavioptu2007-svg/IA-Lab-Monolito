@@ -35,11 +35,11 @@ jobs:
 
       - name: Lint with ruff (config do pyproject.toml)
         run: |
-          ruff check api src tests --output-format github
+          ruff check ai scripts api src tests --output-format github
 
       - name: Check formatting com ruff format
         run: |
-          ruff format --check --diff api src tests
+          ruff format --check --diff ai api src tests
 
   # ─── Test: Python (pytest) ────────────────────────────────────
   test-python:
@@ -69,7 +69,8 @@ jobs:
           python3 -m pytest tests/ -v --tb=short --no-header -x \
             --cov=ai --cov=api --cov=src \
             --cov-report=term-missing \
-            --cov-report=html:coverage_html
+            --cov-report=html:coverage_html \
+            --cov-fail-under=70
         env:
           IA_LAB_RAG_ENABLED: "false"
           IA_LAB_LOG_LEVEL: "WARNING"
@@ -80,7 +81,7 @@ jobs:
         with:
           name: coverage-report
           path: coverage_html/
-          retention-days: 7
+          retention-days: 3
 
   # ─── Typecheck: Python (mypy) ────────────────────────────────
   typecheck-python:
@@ -103,7 +104,7 @@ jobs:
 
       - name: Typecheck with mypy
         run: |
-          python3 -m mypy src api --ignore-missing-imports
+          python3 -m mypy ai src api --ignore-missing-imports
 
   # ─── Build: Dashboard (Vite) ─────────────────────────────────
   build-dashboard:
@@ -147,7 +148,7 @@ jobs:
         with:
           name: dashboard-dist
           path: web/dashboard/dist/
-          retention-days: 7
+          retention-days: 3
 
   # ─── Test: Shell scripts (shellcheck + bats) ──────────────────
   test-shell:
@@ -164,7 +165,7 @@ jobs:
 
       - name: Shellcheck (todos os scripts shell)
         run: |
-          shellcheck -S warning scripts/*.sh
+          shellcheck -S warning $(git ls-files 'scripts/*.sh')
 
       - name: Bats (testes unitários do fluxo do Office 2016 MSI)
         run: |

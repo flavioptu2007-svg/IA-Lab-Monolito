@@ -125,6 +125,14 @@ storage/
 /.coverage
 htmlcov/
 
+# ── Caches de ferramentas ──────────────────────────────────────
+.mypy_cache/
+coverage_html/
+
+# ── Estado local do Coraci (mutado pela suíte de testes) ───────
+Aplicativo_Coraci/config.json
+src/Aplicativo_Coraci/config.json
+
 # ── Mídia pessoal (screenshots/vídeos/imagens na raiz) ──────────
 /*.png
 /*.jpeg

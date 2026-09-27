@@ -10,9 +10,15 @@ from __future__ import annotations
 import tempfile
 from pathlib import Path
 
-from fastapi import APIRouter, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, HTTPException, UploadFile
 
-router = APIRouter(prefix="/api/v2/openvino", tags=["openvino"])
+from src.core.security import require_api_key
+
+router = APIRouter(
+    prefix="/api/v2/openvino",
+    tags=["openvino"],
+    dependencies=[Depends(require_api_key)],
+)
 
 
 # ═══════════════════════════════════════════════════════════════

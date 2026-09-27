@@ -62,6 +62,14 @@ async def lifespan(_app: FastAPI):
     except Exception as exc:
         logger.warning("Coraci chat startup error: %s", exc)
 
+    # ── Segurança: avisa se a API subiu sem token ────────────────
+    try:
+        from src.core.security import warn_if_auth_disabled
+
+        warn_if_auth_disabled()
+    except Exception as exc:
+        logger.warning("Security startup check error: %s", exc)
+
     # ── App log ──────────────────────────────────────────────────
     logger.info("IA-Lab Unified API iniciada")
 

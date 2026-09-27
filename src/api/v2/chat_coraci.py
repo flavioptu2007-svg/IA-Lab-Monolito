@@ -15,15 +15,18 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import sqlite3
 import uuid
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, cast
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
+
+from src.core.security import require_api_key, validate_api_base_url
 
 if TYPE_CHECKING:
     from openai import AsyncStream
@@ -33,7 +36,11 @@ logger = logging.getLogger(__name__)
 
 # ── Router ────────────────────────────────────────────────────────────────
 
-router = APIRouter(prefix="/api/v2", tags=["chat"])
+router = APIRouter(
+    prefix="/api/v2",
+    tags=["chat"],
+    dependencies=[Depends(require_api_key)],
+)
 
 # ── Models Pydantic ───────────────────────────────────────────────────────
 
@@ -77,6 +84,9 @@ class TestConnectionRequest(BaseModel):
 
 # ── Database ──────────────────────────────────────────────────────────────
 
+# Estado local do Coraci. Os caminhos efetivos são resolvidos por
+# get_db_path()/get_config_path(), que respeitam override por env var — assim a
+# suíte de testes não escreve em arquivos do repositório (Achado 10).
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 DB_PATH = str(BASE_DIR / "coraci.db")
 CONFIG_PATH = str(BASE_DIR / "Aplicativo_Coraci" / "config.json")
@@ -92,7 +102,13 @@ DEFAULT_CONFIG: dict[str, Any] = {
 
 
 def get_db_path() -> str:
-    return DB_PATH
+    """Caminho do SQLite (override: ``IA_LAB_CORACI_DB``)."""
+    return os.environ.get("IA_LAB_CORACI_DB", DB_PATH)
+
+
+def get_config_path() -> str:
+    """Caminho do config.json (override: ``IA_LAB_CORACI_CONFIG``)."""
+    return os.environ.get("IA_LAB_CORACI_CONFIG", CONFIG_PATH)
 
 
 def init_db() -> None:
@@ -216,7 +232,7 @@ def close_db() -> None:
 
 
 def load_config() -> dict:
-    config_file = Path(CONFIG_PATH)
+    config_file = Path(get_config_path())
     if config_file.exists():
         try:
             data = json.loads(config_file.read_text())
@@ -227,7 +243,7 @@ def load_config() -> dict:
 
 
 def save_config(config: dict) -> None:
-    config_file = Path(CONFIG_PATH)
+    config_file = Path(get_config_path())
     config_file.parent.mkdir(parents=True, exist_ok=True)
     config_file.write_text(json.dumps(config, indent=2, ensure_ascii=False))
 
@@ -427,6 +443,8 @@ async def update_config(update: ConfigUpdate):
     """Atualiza a configuração."""
     allowed = {"api_base_url", "api_key", "model", "temperature", "max_tokens", "theme"}
     data = update.model_dump(exclude_none=True)
+    if data.get("api_base_url"):
+        data["api_base_url"] = validate_api_base_url(data["api_base_url"])
     for key, value in data.items():
         if key in allowed:
             _config[key] = value
@@ -439,7 +457,8 @@ async def test_connection(req: TestConnectionRequest):
     """Testa a conexão com a API listando modelos."""
     from openai import OpenAI
 
-    base = (req.api_base_url or _config.get("api_base_url", "")).rstrip("/")
+    # Valida antes de qualquer requisição server-side (bloqueia SSRF).
+    base = validate_api_base_url(req.api_base_url or _config.get("api_base_url", "")).rstrip("/")
     key = req.api_key or _config.get("api_key") or "no-key"
 
     try:

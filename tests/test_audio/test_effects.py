@@ -67,10 +67,13 @@ class TestConversion:
         """
         arr = np.array([2.0, -2.0, 0.5], dtype=np.float32)
         result = effects.float_to_bytes(arr)
-        samples = np.frombuffer(result, dtype=np.int16)
-        assert samples[0] == 32767  # clipado (1.0 * 32767)
-        assert samples[1] == -32767  # clipado (-1.0 * 32767 = -32767)
-        assert samples[2] == int(0.5 * 32767)  # intacto
+        raw = np.frombuffer(result, dtype=np.int16)
+        n0: int = int(raw[0])
+        n1: int = int(raw[1])
+        n2: int = int(raw[2])
+        assert n0 == 32767  # clipado (1.0 * 32767)
+        assert n1 == -32767  # clipado (-1.0 * 32767 = -32767)
+        assert n2 == int(0.5 * 32767)  # intacto (16383)
 
     def test_db_to_gain(self) -> None:
         """0 dB deve resultar em ganho 1.0, -6 dB em ~0.5."""
@@ -178,6 +181,10 @@ class TestNoiseGate:
         max_abs = np.max(np.abs(samples.astype(np.int32)))
         assert max_abs <= 1, f"Pico de {max_abs} > 1"
 
+    def test_gate_empty(self) -> None:
+        result = effects.noise_gate(b"")
+        assert result == b""
+
 
 class TestCompressor:
     """Testes de compressor."""
@@ -200,6 +207,11 @@ class TestCompressor:
         result = effects.compressor(audio, threshold_db=-30.0, ratio=10.0)
         result_peak = np.max(np.abs(np.frombuffer(result, dtype=np.int16)))
         assert result_peak > 0
+
+    def test_compressor_empty(self) -> None:
+        """Bytes vazio deve retornar bytes vazio."""
+        result = effects.compressor(b"")
+        assert result == b"" or len(result) == 0
 
 
 class TestResample:
@@ -239,6 +251,11 @@ class TestResample:
         # Normaliza tamanhos para comparação
         min_len = min(len(down_arr), len(up_arr))
         assert min_len > 0
+
+    def test_resample_empty(self) -> None:
+        """Bytes vazio deve retornar bytes vazio."""
+        result = effects.resample(b"", 16000, 48000)
+        assert result == b"" or len(result) == 0
 
 
 class TestFilters:
@@ -309,6 +326,13 @@ class TestRemoveSilence:
         # Deve conter o tom (não vazio)
         assert len(result_samples) > 1000
 
+    def test_remove_silence_very_short(self) -> None:
+        """Áudio muito curto não deve quebrar."""
+        audio = b"\x00\x01\x00\x02"
+        # Não deve lançar exceção
+        result = effects.remove_silence(audio, threshold_db=-40.0)
+        assert isinstance(result, bytes)
+
 
 class TestEdgeCases:
     """Casos extremos para funções de efeitos."""
@@ -359,4 +383,4 @@ class TestEdgeCases:
     def test_gain_to_db_zero(self) -> None:
         """Ganho zero deve retornar -inf (como -100.0)."""
         result = effects.gain_to_db(0.0)
-        assert result <= -100.0
+        assert float(result) <= -100.0

@@ -5,8 +5,9 @@ Todas as rotas são prefixadas com ``/api/v2/education``.
 
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 
+from src.core.security import require_api_key
 from src.education.schemas import (
     ActivityCreate,
     ActivityUpdate,
@@ -18,7 +19,11 @@ from src.education.schemas import (
 )
 from src.education.services import get_bncc_competences, get_store, list_bncc_skills
 
-router = APIRouter(prefix="/api/v2/education", tags=["education"])
+router = APIRouter(
+    prefix="/api/v2/education",
+    tags=["education"],
+    dependencies=[Depends(require_api_key)],
+)
 
 
 # ═══════════════════════════════════════════════════════════════

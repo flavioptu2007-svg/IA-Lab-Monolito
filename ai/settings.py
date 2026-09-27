@@ -86,6 +86,17 @@ class Settings(BaseSettings):
     qdrant_port: int = 6333
     qdrant_collection: str = "ia-lab-docs"
 
+    # --- Segurança da API ---
+    # Token exigido no header X-API-Key pelos routers /api/v2 (chat,
+    # education, openvino). Vazio = autenticação desabilitada
+    # (dev local e suíte de testes).
+    api_token: SecretStr = SecretStr("")
+    # SSRF: quando False, POST /api/v2/config/test recusa hosts privados,
+    # loopback e link-local. Default True porque o projeto é local-first
+    # (Ollama/LM Studio na própria máquina e portal na LAN escolar).
+    # Metadata de cloud é sempre bloqueada, independente desta flag.
+    allow_private_api_hosts: bool = True
+
     # --- Geral ---
     log_level: str = "INFO"
     health_check_timeout: float = 5.0
