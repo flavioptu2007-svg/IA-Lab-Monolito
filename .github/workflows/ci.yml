@@ -114,10 +114,17 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      # hashFiles só funciona em step-level if (workspace ainda não existe
-      # no job-level if) — cada step é protegido individualmente.
+      # Sem guard silencioso: se o dashboard sumir, o job FALHA em vez de
+      # reportar sucesso sem construir nada (verde falso).
+      - name: Verificar presença do dashboard
+        run: |
+          if [ ! -f web/dashboard/package-lock.json ]; then
+            echo "::error::web/dashboard/package-lock.json ausente — o dashboard não pode ser construído."
+            echo "Restaure o fonte com: git restore --source=3af5f1b^ --worktree -- web"
+            exit 1
+          fi
+
       - name: Install Node.js
-        if: ${{ hashFiles('web/dashboard/package-lock.json') != '' }}
         uses: actions/setup-node@v5
         with:
           node-version: "22"
@@ -125,25 +132,21 @@ jobs:
           cache-dependency-path: web/dashboard/package-lock.json
 
       - name: Install dependencies
-        if: ${{ hashFiles('web/dashboard/package-lock.json') != '' }}
         run: |
           cd web/dashboard
           npm ci
 
       - name: TypeScript check
-        if: ${{ hashFiles('web/dashboard/package-lock.json') != '' }}
         run: |
           cd web/dashboard
           npx tsc -b --noEmit
 
       - name: Build (Vite)
-        if: ${{ hashFiles('web/dashboard/package-lock.json') != '' }}
         run: |
           cd web/dashboard
           npm run build
 
       - name: Upload dashboard build
-        if: ${{ hashFiles('web/dashboard/package-lock.json') != '' }}
         uses: actions/upload-artifact@v6
         with:
           name: dashboard-dist

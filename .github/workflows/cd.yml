@@ -33,6 +33,17 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      # Antes o workflow_dispatch falhava de forma críptica no setup-node
+      # (cache-dependency-path apontando para auth inexistente). Agora falha
+      # com mensagem explícita — ou segue, se o dashboard existir.
+      - name: Verificar presença do dashboard
+        run: |
+          if [ ! -f web/dashboard/package-lock.json ]; then
+            echo "::error::web/dashboard/package-lock.json ausente — nada a construir/deployar."
+            echo "Restaure o fonte com: git restore --source=3af5f1b^ --worktree -- web"
+            exit 1
+          fi
+
       - name: Install Node.js
         uses: actions/setup-node@v5
         with:
