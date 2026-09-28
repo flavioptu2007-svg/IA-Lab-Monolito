@@ -1,0 +1,96 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# ALLOWLIST — o contexto do build é a raiz do repositório, que neste workspace
+# também é o HOME do usuário (centenas de GB de projetos e caches pessoais).
+# Excluímos tudo e re-incluímos apenas o que a imagem precisa: sem isso o
+# `docker build` fica preso enviando o contexto.
+# ═══════════════════════════════════════════════════════════════════════════
+*
+!ai
+!api
+!web
+!src
+!Aplicativo_Coraci
+!pyproject.toml
+!README.md
+
+# ── Git ───────────────────────────────────────────────────────
+.git/
+.gitignore
+.gitattributes
+
+# ── Python ─────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+*.egg
+dist/
+build/
+
+# ── Virtual environments ───────────────────────────────────────
+.venv/
+venv/
+env/
+.env
+
+# ── IDE / Editors ──────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# ── Databases (local) ─────────────────────────────────────────
+*.db
+*.sqlite
+*.sqlite3
+temp/
+
+# ── Logs ───────────────────────────────────────────────────────
+*.log
+logs/
+
+# ── Audio artifacts ────────────────────────────────────────────
+*.wav
+*.mp3
+*.flac
+*.pcm
+testes-audio/
+
+# ── AI / ML models (baixados em runtime) ───────────────────────
+models/
+*.pt
+*.pth
+*.bin
+*.gguf
+checkpoints/
+
+# ── Node (se houver frontend) ──────────────────────────────────
+node_modules/
+package-lock.json
+
+# ── Ambiente e segredos ────────────────────────────────────────
+.env
+.env.local
+*.key
+*.pem
+auth.json
+
+# ── Qdrant local ───────────────────────────────────────────────
+qdrant/
+storage/
+
+# ── Documentos pessoais ────────────────────────────────────────
+Documentos/
+Downloads/
+Imagens/
+Música/
+Videos/
+Desktop/
+Secretária/
+
+# ── Configs pessoais ───────────────────────────────────────────
+.config/
+.cache/
+.local/
