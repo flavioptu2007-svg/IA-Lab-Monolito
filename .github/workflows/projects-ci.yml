@@ -1,0 +1,127 @@
+name: Projects CI
+
+# CI para os projetos de usuário em Projetos/ (o repo da home rastreia estes
+# arquivos; clones independentes como explainshell e ComfyUI têm CI própria).
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - "Projetos/next-app/**"
+      - "Projetos/web/**"
+      - "Projetos/leituraia/**"
+      - ".github/workflows/projects-ci.yml"
+  pull_request:
+    branches: [main, master]
+    paths:
+      - "Projetos/next-app/**"
+      - "Projetos/web/**"
+      - "Projetos/leituraia/**"
+      - ".github/workflows/projects-ci.yml"
+  workflow_dispatch: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ─── next-app: typecheck + lint + build ──────────────────────────
+  next-app:
+    name: next-app (typecheck, lint, build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Projetos/next-app
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: Projetos/next-app/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+
+  # ─── web/dashboard: lint + build ─────────────────────────────────
+  web-dashboard:
+    name: web/dashboard (lint, build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Projetos/web/dashboard
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: Projetos/web/dashboard/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+
+  # ─── leituraia: pytest ───────────────────────────────────────────
+  leituraia:
+    name: leituraia (pytest)
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install deps
+        run: pip install pytest fastapi httpx "pydantic[email]" "python-jose[cryptography]"
+
+      - name: Run tests
+        working-directory: Projetos
+        run: python -m pytest leituraia/tests -q
+
+  # ─── web/api: pytest (monolito stubado) ──────────────────────────
+  web-api:
+    name: web/api (pytest)
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install deps
+        run: pip install pytest fastapi httpx prometheus-client
+
+      - name: Run tests
+        working-directory: Projetos/web
+        run: python -m pytest api/tests -q
