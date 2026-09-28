@@ -129,6 +129,9 @@ htmlcov/
 .mypy_cache/
 coverage_html/
 
+# ── Cache de build TypeScript (gerado por `tsc -b`) ────────────
+*.tsbuildinfo
+
 # ── Estado local do Coraci (mutado pela suíte de testes) ───────
 Aplicativo_Coraci/config.json
 src/Aplicativo_Coraci/config.json
