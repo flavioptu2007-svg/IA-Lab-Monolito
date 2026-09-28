@@ -33,8 +33,12 @@ def _async_stream(events: list[str]):
 # ═════════════════════════════════════════════════════════════════════════════
 
 
+# NOTA: a fixture se chama `fastapi_app`, e NAO `app`. O plugin `pytest-flask`
+# (plugin de terceiros, nao usado aqui) tem um hook autouse que dispara toda vez
+# que existe fixture `app` e faz `app.response_class` -- atributo so de Flask.
+# Com o nome `app` a suite inteira quebra com FastAPI.
 @pytest.fixture
-def app():
+def fastapi_app():
     """Cria uma FastAPI app apenas com o router v2 para testes."""
     from fastapi import FastAPI
 
@@ -44,9 +48,9 @@ def app():
 
 
 @pytest.fixture
-def client(app):
+def client(fastapi_app):
     """TestClient para o router v2."""
-    return TestClient(app)
+    return TestClient(fastapi_app)
 
 
 # ═════════════════════════════════════════════════════════════════════════════
