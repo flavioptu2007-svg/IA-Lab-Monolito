@@ -3,6 +3,7 @@
 Cobre:
 - choose_provider: seleção por preferência e fallback para padrão
 - complete: sucesso, fallback em erro, RAG, classificação de tarefa
+- billing_reason: reconhecimento de falhas de cobrança/cota (402/429)
 - get_provider_status: lista de provedores configurados
 """
 
@@ -10,9 +11,22 @@ from __future__ import annotations
 
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import httpx
 import pytest
 
-from ai.service import AIService
+from ai.service import AIService, billing_reason
+
+
+def _http_error(status_code: int) -> httpx.HTTPStatusError:
+    """Erro HTTP real, como o devolvido por um provedor sem créditos."""
+    request = httpx.Request("POST", "https://api.openai.com/v1/chat/completions")
+    response = httpx.Response(status_code, request=request)
+    return httpx.HTTPStatusError(
+        f"Client error '{status_code}' for url 'https://api.openai.com/v1/chat/completions'",
+        request=request,
+        response=response,
+    )
+
 
 # ═══════════════════════════════════════════════════════════════════════════
 # Fixtures
@@ -272,6 +286,81 @@ class TestComplete:
 
             await service.complete("crie uma função em Python", provider="openai")
             mock_classify.assert_called_once_with("crie uma função em Python")
+
+    @pytest.mark.asyncio
+    async def test_complete_cai_para_local_quando_nuvem_retorna_402(
+        self,
+        service: AIService,
+        mock_providers_patch,
+    ):
+        """402 do provedor de nuvem deve cair para o provedor local (custo zero)."""
+        mock_providers_patch["openai"].complete = AsyncMock(side_effect=_http_error(402))
+
+        with patch("ai.service.settings") as mock_settings:
+            mock_settings.primary_provider = "openai"
+            mock_settings.local_provider = "ollama"
+            mock_settings.rag_enabled = False
+
+            response = await service.complete("teste", provider="openai")
+
+        assert response == "Resposta da Ollama"
+        mock_providers_patch["ollama"].complete.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_complete_402_em_todos_nao_vira_erro_opaco(
+        self,
+        service: AIService,
+        mock_providers_patch,
+    ):
+        """402 em todos os provedores deve virar instrução de custo zero."""
+        mock_providers_patch["openai"].complete = AsyncMock(side_effect=_http_error(402))
+        mock_providers_patch["ollama"].complete = AsyncMock(side_effect=_http_error(402))
+
+        with patch("ai.service.settings") as mock_settings:
+            mock_settings.primary_provider = "openai"
+            mock_settings.local_provider = "ollama"
+            mock_settings.ollama_base_url = "http://localhost:11434"
+            mock_settings.rag_enabled = False
+
+            response = await service.complete("teste", provider="openai")
+
+        assert "HTTP 402" in response
+        assert "custo zero" in response
+        assert "ollama" in response
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# billing_reason
+# ═══════════════════════════════════════════════════════════════════════════
+
+
+class TestBillingReason:
+    """Testes para billing_reason() — detecção de falha de cobrança/cota."""
+
+    def test_reconhece_http_402(self):
+        """402 (Payment Required) é a assinatura de provedor sem créditos."""
+        assert billing_reason(_http_error(402)) == "HTTP 402"
+
+    def test_reconhece_http_429(self):
+        """429 (cota esgotada) também é falha de cobrança/cota."""
+        assert billing_reason(_http_error(429)) == "HTTP 429"
+
+    def test_reconhece_status_code_do_sdk_openai(self):
+        """O SDK da OpenAI expõe status_code direto na exceção."""
+
+        class FakeAPIStatusError(Exception):
+            status_code = 402
+
+        assert billing_reason(FakeAPIStatusError("erro qualquer")) == "HTTP 402"
+
+    def test_reconhece_mensagem_de_quota(self):
+        """Mensagem textual de cota/crédito conta como falha de cobrança."""
+        assert billing_reason(Exception("insufficient_quota: no credits")) == "insufficient"
+
+    def test_erro_comum_nao_e_cobranca(self):
+        """Erro de rede/timeout não deve ser classificado como cobrança."""
+        assert billing_reason(Exception("connection refused")) is None
+        assert billing_reason(_http_error(500)) is None
 
 
 # ═══════════════════════════════════════════════════════════════════════════

@@ -11,7 +11,6 @@ class TaskType(StrEnum):
 
     code = "code"
     general = "general"
-    refactor = "refactor"
     architecture = "architecture"
     local = "local"
     planning = "planning"
@@ -44,11 +43,15 @@ class BaseProvider(ABC):
 
 
 def get_default_provider_for_task(task_type: TaskType) -> str:
-    """Retorna o provedor padrão recomendado para um tipo de tarefa."""
+    """Retorna o provedor padrão recomendado para um tipo de tarefa.
+
+    Os mapeamentos foram reescritos para apenas provedores reais e que
+    não dependem de chave/credenciais — o ``freebuff`` que circulava não
+    existia como classe e quebrava o fallback de ``refactor``.
+    """
     mapping: dict[TaskType, str] = {
         TaskType.code: "glm",
         TaskType.general: "openai",
-        TaskType.refactor: "freebuff",
         TaskType.architecture: "gemini",
         TaskType.local: "ollama",
         TaskType.planning: "claude",

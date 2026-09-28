@@ -159,7 +159,6 @@ async def list_providers():
             "task": "code",
         },
         {"name": "ollama", "model": cfg.ollama_model, "configured": True, "task": "local"},
-        {"name": "freebuff", "model": cfg.ollama_model, "configured": True, "task": "refactor"},
         {
             "name": "openai",
             "model": cfg.openai_model,

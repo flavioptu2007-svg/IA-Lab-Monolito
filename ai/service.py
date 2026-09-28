@@ -3,7 +3,8 @@
 O AIService é responsável por:
 - Roteamento inteligente de prompts para o provedor mais adequado
 - Integração com RAG (Qdrant) para contexto adicional
-- Fallback automático entre provedores
+- Fallback automático entre provedores, terminando no provedor LOCAL
+  quando a nuvem falha por cobrança/cota (política de CUSTO ZERO, AGENTS.md)
 - Registro de métricas e telemetria
 """
 
@@ -16,6 +17,44 @@ from pydantic import SecretStr
 
 from ai.providers.base import TaskType, get_default_provider_for_task
 from ai.settings import settings
+
+# ── Falhas de cobrança/cota do provedor de nuvem ──────────────────────────
+# Um provedor sem créditos responde 402 ("provider billing issue") ou 429
+# (cota esgotada). Sem tratamento, o usuário recebe só a exceção crua do SDK
+# e nenhuma saída — mas esta máquina não pode pagar a conta (AGENTS.md,
+# regra nº 1). A resposta útil é reconhecer a natureza da falha e cair para
+# o provedor local, que não depende de créditos.
+_BILLING_STATUS_CODES = (402, 429)
+_BILLING_MARKERS = (
+    "billing",
+    "payment required",
+    "insufficient",
+    "quota",
+    "no credits",
+    "credit balance",
+    "resource_exhausted",
+)
+
+
+def billing_reason(exc: BaseException) -> str | None:
+    """Motivo quando a falha é de cobrança/cota; ``None`` para outros erros.
+
+    Reconhece tanto ``httpx.HTTPStatusError`` (via ``.response``) quanto as
+    exceções do SDK da OpenAI (``.status_code``), além de mensagens que
+    mencionam explicitamente cobrança, cota ou créditos.
+    """
+    status_code = getattr(exc, "status_code", None)
+    if status_code is None:
+        response = getattr(exc, "response", None)
+        status_code = getattr(response, "status_code", None)
+    if isinstance(status_code, int) and status_code in _BILLING_STATUS_CODES:
+        return f"HTTP {status_code}"
+
+    text = str(exc).lower()
+    for marker in _BILLING_MARKERS:
+        if marker in text:
+            return marker
+    return None
 
 
 class AIService:
@@ -57,6 +96,17 @@ class AIService:
         if preferred and preferred in self._get_providers():
             return preferred
         return settings.primary_provider
+
+    def _fallback_chain(self, failed: str) -> list[str]:
+        """Provedores a tentar depois de ``failed``, sem repetir e em ordem.
+
+        Ordem: provedor primário configurado → provedor local. O local é
+        sempre o último recurso porque é o único caminho de custo zero
+        garantido (AGENTS.md, regra nº 1).
+        """
+        candidates = dict.fromkeys([settings.primary_provider, settings.local_provider])
+        providers = self._get_providers()
+        return [name for name in candidates if name != failed and name in providers]
 
     async def complete(
         self,
@@ -138,18 +188,34 @@ class AIService:
             return response
         except Exception as e:
             status = "error"
-            logger.error("Provider %s failed: %s", provider_name, e)
+            reason = billing_reason(e)
+            logger.error(
+                "Provider %s failed%s: %s",
+                provider_name,
+                f" ({reason})" if reason else "",
+                e,
+            )
 
-            # Fallback: tenta o provedor primário se diferente
-            if provider_name != settings.primary_provider:
-                logger.info("Tentando fallback para %s...", settings.primary_provider)
-                fallback_cls = self._get_providers().get(settings.primary_provider)
-                if fallback_cls:
-                    fallback_instance = fallback_cls()
-                    try:
-                        return await fallback_instance.complete(prompt=prompt)
-                    except Exception as fallback_e:
-                        logger.error("Fallback also failed: %s", fallback_e)
+            # Fallback: primário configurado e, por último, o provedor local.
+            for fallback_name in self._fallback_chain(provider_name):
+                logger.info("Tentando fallback para %s...", fallback_name)
+                fallback_cls = self._get_providers().get(fallback_name)
+                if fallback_cls is None:
+                    continue
+                try:
+                    return await fallback_cls().complete(prompt=prompt)
+                except Exception as fallback_e:
+                    logger.error("Fallback %s falhou: %s", fallback_name, fallback_e)
+
+            if reason:
+                return (
+                    f"❌ **Provedor {provider_name} indisponível ({reason}):** {e}\n\n"
+                    "Causa provável: cobrança, cota ou créditos do provedor de nuvem. "
+                    "Este ambiente opera em **custo zero** (AGENTS.md, regra nº 1), "
+                    f"então não há cobrança a resolver: use o provedor local "
+                    f"`{settings.local_provider}` (Ollama em {settings.ollama_base_url}) "
+                    "ou um modelo gratuito."
+                )
 
             return (
                 f"❌ **Erro no provedor {provider_name}:** {e}\n\n"

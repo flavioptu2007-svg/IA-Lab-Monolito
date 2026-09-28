@@ -21,11 +21,9 @@ class TaskClassifier:
             r"\b(python|javascript|typescript|java|rust|go|react|fastapi|flask|sql)\b",
             r"\b(escreva|faça|crie|desenvolva|corrija|implemente) .* (função|código|classe|script)\b",
         ],
-        TaskType.refactor: [
+        TaskType.architecture: [
             r"\b(refatorar|refatoração|refatoracao|melhorar|otimizar|simplificar|clean code|revisar)\b",
             r"\b(duplicated|repetido|complexidade|manutenção|manutencao|legado)\b",
-        ],
-        TaskType.architecture: [
             r"\b(arquitetura|architecture|design pattern|diagrama|fluxo|infra|estrutura|escalabilidade)\b",
             r"\b(microsserviço|monolito|evento|mensageria|banco de dados|fila|cache)\b",
         ],
@@ -52,7 +50,7 @@ class TaskClassifier:
         "código": TaskType.code,
         "codigo": TaskType.code,
         "programar": TaskType.code,
-        "refatorar": TaskType.refactor,
+        "refatorar": TaskType.architecture,
         "arquitetura": TaskType.architecture,
         "planejar": TaskType.planning,
     }

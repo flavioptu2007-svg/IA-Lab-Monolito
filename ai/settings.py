@@ -72,10 +72,6 @@ class Settings(BaseSettings):
     perplexity_model: str = "sonar-pro"
     perplexity_base_url: str = "https://api.perplexity.ai"
 
-    # --- Freebuff / local ---
-    freebuff_api_key: SecretStr = SecretStr("")
-    freebuff_model: str = "deepseek-v4-flash"
-
     # --- BitNet (LLM 1-bit local) ---
     bitnet_model: str = "qwen3:8b"
     bitnet_base_url: str = "http://localhost:8080/v1"

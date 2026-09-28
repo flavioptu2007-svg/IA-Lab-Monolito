@@ -15,7 +15,7 @@ from __future__ import annotations
 import os
 import time
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -134,9 +134,12 @@ history_store = HistoryStore()
 # ---- Rotas da API ----
 
 
-@app.get("/api/health")
-async def health():
-    """Health check completo do sistema."""
+def _probe_dependencies() -> dict[str, str]:
+    """Sonda Qdrant e Ollama.
+
+    Só é chamada pelos endpoints de readiness/health completo — nunca pelo
+    liveness, que precisa responder sem tocar em dependências externas.
+    """
     from ai.memory.store import VectorStore
     from ai.telemetry import health_status as hs
 
@@ -165,6 +168,42 @@ async def health():
         checks["ollama"] = "error"
         hs.labels(component="ollama").set(0)
 
+    return checks
+
+
+@app.get("/api/health/live")
+async def health_live():
+    """Liveness — o processo responde?
+
+    Sem dependências externas: NUNCA devolve erro por Qdrant/Ollama fora do
+    ar. É o endpoint correto para probes de liveness de orquestradores — usar
+    o health completo ali reinicia o container em loop.
+    """
+    return {"status": "ok", "version": "2.1.1"}
+
+
+@app.get("/api/health/ready")
+async def health_ready(response: Response):
+    """Readiness — as dependências externas estão acessíveis?
+
+    Devolve 503 quando alguma dependência está fora, para o orquestrador
+    tirar a instância do balanceamento sem reiniciá-la.
+    """
+    checks = _probe_dependencies()
+    overall = "ok" if all(v == "ok" for v in checks.values()) else "degraded"
+    if overall != "ok":
+        response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+    return {"status": overall, "checks": checks, "version": "2.1.1"}
+
+
+@app.get("/api/health")
+async def health():
+    """Health check completo do sistema.
+
+    Mantido por compatibilidade: devolve 200 mesmo degradado. Prefira
+    /api/health/live (liveness) e /api/health/ready (readiness).
+    """
+    checks = _probe_dependencies()
     overall = "ok" if all(v == "ok" for v in checks.values()) else "degraded"
     return {"status": overall, "checks": checks, "version": "2.1.1"}
 

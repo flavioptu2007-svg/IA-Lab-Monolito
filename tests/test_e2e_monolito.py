@@ -39,6 +39,31 @@ class TestE2EMonolito:
         assert resp.status_code == 200
         assert resp.json()["status"] in ("ok", "degraded")
 
+    def test_health_live_nao_consulta_dependencias(self, client):
+        """Liveness precisa responder mesmo com Qdrant/Ollama fora do ar.
+
+        Se sondar dependências, o orquestrador reinicia o container em loop
+        quando uma delas cai.
+        """
+        with patch(
+            "api.server._probe_dependencies",
+            side_effect=AssertionError("liveness não pode sondar dependências"),
+        ):
+            resp = client.get("/api/health/live")
+        assert resp.status_code == 200
+        assert resp.json()["status"] == "ok"
+
+    def test_health_ready_devolve_503_quando_degradado(self, client):
+        """Readiness sinaliza dependência fora com 503 (sem reiniciar)."""
+        resp = client.get("/api/health/ready")
+        data = resp.json()
+        assert data["status"] in ("ok", "degraded")
+        assert "checks" in data
+        if data["status"] == "ok":
+            assert resp.status_code == 200
+        else:
+            assert resp.status_code == 503
+
     def test_config(self, client):
         resp = client.get("/api/config")
         assert resp.status_code == 200

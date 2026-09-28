@@ -49,8 +49,9 @@ testes-audio/
 auth.json
 
 # ── Docker ─────────────────────────────────────────────────────
+# NOTA: .dockerignore é versionado de propósito — o build da imagem depende
+# dele e sem ele o contexto inclui o repositório inteiro (inclusive segredos).
 .docker/
-.dockerignore
 
 # ── OS ─────────────────────────────────────────────────────────
 *.xcf  # GIMP images (personal)
