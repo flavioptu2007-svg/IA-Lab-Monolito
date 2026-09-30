@@ -170,13 +170,18 @@ jobs:
         run: |
           shellcheck -S warning $(git ls-files 'scripts/*.sh')
 
-      - name: Bats (testes unitários do fluxo do Office 2016 MSI)
+      # Sem guard silencioso: se os testes de shell sumirem, o job FALHA em vez
+      # de reportar sucesso sem rodar nada (mesmo padrão do build-dashboard).
+      - name: Verificar presença dos testes de shell
         run: |
           if [ ! -d tests/shell ]; then
-            echo "⚠️ tests/shell/ ausente no repositório — pulando bats"
-            exit 0
+            echo "::error::tests/shell/ ausente — não há testes de shell para rodar."
+            echo "Adicione testes bats em tests/shell/ (ex.: tests/shell/test_scripts_smoke.bats)."
+            exit 1
           fi
-          bats tests/shell/
+
+      - name: Bats (testes dos scripts shell)
+        run: bats tests/shell/
 
   # ─── Summary ─────────────────────────────────────────────────
   ci-summary:
