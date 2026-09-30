@@ -1,0 +1,6 @@
+@import "tailwindcss";
+
+/* Tokens de cor básicos do template (padrão shadcn/ui mínimo) */
+@theme inline {
+  --color-muted-foreground: oklch(0.552 0.016 285.938);
+}
