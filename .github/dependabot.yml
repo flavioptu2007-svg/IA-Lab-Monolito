@@ -1,0 +1,188 @@
+version: 2
+
+# ─────────────────────────────────────────────────────────────
+# Atualizações de dependências (Achado 22 da auditoria).
+#
+# Dependabot é gratuito em repositórios públicos — estes PRs apenas
+# propõem bumps de versão, sem provisionar nada nem chamar APIs pagas.
+# Política do projeto: custo zero, sempre.
+#
+# Diretórios cobertos são todos os que têm arquivo versionado:
+#   pip            → pyproject.toml
+#   docker         → Dockerfile / docker-compose.yml
+#   npm            → os 5 package.json com package-lock.json no repo
+#   github-actions → .github/workflows/
+# ─────────────────────────────────────────────────────────────
+updates:
+  # ── Python (pyproject.toml: dependencies, dev e education) ──
+  - package-ecosystem: pip
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: America/Sao_Paulo
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(deps)"
+      include: scope
+    labels:
+      - dependencies
+      - python
+    groups:
+      pip-minor-patch:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
+
+  # ── GitHub Actions (.github/workflows/) ────────────────────
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: America/Sao_Paulo
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "ci(deps)"
+    labels:
+      - dependencies
+      - github-actions
+    groups:
+      actions:
+        patterns:
+          - "*"
+
+  # ── Docker (imagem base do monolito) ───────────────────────
+  # Os Dockerfiles de Projetos/ são de apps independentes e têm seu
+  # próprio ciclo; adicione um bloco por diretório se quiser cobri-los.
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: monthly
+      time: "06:00"
+      timezone: America/Sao_Paulo
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "build(deps)"
+    labels:
+      - dependencies
+      - docker
+
+  # ── npm: dashboard do monolito ─────────────────────────────
+  - package-ecosystem: npm
+    directory: /web/dashboard
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: America/Sao_Paulo
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "chore(deps)"
+      include: scope
+    labels:
+      - dependencies
+      - javascript
+    groups:
+      npm-dashboard-minor-patch:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
+
+  # ── npm: UI compartilhada ──────────────────────────────────
+  - package-ecosystem: npm
+    directory: /web/ui
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: America/Sao_Paulo
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "chore(deps)"
+      include: scope
+    labels:
+      - dependencies
+      - javascript
+    groups:
+      npm-ui-minor-patch:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
+
+  # ── npm: Projetos/next-app ─────────────────────────────────
+  - package-ecosystem: npm
+    directory: /Projetos/next-app
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: America/Sao_Paulo
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "chore(deps)"
+      include: scope
+    labels:
+      - dependencies
+      - javascript
+    groups:
+      npm-next-app-minor-patch:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
+
+  # ── npm: Projetos/web/dashboard ────────────────────────────
+  - package-ecosystem: npm
+    directory: /Projetos/web/dashboard
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: America/Sao_Paulo
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "chore(deps)"
+      include: scope
+    labels:
+      - dependencies
+      - javascript
+    groups:
+      npm-projetos-web-dashboard-minor-patch:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
+
+  # ── npm: Projetos/web/ui ───────────────────────────────────
+  - package-ecosystem: npm
+    directory: /Projetos/web/ui
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: America/Sao_Paulo
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "chore(deps)"
+      include: scope
+    labels:
+      - dependencies
+      - javascript
+    groups:
+      npm-projetos-web-ui-minor-patch:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
