@@ -1,17 +1,18 @@
-# Design: Auditoria e Renomeação Arquivística do Google Drive
+# Design: Auditoria, Deduplicação e Renomeação Arquivística do Google Drive
 
 **Data:** 2026-10-02
-**Status:** Aprovado em brainstorming — aguardando review do usuário
+**Status:** Revisado — inclui mesclagem de duplicatas; aguardando review do usuário
 **Escopo:** Google Drive inteiro (`rclone` remote `gdrive:`)
 
 ## 1. Objetivo
 
 Auditar o Google Drive completo para:
 
-1. Inventariar pastas e arquivos (metadados).
+1. Inventariar pastas e arquivos (metadados + hash de conteúdo quando aplicável).
 2. Identificar pastas vazias (candidatas a exclusão).
-3. Propor renomeação de arquivos e pastas no padrão arquivístico `AAAA-MM-DD_Tipo_Assunto_Versao`.
-4. **Não alterar nada no Drive** até aprovação explícita por lote.
+3. Detectar arquivos duplicados pelo **mesmo conteúdo (hash)** e propor mesclagem: **manter 1 cópia, enviar as outras para a lixeira**.
+4. Propor renomeação de arquivos e pastas no padrão arquivístico `AAAA-MM-DD_Tipo_Assunto_Versao`.
+5. **Não alterar nada no Drive** até aprovação explícita por lote.
 
 ### Entregáveis
 
@@ -19,10 +20,11 @@ Todos em `~/drive-audit/`:
 
 | Arquivo | Conteúdo |
 |---------|----------|
-| `inventory.csv` | Inventário: path, name, id, size, mime, modified, created, is_dir |
+| `inventory.csv` | Inventário: path, name, id, size, mime, modified, created, is_dir, hash |
 | `empty_folders.csv` | Pastas vazias (recursivo) com path e id |
+| `duplicates.csv` | Grupos de duplicatas: `group_id`, `hash`, `action` (`keep`/`trash`), path, id, motivo da escolha |
 | `rename_plan.csv` | `path_atual`, `nome_atual`, `nome_sugerido`, `motivo`, `confianca` |
-| `summary.md` | Resumo executivo, contagens, riscos, lacunas de cota |
+| `summary.md` | Resumo executivo, contagens, espaço recuperável, riscos, lacunas de cota |
 | `logs/` | Logs de inventário e (futuro) apply |
 
 ## 2. Arquitetura
@@ -31,30 +33,39 @@ Todos em `~/drive-audit/`:
 gdrive: (rclone)
     │
     ▼
-[1] Inventário com throttle  →  inventory.jsonl / inventory.csv
+[1] Inventário com throttle     →  inventory.jsonl / inventory.csv
     │
     ▼
-[2] Detector de pastas vazias →  empty_folders.csv
+[2] Hashes (arquivos binários)  →  hash no inventário (lotes + cache)
     │
     ▼
-[3] Classificador de nomes    →  rename_plan.csv
+[3] Detector de pastas vazias   →  empty_folders.csv
     │
     ▼
-[4] Relatório summary.md      →  revisão humana
+[4] Deduplicação por hash       →  duplicates.csv (keep / trash)
     │
     ▼
-[5] Apply por lote (pós-aprovação): dry-run → apply + log
+[5] Classificador de nomes      →  rename_plan.csv
+    │     (só sobre cópias keep + arquivos únicos)
+    ▼
+[6] Relatório summary.md        →  revisão humana
+    │
+    ▼
+[7] Apply por lote (pós-aprovação): dry-run → apply + log
 ```
 
 ### Componentes
 
-- **rclone** (`gdrive:`): listagem e, após aprovação, `rmdir` / `moveto` / `backend` rename.
+- **rclone** (`gdrive:`): listagem, hash (`rclone hashsum` / metadados MD5 quando o Drive fornecer), e após aprovação: rename, `delete` para lixeira, `rmdir`.
 - **Scripts Python** em `~/drive-audit/scripts/`:
-  - `inventory.py` — orquestra listagem (rclone ou API) com retry/backoff.
-  - `find_empty.py` — calcula pastas vazias a partir do inventário.
-  - `suggest_names.py` — aplica regras de nomenclatura.
-  - `apply_batch.py` — dry-run/apply de um lote aprovado (CSV filtrado).
-- **Sem leitura de conteúdo** de PDF/DOCX/Docs nesta versão (só metadados + nome + caminho).
+  - `inventory.py` — listagem com retry/backoff.
+  - `hash_files.py` — calcula/coleta hashes em lotes; cache local para não recalcular.
+  - `find_empty.py` — pastas vazias a partir do inventário.
+  - `find_duplicates.py` — agrupa por hash; escolhe `keep` vs `trash`.
+  - `suggest_names.py` — regras de nomenclatura (após dedupe).
+  - `apply_batch.py` — dry-run/apply de lote aprovado.
+- **Sem leitura semântica** de PDF/DOCX (não funde texto). Hash = bytes iguais.
+- Google Docs/Sheets nativos: hash de binário pode não aplicar; tratar à parte (export ou agrupar só por id/revisão) e marcar no relatório se não forem hasháveis.
 
 ### Pasta de trabalho
 
@@ -95,50 +106,81 @@ Exemplos:
 
 - Arquivos cujo nome **já** está no padrão (marcar `ok` / skip).
 - Itens em que a confiança da sugestão for baixa (`confianca=baixa`) — listar para decisão manual.
+- Cópias marcadas `trash` no plano de duplicatas (não renomear o que vai para a lixeira).
 
-## 4. Pastas vazias e segurança
+## 4. Duplicatas (mesclagem)
+
+### Definição
+
+Dois ou mais **arquivos** com o **mesmo hash de conteúdo** (MD5 ou SHA-1 conforme disponível no Drive/rclone) e tamanho > 0 formam um grupo.
+
+### Escolha da cópia a manter (`keep`)
+
+Ordem de prioridade:
+
+1. Path **fora** de pastas cujo nome começa com / contém `Backup`, `Backups`, `BackupLinux`, `BackupDocumentos`, `AvastCleanup`, dumps óbvios.
+2. Nome **mais limpo** (já no padrão arquivístico, ou sem `Cópia de` / `(1)` / timestamps de export).
+3. Path **mais curto** e mais organizado (menos níveis, menos caracteres de ruído).
+4. `modifiedTime` **mais recente** como desempate.
+
+As demais entradas do grupo: `action=trash` (enviar para a **lixeira** do Drive, não exclusão permanente).
+
+### Política
+
+- Só arquivos hasháveis entram no lote automático de trash.
+- Google Docs nativos sem hash confiável: listar em seção “revisar manualmente”, sem trash automático.
+- Atalhos: não usar como `keep` preferencial; se o alvo já está no grupo, preferir o arquivo real.
+- `duplicates.csv` traz sugestão `keep`/`trash` editável antes do apply.
+- Apply de trash: dry-run → aprovação → lixeira + log; reversível pela lixeira do Drive por 30 dias (comportamento padrão Google).
+
+## 5. Pastas vazias e segurança
 
 ### Definição de pasta vazia
 
-Pasta sem arquivos e sem subpastas com conteúdo (vazio transitivo). Calculado offline a partir do inventário completo.
+Pasta sem arquivos e sem subpastas com conteúdo (vazio transitivo). Recalcular **depois** do lote de trash de duplicatas (pastas podem esvaziar).
 
 ### Política
 
 - Atalhos dangling: **relatório apenas**, não apagar sozinhos.
 - Nunca apagar automaticamente: pastas com conteúdo, itens “Shared with me” sem confirmação, Lixeira.
-- Exclusão e renomeação: **sempre** dry-run → aprovação do usuário → apply em lote com log (`timestamp`, `id`, `path_antes`, `acao`, `path_depois` ou erro).
+- Exclusão (vazias), trash (duplicatas) e renomeação: **sempre** dry-run → aprovação → apply com log (`timestamp`, `id`, `path_antes`, `acao`, `path_depois` ou erro).
 - Cota API (`RATE_LIMIT_EXCEEDED`): backoff exponencial, pausa, retoma; lacunas documentadas em `summary.md`.
 
 ### Lotes sugeridos na fase apply
 
-1. Pastas vazias (só exclusão).
-2. Renomeações de alta confiança.
-3. Renomeações de confiança média (revisão linha a linha se o usuário pedir).
+1. Duplicatas → lixeira (`trash` do CSV).
+2. Pastas vazias (recalcular após o passo 1).
+3. Renomeações de alta confiança (só itens `keep` / únicos).
+4. Renomeações de confiança média (revisão se o usuário pedir).
 
-## 5. Critérios de sucesso
+## 6. Critérios de sucesso
 
-- Inventário do Drive (ou inventário parcial com lacunas de cota explícitas).
+- Inventário do Drive (ou parcial com lacunas de cota explícitas).
+- Grupos de duplicatas por hash com `keep`/`trash` revisáveis e estimativa de espaço liberável.
 - Lista revisável de pastas vazias.
 - Plano de renomeação revisável no padrão acordado.
 - **Zero alteração** no Drive até autorização explícita de cada lote.
 - Após apply autorizado: log reproduzível e contagem de sucessos/falhas.
 
-## 6. Fora de escopo (esta versão)
+## 7. Fora de escopo (esta versão)
 
-- Leitura de conteúdo (OCR / texto de PDF/DOCX).
-- Deduplicação por hash / fusão de duplicatas de conteúdo.
+- Fusão de **texto** entre documentos diferentes (merge semântico de PDF/DOCX).
+- Deduplicação só por nome similar sem hash (exceto relatório auxiliar opcional).
 - OneDrive / Dropbox.
-- Reorganização profunda de árvore (mover entre pastas), além de renomear no lugar e apagar vazias.
+- Reorganização profunda de árvore (mover entre pastas), além de renomear no lugar, trash de duplicatas e apagar vazias.
 
-## 7. Riscos
+## 8. Riscos
 
 | Risco | Mitigação |
 |-------|-----------|
-| Cota Google Drive API | Throttle, retry, inventário incremental |
-| Renomear link compartilhado | Preferir rename in-place (mesmo file id); avisar no summary |
+| Cota Google Drive API | Throttle, retry, inventário/hash incremental |
+| Hash lento / arquivos grandes | Cache local; priorizar size>0 e grupos size-iguais antes de hashear |
+| Trash da “cópia errada” | Regra de keep explícita + CSV editável + dry-run |
+| Docs nativos sem hash | Fora do trash automático |
+| Renomear link compartilhado | Rename in-place (mesmo file id); avisar no summary |
 | Colisão de nomes | Sufixo `_vNN` ou `_dupN` no plano |
-| Home git “sujo” | Artefatos em `~/drive-audit/`; não misturar com outros projetos |
+| Home git “sujo” | Artefatos em `~/drive-audit/` |
 
-## 8. Próximo passo
+## 9. Próximo passo
 
-Após aprovação desta spec: skill **writing-plans** → plano de implementação passo a passo, depois execução (inventário primeiro).
+Após aprovação desta spec revisada: skill **writing-plans** → plano de implementação passo a passo, depois execução (inventário primeiro).
