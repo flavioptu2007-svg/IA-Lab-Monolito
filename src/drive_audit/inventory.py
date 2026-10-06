@@ -25,7 +25,8 @@ CSV_FIELDS: tuple[str, ...] = (
 def to_row(entry: dict[str, Any]) -> dict[str, Any]:
     """Converte um item do lsjson na linha estável do inventário."""
     hashes = entry.get("Hashes") or {}
-    digest = hashes.get("MD5") or next(iter(hashes.values()), "")
+    # rclone emite a chave minúscula ("md5") no lsjson; aceita as duas formas.
+    digest = hashes.get("MD5") or hashes.get("md5") or next(iter(hashes.values()), "")
     return {
         "path": entry.get("Path", ""),
         "name": entry.get("Name", ""),

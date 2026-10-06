@@ -16,7 +16,7 @@ def test_to_row_normaliza_chaves_e_hash() -> None:
         "MimeType": "application/pdf",
         "ModTime": "2026-04-01T10:00:00Z",
         "IsDir": False,
-        "Hashes": {"MD5": "abc123"},
+        "Hashes": {"md5": "abc123"},
     }
     row = inventory.to_row(entry)
     assert row["path"] == "a/b.pdf"
