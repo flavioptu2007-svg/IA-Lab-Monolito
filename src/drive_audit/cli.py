@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import os
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -27,9 +28,16 @@ def _write_csv(path: Path, fieldnames: tuple[str, ...], rows: list[dict[str, Any
         writer.writerows(rows)
 
 
-def cmd_inventory(_args: argparse.Namespace) -> int:
+def cmd_inventory(args: argparse.Namespace) -> int:
     base = config.ensure_workdir()
-    rows = [inventory.to_row(entry) for entry in inventory.build_inventory()]
+    state = inventory.crawl_incremental(base, max_dirs=args.max_dirs)
+    if state["pending"]:
+        print(
+            f"Inventário parcial: {len(state['done'])} pastas listadas, "
+            f"{len(state['pending'])} na fila. Rode de novo para continuar."
+        )
+        return 0
+    rows = inventory.load_inventory(base / "inventory.jsonl")
     inventory.write_inventory(rows, base / "inventory.jsonl", base / "inventory.csv")
     print(f"Inventário: {len(rows)} itens → {base / 'inventory.csv'}")
     return 0
@@ -130,7 +138,15 @@ def build_parser() -> argparse.ArgumentParser:
         prog="drive_audit", description="Auditoria do Google Drive (rclone)."
     )
     sub = parser.add_subparsers(dest="comando", required=True)
-    sub.add_parser("inventory", help="Lista o Drive e grava inventory.jsonl/csv")
+    inventory_parser = sub.add_parser(
+        "inventory", help="Lista o Drive em lotes retomáveis e grava inventory.jsonl/csv"
+    )
+    inventory_parser.add_argument(
+        "--max-dirs",
+        type=int,
+        default=int(os.environ.get("DRIVE_AUDIT_MAX_DIRS", "120")),
+        help="Diretórios a listar por chamada (crawl resumível)",
+    )
     sub.add_parser("analyze", help="Pastas vazias, duplicatas, renomeações e summary.md")
     apply_parser = sub.add_parser("apply", help="Aplica o lote aprovado (padrão: dry-run)")
     apply_parser.add_argument(
