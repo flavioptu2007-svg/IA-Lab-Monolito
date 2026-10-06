@@ -63,6 +63,7 @@ cd web/dashboard && npm install && npm run dev
 - [Desenvolvimento Local com IA (grátis)](#desenvolvimento-local-com-ia-grátis)
 - [Execução](#execução)
 - [Docker Compose](#docker-compose)
+- [Auditoria do Google Drive](#auditoria-do-google-drive)
 - [API Endpoints](#api-endpoints)
 - [Testes](#testes)
 - [Estrutura do Projeto](#estrutura-do-projeto)
@@ -383,6 +384,34 @@ docker compose --profile all up -d
 | **historiaia-db** | `5432` | `historiaia, all` | PostgreSQL |
 | **historiaia-app** | `8001` | `historiaia, all` | FastAPI HistóriaIA |
 | **test** | — | `test` | Suite de testes |
+
+---
+
+## Auditoria do Google Drive
+
+Ferramenta para inventariar, deduplicar e renomear o Google Drive (via `rclone`,
+remote `gdrive:`). **Não altera nada no Drive** até aprovação explícita: o
+`apply` é dry-run por padrão.
+
+```bash
+# 1) Inventário completo → ~/drive-audit/inventory.{jsonl,csv}
+python3 -m src.drive_audit inventory
+
+# 2) Pastas vazias, duplicatas por hash, plano de renomeação e summary.md
+python3 -m src.drive_audit analyze
+
+# 3) Revisar ~/drive-audit/{summary.md,duplicates.csv,rename_plan.csv} e então:
+python3 -m src.drive_audit apply            # simulação (dry-run)
+python3 -m src.drive_audit apply --confirm  # envia as duplicatas à lixeira
+```
+
+O `inventory` é **resumível**: lista a raiz uma vez e depois as pastas de topo
+em lotes (`--max-dirs`, padrão 120). Se a fila não esvaziar, rode o comando de
+novo e ele continua de onde parou (`inventory.state.json`). Para árvores
+grandes, rode em background: `bash ~/drive-audit/crawl.sh`.
+
+Os artefatos ficam em `~/drive-audit/` (ignorado pelo git); o código em
+`src/drive_audit/` (coberto por ruff, mypy e pytest).
 
 ---
 
