@@ -49,7 +49,9 @@ def lsjson(remote_path: str = REMOTE, *, recursive: bool = True) -> list[dict[st
     """Lista itens com metadados e hashes (``--hash``)."""
     args = ["lsjson", remote_path, "--hash"]
     if recursive:
-        args.append("-R")
+        # --fast-list usa a listagem recursiva do Drive (poucas chamadas de API)
+        # em vez de uma chamada por pasta — indispensável para árvores grandes.
+        args += ["-R", "--fast-list"]
     data = json.loads(run_rclone(args) or "[]")
     if not isinstance(data, list):
         raise RcloneError("lsjson retornou JSON inesperado (esperava uma lista)")

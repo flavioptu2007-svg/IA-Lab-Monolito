@@ -66,14 +66,15 @@ def crawl_incremental(
     base: Path,
     *,
     max_dirs: int,
-    lsjson_fn: Callable[[str], list[dict[str, Any]]] | None = None,
+    lsjson_fn: Callable[[str, bool], list[dict[str, Any]]] | None = None,
 ) -> dict[str, Any]:
-    """Crawl resumível: lista até ``max_dirs`` diretórios por chamada.
+    """Crawl resumível: lista até ``max_dirs`` pastas de topo por chamada.
 
-    Cada diretório é listado **sem recursão** (1 chamada de API por pasta) e as
-    entradas são anexadas a ``inventory.jsonl``; o progresso (pendentes /
-    concluídos) vai para ``inventory.state.json``. Permite retomar de onde
-    parou, sem segurar o Drive inteiro em memória nem num único ``lsjson -R``.
+    A raiz é listada uma vez (sem recursão) para descobrir as pastas de topo;
+    cada pasta de topo é então listada **recursivamente** (``--fast-list``) e as
+    entradas são anexadas a ``inventory.jsonl``. O progresso vai para
+    ``inventory.state.json``, permitindo retomar sem segurar o Drive todo em
+    memória nem num único ``lsjson -R`` que nunca termina.
     """
     base = Path(base)
     base.mkdir(parents=True, exist_ok=True)
@@ -83,26 +84,27 @@ def crawl_incremental(
     if state_file.exists():
         state = json.loads(state_file.read_text(encoding="utf-8"))
     else:
-        state = {"pending": [""], "done": []}
+        state = {"pending": [], "done": [], "seeded": False}
         jsonl.write_text("", encoding="utf-8")
 
-    listar = lsjson_fn or (lambda remote: rclone.lsjson(remote, recursive=False))
+    listar = lsjson_fn or (lambda remote, recursive: rclone.lsjson(remote, recursive=recursive))
     with jsonl.open("a", encoding="utf-8") as fh:
+        if not state.get("seeded"):
+            for entry in listar(config.REMOTE, False):
+                row = to_row(entry)
+                fh.write(json.dumps(row, ensure_ascii=False) + "\n")
+                if row["is_dir"]:
+                    state["pending"].append(row["path"])
+            state["seeded"] = True
         for _ in range(max_dirs):
             if not state["pending"]:
                 break
             path = state["pending"].pop(0)
-            remote = f"{config.REMOTE}{path}" if path else config.REMOTE
-            child_dirs: list[str] = []
-            for entry in listar(remote):
+            for entry in listar(f"{config.REMOTE}{path}", True):
                 row = to_row(entry)
-                if path:
-                    row["path"] = f"{path}/{row['path']}"
+                row["path"] = f"{path}/{row['path']}"
                 fh.write(json.dumps(row, ensure_ascii=False) + "\n")
-                if row["is_dir"]:
-                    child_dirs.append(row["path"])
             state["done"].append(path)
-            state["pending"].extend(child_dirs)
 
     state_file.write_text(json.dumps(state, ensure_ascii=False), encoding="utf-8")
     return state
