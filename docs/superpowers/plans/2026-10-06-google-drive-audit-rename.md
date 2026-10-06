@@ -1673,6 +1673,18 @@ Run: `python3 -m src.drive_audit analyze`
 > por extensão podem ser exigidos pelo toolchain).
 Expected: gera `empty_folders.csv`, `duplicates.csv`, `rename_plan.csv` e `summary.md` em `~/drive-audit/`.
 
+> **Resultado da execução (2026-10-06, Drive completo):** inventário fechado com
+> 272.665 itens (253.384 arquivos, 19.281 pastas). `analyze`: 326 pastas vazias;
+> 41.389 grupos de duplicatas → 67.447 cópias para lixeira (~223 GiB
+> recuperáveis; o CSV grava tamanho em **MiB**); 187.381 renomeações
+> (53.441 em pastas técnicas); 0 arquivos sem hash. Distribuição do trash:
+> 9.403 em pastas técnicas (node_modules/.git — **não aplicar**) e 58.044 em
+> documentos, concentrados em `PDF` (23.389 itens, ~96 GiB), `06_Backups`
+> (17.709, ~44 GiB), `BackupLinux` (5.422, ~18 GiB), `BackupDocumentos`
+> (2.938, ~4 GiB), `Material clientes` (1.891, ~16 GiB), `Livros` (1.115,
+> ~2,5 GiB) e `Aulas do professor Kennedy` (~14 GiB somando as variantes).
+> Nada foi alterado no Drive; apply continua exigindo aprovação por lote.
+
 - [ ] **Step 4: Conferir o resumo**
 
 Run: `sed -n '1,40p' ~/drive-audit/summary.md && head -5 ~/drive-audit/duplicates.csv`
