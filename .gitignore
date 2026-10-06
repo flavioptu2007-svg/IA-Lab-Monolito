@@ -288,4 +288,5 @@ system-audit-*/
 /Projeto_Raizes_que_Falam_EJA_revisado.docx
 
 # Artefatos da auditoria do Google Drive (CSV/JSONL/logs locais)
-/drive-audit/
+/drive-audit*/
+/crawl.sh
