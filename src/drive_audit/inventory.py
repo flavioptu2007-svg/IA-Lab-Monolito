@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import csv
 import json
+import os
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
@@ -58,8 +59,31 @@ def write_inventory(rows: list[dict[str, Any]], jsonl_path: Path, csv_path: Path
 
 
 def load_inventory(jsonl_path: Path) -> list[dict[str, Any]]:
+    """Lê o jsonl deduplicando por id (mantém a primeira ocorrência).
+
+    Inventários gerados por versões antigas do crawl podiam conter o mesmo
+    arquivo duas vezes (pasta re-listada após queda); sem dedup, a análise
+    tratava o arquivo como duplicata de si mesmo.
+    """
+    vistos: set[str] = set()
+    rows: list[dict[str, Any]] = []
     with Path(jsonl_path).open(encoding="utf-8") as fh:
-        return [json.loads(line) for line in fh if line.strip()]
+        for line in fh:
+            if not line.strip():
+                continue
+            row = json.loads(line)
+            if row["id"] in vistos:
+                continue
+            vistos.add(row["id"])
+            rows.append(row)
+    return rows
+
+
+def _salvar_estado(state_file: Path, state: dict[str, Any]) -> None:
+    """Gravação atômica do estado (um processo morto não corrompe o JSON)."""
+    tmp = state_file.with_suffix(".json.tmp")
+    tmp.write_text(json.dumps(state, ensure_ascii=False), encoding="utf-8")
+    os.replace(tmp, state_file)
 
 
 def crawl_incremental(
@@ -71,10 +95,10 @@ def crawl_incremental(
     """Crawl resumível: lista até ``max_dirs`` pastas de topo por chamada.
 
     A raiz é listada uma vez (sem recursão) para descobrir as pastas de topo;
-    cada pasta de topo é então listada **recursivamente** (``--fast-list``) e as
-    entradas são anexadas a ``inventory.jsonl``. O progresso vai para
-    ``inventory.state.json``, permitindo retomar sem segurar o Drive todo em
-    memória nem num único ``lsjson -R`` que nunca termina.
+    cada pasta de topo é então listada **recursivamente** (``--fast-list``). O
+    estado é gravado **após cada pasta** (atômico), então uma queda no meio da
+    execução não perde progresso nem re-lista o que já foi listado. Entradas
+    repetidas por id são descartadas na coleta (``seen`` no estado).
     """
     base = Path(base)
     base.mkdir(parents=True, exist_ok=True)
@@ -84,18 +108,29 @@ def crawl_incremental(
     if state_file.exists():
         state = json.loads(state_file.read_text(encoding="utf-8"))
     else:
-        state = {"pending": [], "done": [], "seeded": False}
+        state = {"pending": [], "done": [], "seeded": False, "seen": []}
         jsonl.write_text("", encoding="utf-8")
+    state.setdefault("seen", [])
+    vistos: set[str] = set(state["seen"])
+
+    def escrever(fh: Any, row: dict[str, Any]) -> None:
+        if row["id"] in vistos:
+            return
+        vistos.add(row["id"])
+        state["seen"].append(row["id"])
+        fh.write(json.dumps(row, ensure_ascii=False) + "\n")
 
     listar = lsjson_fn or (lambda remote, recursive: rclone.lsjson(remote, recursive=recursive))
     with jsonl.open("a", encoding="utf-8") as fh:
         if not state.get("seeded"):
             for entry in listar(config.REMOTE, False):
                 row = to_row(entry)
-                fh.write(json.dumps(row, ensure_ascii=False) + "\n")
+                escrever(fh, row)
                 if row["is_dir"]:
                     state["pending"].append(row["path"])
             state["seeded"] = True
+            fh.flush()
+            _salvar_estado(state_file, state)
         for _ in range(max_dirs):
             if not state["pending"]:
                 break
@@ -103,8 +138,10 @@ def crawl_incremental(
             for entry in listar(f"{config.REMOTE}{path}", True):
                 row = to_row(entry)
                 row["path"] = f"{path}/{row['path']}"
-                fh.write(json.dumps(row, ensure_ascii=False) + "\n")
+                escrever(fh, row)
             state["done"].append(path)
+            fh.flush()
+            _salvar_estado(state_file, state)
 
-    state_file.write_text(json.dumps(state, ensure_ascii=False), encoding="utf-8")
+    _salvar_estado(state_file, state)
     return state
