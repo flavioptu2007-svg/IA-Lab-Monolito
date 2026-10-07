@@ -2,15 +2,18 @@
 
 from __future__ import annotations
 
+import argparse
 import csv
 from datetime import datetime, timezone
 from pathlib import Path
 
-from src.drive_audit import apply_batch
+import pytest
+
+from src.drive_audit import apply_batch, cli
 
 
-def _escrever_duplicates(tmp_path: Path) -> Path:
-    caminho = tmp_path / "duplicates.csv"
+def _escrever_duplicates(tmp_path: Path, nome: str = "duplicates.csv") -> Path:
+    caminho = tmp_path / nome
     with caminho.open("w", encoding="utf-8", newline="") as fh:
         writer = csv.DictWriter(
             fh,
@@ -72,3 +75,42 @@ def test_apply_real_envia_para_lixeira(tmp_path: Path) -> None:
     assert chamadas == [["deletefile", "gdrive:ruim.pdf", "--drive-use-trash=true"]]
     assert results[0]["resultado"] == "ok"
     assert results[0]["timestamp"] == "2026-10-06T00:00:00+00:00"
+
+
+def _cmd_apply_com_fakes(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> dict[str, object]:
+    capturado: dict[str, object] = {}
+
+    def fake_load(caminho: Path) -> list[dict[str, str]]:
+        capturado["caminho"] = Path(caminho)
+        return [{"id": "2", "path": "ruim.pdf"}]
+
+    def fake_apply(
+        actions: list[dict[str, str]], *, dry_run: bool, log_path: Path
+    ) -> list[dict[str, object]]:
+        capturado["dry_run"] = dry_run
+        return [{"resultado": "dry-run"}]
+
+    monkeypatch.setattr(cli.config, "ensure_workdir", lambda: tmp_path)
+    monkeypatch.setattr(cli.apply_batch, "load_actions", fake_load)
+    monkeypatch.setattr(cli.apply_batch, "apply_actions", fake_apply)
+    return capturado
+
+
+def test_cmd_apply_usa_o_csv_do_lote_indicado(tmp_path: Path, monkeypatch) -> None:
+    lote = _escrever_duplicates(tmp_path, nome="lote1_backups.csv")
+    capturado = _cmd_apply_com_fakes(tmp_path, monkeypatch)
+
+    rc = cli.cmd_apply(argparse.Namespace(confirm=False, lote=str(lote)))
+
+    assert rc == 0
+    assert capturado["caminho"] == lote
+    assert capturado["dry_run"] is True
+
+
+def test_cmd_apply_sem_lote_cai_no_duplicates_do_workdir(tmp_path: Path, monkeypatch) -> None:
+    capturado = _cmd_apply_com_fakes(tmp_path, monkeypatch)
+
+    rc = cli.cmd_apply(argparse.Namespace(confirm=False, lote=None))
+
+    assert rc == 0
+    assert capturado["caminho"] == tmp_path / "duplicates.csv"

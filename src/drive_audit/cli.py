@@ -124,12 +124,13 @@ def cmd_analyze(_args: argparse.Namespace) -> int:
 
 def cmd_apply(args: argparse.Namespace) -> int:
     base = config.ensure_workdir()
-    actions = apply_batch.load_actions(base / "duplicates.csv")
+    caminho = Path(args.lote) if getattr(args, "lote", None) else base / "duplicates.csv"
+    actions = apply_batch.load_actions(caminho)
     results = apply_batch.apply_actions(
         actions, dry_run=not args.confirm, log_path=base / "logs" / "apply.jsonl"
     )
     modo = "APPLY" if args.confirm else "dry-run"
-    print(f"{modo}: {len(results)} ações")
+    print(f"{modo}: {len(results)} ações (lote: {caminho})")
     return 0
 
 
@@ -151,6 +152,10 @@ def build_parser() -> argparse.ArgumentParser:
     apply_parser = sub.add_parser("apply", help="Aplica o lote aprovado (padrão: dry-run)")
     apply_parser.add_argument(
         "--confirm", action="store_true", help="Apply real: envia duplicatas à lixeira"
+    )
+    apply_parser.add_argument(
+        "--lote",
+        help="CSV do lote aprovado (colunas de duplicates.csv; padrão: o do workdir)",
     )
     return parser
 
