@@ -27,28 +27,29 @@ def apply_actions(
 ) -> list[dict[str, Any]]:
     """Aplica (ou simula) cada ação; sempre anexa o resultado ao log."""
     results: list[dict[str, Any]] = []
-    for row in actions:
-        remote = f"{config.REMOTE}{row['path']}"
-        if dry_run:
-            resultado = "dry-run"
-        else:
-            try:
-                # deletefile + flag explícita: garante a lixeira, nunca exclusão permanente.
-                run_fn(["deletefile", remote, "--drive-use-trash=true"])
-                resultado = "ok"
-            except rclone.RcloneError as exc:  # pragma: no cover - caminho de erro real
-                resultado = f"erro: {exc}"
-        results.append(
-            {
+    log_path.parent.mkdir(parents=True, exist_ok=True)
+    # Gravação incremental (uma linha por ação, com flush): progresso visível
+    # e retomável mesmo se o processo for interrompidido no meio do lote.
+    with log_path.open("a", encoding="utf-8") as fh:
+        for row in actions:
+            remote = f"{config.REMOTE}{row['path']}"
+            if dry_run:
+                resultado = "dry-run"
+            else:
+                try:
+                    # deletefile + flag explícita: garante a lixeira, nunca exclusão permanente.
+                    run_fn(["deletefile", remote, "--drive-use-trash=true"])
+                    resultado = "ok"
+                except rclone.RcloneError as exc:  # pragma: no cover - caminho de erro real
+                    resultado = f"erro: {exc}"
+            entry = {
                 "timestamp": now().isoformat(),
                 "id": row["id"],
                 "path": row["path"],
                 "acao": "trash",
                 "resultado": resultado,
             }
-        )
-    log_path.parent.mkdir(parents=True, exist_ok=True)
-    with log_path.open("a", encoding="utf-8") as fh:
-        for entry in results:
+            results.append(entry)
             fh.write(json.dumps(entry, ensure_ascii=False) + "\n")
+            fh.flush()
     return results

@@ -114,3 +114,26 @@ def test_cmd_apply_sem_lote_cai_no_duplicates_do_workdir(tmp_path: Path, monkeyp
 
     assert rc == 0
     assert capturado["caminho"] == tmp_path / "duplicates.csv"
+
+
+def test_apply_grava_o_log_incrementalmente(tmp_path: Path) -> None:
+    log = tmp_path / "apply.jsonl"
+    linhas_vistas: list[int] = []
+
+    def run_fn(args: list[str]) -> str:
+        if log.exists():
+            linhas_vistas.append(len(log.read_text(encoding="utf-8").strip().splitlines()))
+        else:
+            linhas_vistas.append(0)
+        return ""
+
+    apply_batch.apply_actions(
+        [{"id": "1", "path": "a.pdf"}, {"id": "2", "path": "b.pdf"}],
+        dry_run=False,
+        log_path=log,
+        run_fn=run_fn,
+    )
+
+    # Ao processar a 2ª ação, a 1ª já deve estar gravada (progresso visível
+    # e retomável mesmo se o processo morrer no meio).
+    assert linhas_vistas == [0, 1]
