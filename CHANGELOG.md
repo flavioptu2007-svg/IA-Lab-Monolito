@@ -14,6 +14,8 @@ versionamento segue o [SemVer](https://semver.org/lang/pt-BR/). A versão corren
   detecção transitiva de pastas vazias e de duplicatas por hash, plano de
   renomeação arquivística e `apply` de lixeira em dry-run por padrão
   (`python3 -m src.drive_audit inventory|analyze|apply`).
+- `apply --lote <csv>`: aplica apenas o lote aprovado, em vez do
+  `duplicates.csv` inteiro.
 - `Projetos/next-app`, `Projetos/web` e `Projetos/leituraia` versionados: os
   caminhos exigidos pelo `projects-ci.yml` existiam apenas no disco, e os 4 jobs
   falhavam com "working directory not found".

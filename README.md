@@ -403,7 +403,13 @@ python3 -m src.drive_audit analyze
 # 3) Revisar ~/drive-audit/{summary.md,duplicates.csv,rename_plan.csv} e então:
 python3 -m src.drive_audit apply            # simulação (dry-run)
 python3 -m src.drive_audit apply --confirm  # envia as duplicatas à lixeira
+python3 -m src.drive_audit apply --lote ~/drive-audit/lote1_backups.csv --confirm
 ```
+
+O `apply --lote <csv>` aplica **só o lote aprovado** (CSV no mesmo formato de
+`duplicates.csv`, com as colunas extras `keep_path`/`keep_size_bytes` sendo
+ignoradas). Sem `--lote`, usa o `duplicates.csv` inteiro — por isso, na prática,
+revisar e aprovar por lote.
 
 O `inventory` é **resumível**: lista a raiz uma vez e depois as pastas de topo
 em lotes (`--max-dirs`, padrão 120). Se a fila não esvaziar, rode o comando de
