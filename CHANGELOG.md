@@ -44,6 +44,11 @@ versionamento segue o [SemVer](https://semver.org/lang/pt-BR/). A versão corren
 
 ### Corrigido
 
+- Auditoria do Google Drive: a reanálise sobre o inventário já deduplicado por
+  id elimina 20.443 linhas que eram "duplicata do próprio arquivo" (pasta de
+  topo re-listada pelo crawl antigo) — de 41.389 para 27.543 grupos e de 67.447
+  para 47.004 cópias para lixeira, incluindo as 23.389 linhas falsas da pasta
+  `PDF`.
 - `flask` e `python-dotenv` declarados no extra `dev` — `tests/test_coraci_app.py`
   carrega o app Flask legado.
 - Assets do app Flask legado (`templates/`, `static/`) e o dashboard Vite

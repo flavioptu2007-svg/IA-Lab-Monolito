@@ -1676,14 +1676,42 @@ Expected: gera `empty_folders.csv`, `duplicates.csv`, `rename_plan.csv` e `summa
 > **Resultado da execução (2026-10-06, Drive completo):** inventário fechado com
 > 272.665 itens (253.384 arquivos, 19.281 pastas). `analyze`: 326 pastas vazias;
 > 41.389 grupos de duplicatas → 67.447 cópias para lixeira (~223 GiB
-> recuperáveis; o CSV grava tamanho em **MiB**); 187.381 renomeações
-> (53.441 em pastas técnicas); 0 arquivos sem hash. Distribuição do trash:
-> 9.403 em pastas técnicas (node_modules/.git — **não aplicar**) e 58.044 em
-> documentos, concentrados em `PDF` (23.389 itens, ~96 GiB), `06_Backups`
-> (17.709, ~44 GiB), `BackupLinux` (5.422, ~18 GiB), `BackupDocumentos`
-> (2.938, ~4 GiB), `Material clientes` (1.891, ~16 GiB), `Livros` (1.115,
-> ~2,5 GiB) e `Aulas do professor Kennedy` (~14 GiB somando as variantes).
+> recuperáveis); 187.381 renomeações (53.441 em pastas técnicas); 0 arquivos sem
+> hash. Distribuição do trash: 9.403 em pastas técnicas (node_modules/.git —
+> **não aplicar**) e 58.044 em documentos, concentrados em `PDF` (23.389 itens,
+> ~96 GiB), `06_Backups` (17.709, ~44 GiB), `BackupLinux` (5.422, ~18 GiB),
+> `BackupDocumentos` (2.938, ~4 GiB), `Material clientes` (1.891, ~16 GiB),
+> `Livros` (1.115, ~2,5 GiB) e `Aulas do professor Kennedy` (~14 GiB somando as
+> variantes).
+>
+> **Correção (2026-10-07) — o `PDF` do número acima era falso:** o inventário
+> daquele dia continha o mesmo arquivo duas vezes (pasta de topo re-listada),
+> então 20.443 linhas eram "duplicatas do próprio arquivo" (mesmo id). Com o
+> crawl já deduplicando por id (`2c1634e8`), `analyze` foi re-rodado sobre o
+> inventário limpo (252.176 itens, −20.489 linhas repetidas): **27.543 grupos →
+> 47.004 cópias para lixeira (142,6 GiB)**, e o `PDF` caiu de 23.389 para 2.989.
+> O campo `size` do CSV está em **bytes** (`summary.md` converte para MiB).
+>
+> **Status dos lotes (aprovação por lote, sempre por id, lixeira reversível):**
+>
+> | Lote | Escopo | Arquivos | Tamanho | Situação |
+> |---|---|---:|---:|---|
+> | 1 | `06_Backups`, `BackupLinux`, `BackupDocumentos` | 26.069 | 65,7 GiB | ✅ aplicado |
+> | 2 | `Material clientes`, `Aulas do professor Kennedy`, `Livros` | 3.540 | 32,4 GiB | ✅ aplicado |
+> | 3 | demais documentos (`PDF`, `2026`, `ESCOLA CORACI 2026`, …) | 6.083 | 30,0 GiB | ⏳ aguardando autorizo |
+>
+> Fora dos lotes por segurança (17.395 pendentes → 6.083 no lote 3): 8.966 em
+> pastas técnicas, 2.096 em pastas de código (`IA-Lab-Projetos` — conteúdo
+> idêntico entre projetos não é duplicata) e 250 homônimos no mesmo caminho.
+> Projeção de pastas vazias após o lote 3: 326 → **570**.
 > Nada foi alterado no Drive; apply continua exigindo aprovação por lote.
+>
+> **Operação dos lotes** (scripts em `~/drive-audit/`, fora do git, como
+> `trash_por_id.py`): `gerar_lote.py` monta um lote a partir do `duplicates.csv`
+> aplicando as exclusões de segurança (técnicos, pastas de código, homônimos no
+> mesmo caminho e — para lotes futuros — arquivos cujo `keep` já está na
+> lixeira), e escreve `<lote>.csv`, `ids_<lote>.txt` e `<lote>-previa.md`;
+> `loop_loteN.sh` envia os ids à lixeira em passadas com pausa.
 
 - [ ] **Step 4: Conferir o resumo**
 

@@ -319,7 +319,7 @@ def high_pass_filter(
 
     sr = sample_rate or audio_settings.sample_rate
     nyquist = sr / 2
-    normalized_cutoff = cutoff_hz / nyquist
+    normalized_cutoff = max(1e-6, min(cutoff_hz / nyquist, 0.999))
 
     if len(samples) < 8:
         return float_to_bytes(samples)
@@ -328,7 +328,7 @@ def high_pass_filter(
     b, a = scipy_signal.butter(4, normalized_cutoff, btype="high", analog=False)
     filtered = scipy_signal.filtfilt(b, a, samples)
 
-    logger.debug("Filtro passa-alta: %s Hz", cutoff_hz)
+    logger.debug("Filtro passa-alta: %s Hz (normalizado %.4f)", cutoff_hz, normalized_cutoff)
     return float_to_bytes(filtered)
 
 
@@ -349,7 +349,7 @@ def low_pass_filter(
 
     sr = sample_rate or audio_settings.sample_rate
     nyquist = sr / 2
-    normalized_cutoff = cutoff_hz / nyquist
+    normalized_cutoff = max(1e-6, min(cutoff_hz / nyquist, 0.999))
 
     if len(samples) < 8:
         return float_to_bytes(samples)
@@ -357,7 +357,7 @@ def low_pass_filter(
     b, a = scipy_signal.butter(4, normalized_cutoff, btype="low", analog=False)
     filtered = scipy_signal.filtfilt(b, a, samples)
 
-    logger.debug("Filtro passa-baixa: %s Hz", cutoff_hz)
+    logger.debug("Filtro passa-baixa: %s Hz (normalizado %.4f)", cutoff_hz, normalized_cutoff)
     return float_to_bytes(filtered)
 
 
