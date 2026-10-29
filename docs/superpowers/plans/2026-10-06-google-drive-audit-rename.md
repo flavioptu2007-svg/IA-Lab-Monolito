@@ -1738,14 +1738,16 @@ Expected: gera `empty_folders.csv`, `duplicates.csv`, `rename_plan.csv` e `summa
 > 1.361 pastas restantes depois de a primeira passada parar em 951.
 >
 > **Continuação (2026-10-29):** renomeação retomada — resumo em
-> `~/drive-audit/estado-2026-10-29.md`. O lote caiu de 94.030 para **40.796
-> arquivos** (40.571 ids): fora as pastas de código (`node_modules`, `.git`,
-> `IA-Lab-Projetos`, `07_Projetos e IA` — decisão do Flavio), 1.306 nomes sem
-> data confiável (hash/ano implausível; 126 já renomeados foram revertidos) e
-> 43.818 arquivos de `06_Backups`, que foi para a lixeira fora dos scripts.
-> Ritmo ~100/min e ETA ~6–7 h; log reversível em `logs/rename_aplicado.jsonl`
-> com nome antigo e novo. Prévia da consolidação das 200 pastas de topo em 9
-> destinos: `~/drive-audit/top_pastas_plano-previa.md` (nada movido).
+> `~/drive-audit/estado-2026-10-29.md`. O lote final tem **82.004 arquivos**
+> (81.775 ids): fora as pastas de código (`node_modules`, `.git`,
+> `IA-Lab-Projetos`, `07_Projetos e IA` — decisão do Flavio) e 1.306 nomes sem
+> data confiável (hash/ano implausível; 126 já renomeados foram revertidos).
+> `06_Backups` foi restaurada vazia — o conteúdo já estava na raiz — e voltou
+> ao lote. Ritmo ~100–150/min e ETA ~9–13 h; `monitorar_renomeacao.py` grava
+> `logs/renomeacao-final.md` ao terminar; log reversível em
+> `logs/rename_aplicado.jsonl`. Consolidação das 201 pastas de topo em 9
+> destinos: prévia em `~/drive-audit/top_pastas_move-previa.md` (198 movimentos
+> prontos, 2 `PDF` para mesclar; nada executado).
 >
 > **Pendente de decisão:** esvaziar a lixeira (~142 GiB, irreversível);
 > consolidar as 236 pastas de topo (a raiz tem `História`, `HISTÓRIA`,
