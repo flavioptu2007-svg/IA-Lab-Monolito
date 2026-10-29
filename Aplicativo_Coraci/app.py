@@ -231,8 +231,9 @@ def load_openai_client():
     """Cria um cliente da API OpenAI compatível com a configuração atual."""
     from openai import OpenAI
 
-    base = current_config.get("api_base_url", DEFAULT_CONFIG["api_base_url"]).rstrip("/")
-    key = current_config.get("api_key") or "no-key"
+    with config_lock:
+        base = current_config.get("api_base_url", DEFAULT_CONFIG["api_base_url"]).rstrip("/")
+        key = current_config.get("api_key") or "no-key"
     return OpenAI(base_url=base, api_key=key)
 
 
@@ -242,11 +243,15 @@ def stream_chat(messages, model=None, temperature=None, max_tokens=None):
 
     client = load_openai_client()
     try:
+        with config_lock:
+            cfg_model = current_config.get("model", DEFAULT_CONFIG["model"])
+            cfg_temperature = current_config.get("temperature", DEFAULT_CONFIG["temperature"])
+            cfg_max_tokens = current_config.get("max_tokens", DEFAULT_CONFIG["max_tokens"])
         response = client.chat.completions.create(
-            model=model or current_config.get("model", DEFAULT_CONFIG["model"]),
+            model=model or cfg_model,
             messages=messages,
-            temperature=temperature if temperature is not None else current_config.get("temperature", DEFAULT_CONFIG["temperature"]),
-            max_tokens=max_tokens if max_tokens is not None else current_config.get("max_tokens", DEFAULT_CONFIG["max_tokens"]),
+            temperature=temperature if temperature is not None else cfg_temperature,
+            max_tokens=max_tokens if max_tokens is not None else cfg_max_tokens,
             stream=True,
         )
         for chunk in response:
@@ -448,6 +453,10 @@ def update_config():
             return jsonify({"error": "max_tokens deve ser um inteiro positivo"}), 400
     with config_lock:
         for key, value in data.items():
+            # GET /api/config devolve a chave mascarada ("sk-s…"); se ela voltar
+            # num POST, ignoramos para não sobrescrever a chave real.
+            if key == "api_key" and "…" in str(value):
+                continue
             if key in allowed_keys:
                 current_config[key] = value
         save_config(current_config)
@@ -471,6 +480,27 @@ def test_connection():
         return jsonify(
             {"status": "error", "message": "❌ Não foi possível conectar ao servidor"}
         ), 400
+    except openai.AuthenticationError:
+        return jsonify({"status": "error", "message": "❌ Chave de API inválida"}), 400
+    except Exception as e:  # noqa: BLE001
+        return jsonify({"status": "error", "message": f"❌ {e}"}), 400
+
+
+@app.route("/api/config/models", methods=["GET"])
+def list_models():
+    """Lista os modelos disponíveis na API configurada (para o seletor)."""
+    import openai
+
+    with config_lock:
+        base = current_config.get("api_base_url", DEFAULT_CONFIG["api_base_url"]).rstrip("/")
+        key = current_config.get("api_key") or "no-key"
+    try:
+        client = openai.OpenAI(base_url=base, api_key=key)
+        models = client.models.list()
+        model_list = [m.id for m in models]
+        return jsonify({"status": "ok", "models": model_list})
+    except openai.APIConnectionError:
+        return jsonify({"status": "error", "message": "❌ Não foi possível conectar à API"}), 400
     except openai.AuthenticationError:
         return jsonify({"status": "error", "message": "❌ Chave de API inválida"}), 400
     except Exception as e:  # noqa: BLE001

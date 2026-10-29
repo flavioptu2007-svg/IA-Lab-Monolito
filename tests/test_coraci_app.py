@@ -150,6 +150,19 @@ def test_get_config_mascara_api_key(client, coraci):
     assert key.startswith("sk-s")
 
 
+def test_post_config_ignora_api_key_mascarada(client, coraci):
+    with coraci.config_lock:
+        coraci.current_config["api_key"] = "sk-super-secreta-123"
+    masked = client.get("/api/config").get_json()["api_key"]
+    assert masked != "sk-super-secreta-123"
+
+    resp = client.post("/api/config", json={"api_key": masked, "temperature": 0.3})
+    assert resp.status_code == 200
+    with coraci.config_lock:
+        assert coraci.current_config["api_key"] == "sk-super-secreta-123"
+        assert coraci.current_config["temperature"] == 0.3
+
+
 def test_post_config_valida_atualiza(client, coraci):
     resp = client.post(
         "/api/config",
@@ -180,6 +193,36 @@ def test_post_config_ignora_chave_desconhecida(client, coraci):
     resp = client.post("/api/config", json={"hack": True})
     assert resp.status_code == 200
     assert "hack" not in coraci.current_config
+
+
+# ---------------------------------------------------------------------------
+# /api/config/models
+# ---------------------------------------------------------------------------
+
+
+def _fake_models_client(model_ids):
+    models = [type("M", (), {"id": mid})() for mid in model_ids]
+    return type("C", (), {"models": type("MS", (), {"list": staticmethod(lambda: models)})()})()
+
+
+def test_list_models_retorna_modelos_da_api(client, coraci):
+    with coraci.config_lock:
+        coraci.current_config["api_base_url"] = "http://localhost:11434/v1"
+    with patch("openai.OpenAI", return_value=_fake_models_client(["glm4:latest", "qwen3:8b"])):
+        resp = client.get("/api/config/models")
+    assert resp.status_code == 200
+    assert resp.get_json() == {"status": "ok", "models": ["glm4:latest", "qwen3:8b"]}
+
+
+def test_list_models_erro_de_conexao_retorna_400(client):
+    import openai
+
+    with patch("openai.OpenAI", side_effect=openai.APIConnectionError(request=None)):
+        resp = client.get("/api/config/models")
+    assert resp.status_code == 400
+    body = resp.get_json()
+    assert body["status"] == "error"
+    assert "conectar" in body["message"]
 
 
 # ---------------------------------------------------------------------------

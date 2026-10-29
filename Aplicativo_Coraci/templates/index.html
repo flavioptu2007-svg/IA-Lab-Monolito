@@ -1079,7 +1079,7 @@
       <div class="modal-body">
         <div class="form-group">
           <label for="apiBaseUrl">URL base da API</label>
-          <input type="url" id="apiBaseUrl" placeholder="http://localhost:8000/v1" />
+          <input type="url" id="apiBaseUrl" placeholder="http://localhost:11434/v1" />
         </div>
 
         <div class="form-group">
@@ -1092,7 +1092,8 @@
 
         <div class="form-group">
           <label for="model">Modelo</label>
-          <input type="text" id="model" placeholder="glm-5.2-colibri" />
+          <select id="model" autocomplete="off"></select>
+          <input type="text" id="modelCustom" class="model-custom" placeholder="ex: glm4:latest" style="display:none;" autocomplete="off" />
         </div>
 
         <div class="form-group">
@@ -1139,13 +1140,15 @@
         streaming: false,
         abortController: null,
         config: {
-          api_base_url: 'http://localhost:8000/v1',
+          api_base_url: 'http://localhost:11434/v1',
           api_key: '',
-          model: 'glm-5.2-colibri',
+          model: 'glm4:latest',
           temperature: 0.7,
           max_tokens: 4096,
           theme: 'dark',
         },
+        localModels: [],
+        showModelCustom: false,
       };
 
       // =================================================================
@@ -1382,6 +1385,27 @@
             deleteConversation(btn.dataset.id);
           });
         });
+      }
+
+      async function populateModelSelect() {
+        try {
+          const res = await fetch('/api/config/models');
+          const data = await res.json();
+          if (data.status !== 'ok') return;
+          state.localModels = data.models;
+          const current = state.config.model || '';
+          let html = '<option value="">— Escolher modelo —</option>';
+          html += '<option value="custom">✏️ Outro modelo (digitar)</option>';
+          for (const m of data.models) {
+            const selected = m === current ? 'selected' : '';
+            html += `<option value="${m}" ${selected}>${m}</option>`;
+          }
+          model.innerHTML = html;
+          modelCustom.style.display = 'none';
+          state.showModelCustom = false;
+        } catch (e) {
+          console.warn('Não foi possível listar modelos:', e);
+        }
       }
 
       // =================================================================
@@ -1700,10 +1724,16 @@
       // =================================================================
       // Settings modal
       // =================================================================
-      function openSettings() {
+      async function openSettings() {
         // Populate inputs
         apiBaseUrl.value = state.config.api_base_url || '';
-        apiKey.value = state.config.api_key || '';
+        // A API nunca devolve a chave real (só a versão mascarada): o campo
+        // começa vazio e só é enviado se o usuário digitar algo novo.
+        apiKey.value = '';
+        apiKey.placeholder = state.config.api_key
+          ? 'Chave salva — deixe em branco para manter'
+          : 'sk-... (opcional no Ollama local)';
+        await populateModelSelect();
         model.value = state.config.model || '';
         temperature.value = state.config.temperature ?? 0.7;
         temperatureValue.textContent = temperature.value;
@@ -1721,19 +1751,32 @@
         temperatureValue.textContent = temperature.value;
       });
 
+      model.addEventListener('change', () => {
+        if (model.value === 'custom') {
+          modelCustom.style.display = 'block';
+          state.showModelCustom = true;
+        } else {
+          modelCustom.style.display = 'none';
+          state.showModelCustom = false;
+        }
+      });
+
       btnToggleKey.addEventListener('click', () => {
         apiKey.type = apiKey.type === 'password' ? 'text' : 'password';
         btnToggleKey.textContent = apiKey.type === 'password' ? '👁' : '🙈';
       });
 
       async function saveSettings() {
+        const selectedModel = model.value === 'custom' ? modelCustom.value.trim() : model.value;
+        const modelToSave = selectedModel || state.config.model || 'glm4:latest';
         const cfg = {
           api_base_url: apiBaseUrl.value.trim(),
-          api_key: apiKey.value.trim(),
-          model: model.value.trim(),
+          model: modelToSave,
           temperature: parseFloat(temperature.value),
           max_tokens: parseInt(maxTokens.value, 10) || 4096,
         };
+        const typedKey = apiKey.value.trim();
+        if (typedKey) cfg.api_key = typedKey;
 
         try {
           await apiPost('/api/config', cfg);
