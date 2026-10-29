@@ -417,7 +417,9 @@ novo e ele continua de onde parou (`inventory.state.json`). Para árvores
 grandes, rode em background: `bash ~/drive-audit/crawl.sh`.
 
 Os artefatos ficam em `~/drive-audit/` (ignorado pelo git); o código em
-`src/drive_audit/` (coberto por ruff, mypy e pytest).
+`src/drive_audit/` (coberto por ruff, mypy e pytest). O andamento da
+organização — lotes aprovados, pastas vazias e arquivos da raiz — é registrado
+em `~/drive-audit/estado-*.md`.
 
 ---
 

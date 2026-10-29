@@ -1698,7 +1698,8 @@ Expected: gera `empty_folders.csv`, `duplicates.csv`, `rename_plan.csv` e `summa
 > |---|---|---:|---:|---|
 > | 1 | `06_Backups`, `BackupLinux`, `BackupDocumentos` | 26.069 | 65,7 GiB | ✅ aplicado |
 > | 2 | `Material clientes`, `Aulas do professor Kennedy`, `Livros` | 3.540 | 32,4 GiB | ✅ aplicado |
-> | 3 | demais documentos (`PDF`, `2026`, `ESCOLA CORACI 2026`, …) | 6.083 | 30,0 GiB | ⏳ aguardando autorizo |
+> | 3 | demais documentos (`PDF`, `2026`, `ESCOLA CORACI 2026`, …) | 6.083 | 30,0 GiB | ✅ aplicado |
+> | 5 | homônimos com pasta/nome/tamanho/data/MD5 idênticos | 249 | ~13,7 GiB | ✅ aplicado |
 >
 > Fora dos lotes por segurança (17.395 pendentes → 6.083 no lote 3): 8.966 em
 > pastas técnicas, 2.096 em pastas de código (`IA-Lab-Projetos` — conteúdo
@@ -1712,6 +1713,44 @@ Expected: gera `empty_folders.csv`, `duplicates.csv`, `rename_plan.csv` e `summa
 > mesmo caminho e — para lotes futuros — arquivos cujo `keep` já está na
 > lixeira), e escreve `<lote>.csv`, `ids_<lote>.txt` e `<lote>-previa.md`;
 > `loop_loteN.sh` envia os ids à lixeira em passadas com pausa.
+>
+> **Continuação (2026-10-20):** resumo completo em
+> `~/drive-audit/estado-2026-10-20.md`. Lote 3 fechado (6.083/6.083), lote 4
+> vazio (a sobra do `duplicates.csv` já estava coberta) e lote 5 aplicado
+> (249 ids na lixeira; 1 id vinha duplicado na linha do `duplicates.csv` e deu
+> `404`). Pastas vazias: **2.301 das 2.312 candidatas** conferidas e enviadas à
+> lixeira — as 11 que ficaram têm filhos reais (receberam arquivos da raiz ou
+> são `_Revisar`/`Backups-Local`).
+>
+> **Raiz sem arquivos soltos:** `root_plano.csv` listava 1.039 arquivos
+> (31,46 GiB) e todos foram movidos para as 35 pastas de destino do plano
+> (`Fotos e Imagens - Drive`, `📚 ESCOLA CORACI 2026/…`, `07_Projetos e IA`,
+> `_Revisar`, `PDF`, `EPUB`, …); `rclone lsf gdrive: --max-depth 1
+> --files-only` agora devolve 0.
+>
+> **Dois bugs de execução corrigidos nos scripts locais:** o `mover_raiz.py`
+> usava o endpoint **batch**, que devolvia `403` de cota ("Previous quota:
+> Requests per minute") e ainda por cima reutilizava o `access_token` vencido
+> (`401`) — 530 arquivos ficaram pendentes. Reescrito para `PATCH` direto com
+> renovação via `refresh_token` do rclone, 4 requisições simultâneas e motivo do
+> erro no log: 450/450 movidos, 0 falhas. O `remover_pastas_vazias.py` passou a
+> pular ids já registrados como `200`/`404` no log, o que permitiu retomar as
+> 1.361 pastas restantes depois de a primeira passada parar em 951.
+>
+> **Continuação (2026-10-29):** renomeação retomada — resumo em
+> `~/drive-audit/estado-2026-10-29.md`. O lote caiu de 94.030 para **84.614
+> arquivos**: fora as pastas de código (`node_modules`, `.git`,
+> `IA-Lab-Projetos`, `07_Projetos e IA` — decisão do Flavio) e 1.306 nomes
+> sem data confiável (hash/ano implausível), que perderiam o identificador —
+> 126 já renomeados nesse formato foram revertidos. 2.148 ids renomeados até
+> aqui (inclui os 630 de 2026-10-28), ritmo ~100/min e ETA ~13–14 h; log
+> reversível em `logs/rename_aplicado.jsonl` com nome antigo e novo. Fora da
+> rodada: ~7.100 arquivos de código.
+>
+> **Pendente de decisão:** esvaziar a lixeira (~142 GiB, irreversível);
+> consolidar as 236 pastas de topo (a raiz tem `História`, `HISTÓRIA`,
+> `Historia - Ano 6…`, `6º ANO`, `1ºs ANOS`, `Segunda Série` ×2, `PDF` ×2);
+> concluir a aplicação de `rename_lote1.csv` (em andamento).
 
 - [ ] **Step 4: Conferir o resumo**
 
