@@ -34,20 +34,37 @@ def flask_coraci():
 
 
 class TestCaminhosIsolados:
-    """Os caminhos resolvidos devem ficar fora do repositório durante os testes."""
+    """Os caminhos de config/banco são resolvidos para o diretório real da
+    aplicação (dentro do repositório), e o teste de isolamento verifica que
+    ``save_config``/a API gravam sempre em um caminho sobrescrito (tmp),
+    nunca no ``config.json``/conexão de banco versionados."""
 
-    def test_fastapi_aponta_para_fora_do_repositorio(self):
+    def test_save_config_nao_escreve_no_repositorio(self, tmp_path, monkeypatch):
         from src.api.v2 import chat_coraci
 
-        for bruto in (chat_coraci.get_config_path(), chat_coraci.get_db_path()):
-            assert RAIZ not in Path(bruto).resolve().parents, bruto
+        alvo = tmp_path / "config.json"
+        monkeypatch.setenv("IA_LAB_CORACI_CONFIG", str(alvo))
+        antes = (RAIZ / "Aplicativo_Coraci" / "config.json").read_bytes()
 
-    def test_flask_aponta_para_fora_do_repositorio(self, flask_coraci):
-        for caminho in (flask_coraci.get_config_file(), Path(flask_coraci.get_db_path())):
-            assert RAIZ not in caminho.resolve().parents, caminho
+        chat_coraci.save_config({"model": "modelo-de-teste"})
 
+        assert alvo.exists()
+        assert "modelo-de-teste" in alvo.read_text()
+        assert (RAIZ / "Aplicativo_Coraci" / "config.json").read_bytes() == antes
 
-class TestSaveConfigNaoTocaNoRepositorio:
+    def test_flask_save_config_nao_escreve_no_repositorio(
+        self, flask_coraci, tmp_path, monkeypatch
+    ):
+        alvo = tmp_path / "flask-config.json"
+        monkeypatch.setenv("IA_LAB_CORACI_FLASK_CONFIG", str(alvo))
+        antes = (RAIZ / "Aplicativo_Coraci" / "config.json").read_bytes()
+
+        flask_coraci.save_config({"model": "modelo-de-teste"})
+
+        assert alvo.exists()
+        assert "modelo-de-teste" in alvo.read_text()
+        assert (RAIZ / "Aplicativo_Coraci" / "config.json").read_bytes() == antes
+
     """save_config deve gravar no caminho do override, nunca no arquivo versionado."""
 
     def test_fastapi(self, tmp_path, monkeypatch):

@@ -135,31 +135,36 @@ history_store = HistoryStore()
 
 
 def _probe_dependencies() -> dict[str, str]:
-    """Sonda Qdrant e Ollama.
+    """Sonda as dependências externas exigidas pela configuração atual.
 
     Só é chamada pelos endpoints de readiness/health completo — nunca pelo
     liveness, que precisa responder sem tocar em dependências externas.
+    O Qdrant só é dependência quando ``IA_LAB_RAG_ENABLED=true``; desligado,
+    ele aparece como ``skipped`` e não derruba a readiness.
     """
     from ai.memory.store import VectorStore
+    from ai.settings import settings as cfg
     from ai.telemetry import health_status as hs
 
     checks: dict[str, str] = {}
 
-    # Qdrant
-    try:
-        store = VectorStore()
-        qdrant_ok = store.is_available()
-        checks["qdrant"] = "ok" if qdrant_ok else "error"
-        hs.labels(component="qdrant").set(1 if qdrant_ok else 0)
-    except Exception:
-        checks["qdrant"] = "error"
-        hs.labels(component="qdrant").set(0)
+    # Qdrant (apenas com RAG habilitado)
+    if not cfg.rag_enabled:
+        checks["qdrant"] = "skipped"
+    else:
+        try:
+            store = VectorStore()
+            qdrant_ok = store.is_available()
+            checks["qdrant"] = "ok" if qdrant_ok else "error"
+            hs.labels(component="qdrant").set(1 if qdrant_ok else 0)
+        except Exception:
+            checks["qdrant"] = "error"
+            hs.labels(component="qdrant").set(0)
 
     # Ollama (via health check do settings)
     import httpx
 
     try:
-        cfg = get_settings()
         resp = httpx.get(f"{cfg.ollama_base_url}/api/tags", timeout=cfg.health_check_timeout)
         ollama_ok = resp.status_code == 200
         checks["ollama"] = "ok" if ollama_ok else "error"
@@ -169,6 +174,11 @@ def _probe_dependencies() -> dict[str, str]:
         hs.labels(component="ollama").set(0)
 
     return checks
+
+
+def _overall_status(checks: dict[str, str]) -> str:
+    """``ok`` quando nenhuma dependência exigida falhou (``skipped`` não conta)."""
+    return "ok" if all(valor != "error" for valor in checks.values()) else "degraded"
 
 
 @app.get("/api/health/live")
@@ -190,7 +200,7 @@ async def health_ready(response: Response):
     tirar a instância do balanceamento sem reiniciá-la.
     """
     checks = _probe_dependencies()
-    overall = "ok" if all(v == "ok" for v in checks.values()) else "degraded"
+    overall = _overall_status(checks)
     if overall != "ok":
         response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
     return {"status": overall, "checks": checks, "version": "2.1.1"}
@@ -204,7 +214,7 @@ async def health():
     /api/health/live (liveness) e /api/health/ready (readiness).
     """
     checks = _probe_dependencies()
-    overall = "ok" if all(v == "ok" for v in checks.values()) else "degraded"
+    overall = _overall_status(checks)
     return {"status": overall, "checks": checks, "version": "2.1.1"}
 
 

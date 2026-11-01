@@ -87,14 +87,21 @@ class TestConnectionRequest(BaseModel):
 # Estado local do Coraci. Os caminhos efetivos são resolvidos por
 # get_db_path()/get_config_path(), que respeitam override por env var — assim a
 # suíte de testes não escreve em arquivos do repositório (Achado 10).
-BASE_DIR = Path(__file__).resolve().parent.parent.parent
+# parents[3]: .../src/api/v2/chat_coraci.py → raiz do repositório. Com três
+# `parent` o BASE_DIR virava `src/`, então o banco caía em `src/coraci.db` e o
+# CONFIG_PATH apontava para `src/Aplicativo_Coraci/config.json` (inexistente):
+# o config.json real nunca era lido.
+BASE_DIR = Path(__file__).resolve().parents[3]
 DB_PATH = str(BASE_DIR / "coraci.db")
 CONFIG_PATH = str(BASE_DIR / "Aplicativo_Coraci" / "config.json")
 
 DEFAULT_CONFIG: dict[str, Any] = {
-    "api_base_url": "http://localhost:8000/v1",
+    # Defaults locais (custo zero) e coerentes com Aplicativo_Coraci/app.py:
+    # a porta 8000 desta máquina pertence a outro projeto e "glm-5.2-colibri"
+    # não existe no Ollama.
+    "api_base_url": "http://localhost:11434/v1",
     "api_key": "",
-    "model": "glm-5.2-colibri",
+    "model": "glm4:latest",
     "temperature": 0.7,
     "max_tokens": 4096,
     "theme": "dark",
@@ -246,6 +253,11 @@ def save_config(config: dict) -> None:
     config_file = Path(get_config_path())
     config_file.parent.mkdir(parents=True, exist_ok=True)
     config_file.write_text(json.dumps(config, indent=2, ensure_ascii=False))
+    # O arquivo pode conter a API key do provider: só o dono deve lê-lo.
+    try:
+        config_file.chmod(0o600)
+    except OSError:
+        pass
 
 
 # Cache em memória

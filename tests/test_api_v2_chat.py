@@ -10,6 +10,7 @@ Cobre:
 
 from __future__ import annotations
 
+from pathlib import Path
 from unittest.mock import patch
 
 import pytest
@@ -273,7 +274,16 @@ class TestConfig:
         assert "temperature" in data
         assert "max_tokens" in data
         assert "theme" in data
-        assert data["model"] == "glm-5.2-colibri"
+        # Default local (Ollama), igual ao Aplicativo_Coraci/app.py.
+        assert data["model"] == "glm4:latest"
+        assert data["api_base_url"] == "http://localhost:11434/v1"
+
+    def test_defaults_apontam_para_a_raiz_do_repo(self):
+        """Banco na raiz e config dentro de Aplicativo_Coraci (não em src/)."""
+        import src.api.v2.chat_coraci as chat_mod
+
+        raiz = Path(chat_mod.DB_PATH).parent
+        assert Path(chat_mod.CONFIG_PATH) == raiz / "Aplicativo_Coraci" / "config.json"
 
     def test_get_config_esconde_api_key(self, client):
         """A API key não deve ser exposta completamente."""

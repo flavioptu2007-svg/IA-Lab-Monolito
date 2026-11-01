@@ -223,8 +223,22 @@ def load_config() -> dict:
 
 
 def save_config(config: dict) -> None:
-    """Persiste configuração no arquivo JSON."""
-    get_config_file().write_text(json.dumps(config, indent=2, ensure_ascii=False))
+    """Persiste configuração no arquivo JSON (sem segredo vindo do ambiente).
+
+    A chave definida por ``CORACI_API_KEY`` é a fonte da verdade enquanto o
+    processo vive; gravá-la em disco criaria uma segunda cópia do segredo.
+    O arquivo é criado com permissão 0600 (só o dono lê).
+    """
+    cfg = dict(config)
+    env_key = os.environ.get("CORACI_API_KEY")
+    if env_key and cfg.get("api_key") == env_key:
+        cfg["api_key"] = ""
+    destino = get_config_file()
+    destino.write_text(json.dumps(cfg, indent=2, ensure_ascii=False))
+    try:
+        os.chmod(destino, 0o600)
+    except OSError:
+        pass
 
 
 def load_openai_client():

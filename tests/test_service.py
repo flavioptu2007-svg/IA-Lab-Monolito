@@ -4,6 +4,7 @@ Cobre:
 - choose_provider: seleção por preferência e fallback para padrão
 - complete: sucesso, fallback em erro, RAG, classificação de tarefa
 - billing_reason: reconhecimento de falhas de cobrança/cota (402/429)
+- auth_failure/redact: erro de credencial não mascara configuração, segredo não vaza
 - get_provider_status: lista de provedores configurados
 """
 
@@ -14,7 +15,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import httpx
 import pytest
 
-from ai.service import AIService, billing_reason
+from ai.service import AIService, auth_failure, billing_reason, redact
 
 
 def _http_error(status_code: int) -> httpx.HTTPStatusError:
@@ -328,6 +329,26 @@ class TestComplete:
         assert "custo zero" in response
         assert "ollama" in response
 
+    @pytest.mark.asyncio
+    async def test_complete_nao_faz_fallback_em_erro_de_autenticacao(
+        self,
+        service: AIService,
+        mock_providers_patch,
+    ):
+        """401 deve ser explícito: cair para o local esconderia chave inválida."""
+        mock_providers_patch["openai"].complete = AsyncMock(side_effect=_http_error(401))
+
+        with patch("ai.service.settings") as mock_settings:
+            mock_settings.primary_provider = "openai"
+            mock_settings.local_provider = "ollama"
+            mock_settings.rag_enabled = False
+
+            response = await service.complete("teste", provider="openai")
+
+        assert "Falha de autenticação" in response
+        assert "HTTP 401" in response
+        mock_providers_patch["ollama"].complete.assert_not_awaited()
+
 
 # ═══════════════════════════════════════════════════════════════════════════
 # billing_reason
@@ -361,6 +382,47 @@ class TestBillingReason:
         """Erro de rede/timeout não deve ser classificado como cobrança."""
         assert billing_reason(Exception("connection refused")) is None
         assert billing_reason(_http_error(500)) is None
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# auth_failure / redact
+# ═══════════════════════════════════════════════════════════════════════════
+
+
+class TestAuthFailure:
+    """Testes para auth_failure() — credencial inválida não vira fallback."""
+
+    def test_reconhece_http_401(self):
+        assert auth_failure(_http_error(401)) == "HTTP 401"
+
+    def test_reconhece_http_403(self):
+        assert auth_failure(_http_error(403)) == "HTTP 403"
+
+    def test_reconhece_mensagem_de_chave_invalida(self):
+        assert auth_failure(Exception("Invalid API key provided")) == "invalid api key"
+
+    def test_cota_nao_e_autenticacao(self):
+        """429 é cobrança/cota, não credencial: o fallback deve valer."""
+        assert auth_failure(_http_error(429)) is None
+        assert auth_failure(Exception("connection refused")) is None
+
+
+class TestRedact:
+    """Testes para redact() — segredos não podem aparecer em log/resposta."""
+
+    def test_remove_chave_da_query_string(self):
+        texto = "GET https://api.example/v1/models/x?key=AIzaSySEGREDO123 falhou"
+        assert "AIzaSySEGREDO123" not in redact(texto)
+        assert "key=***" in redact(texto)
+
+    def test_remove_bearer(self):
+        assert "abc123" not in redact("Authorization: Bearer abc123")
+
+    def test_remove_header_x_api_key(self):
+        assert "sk-segredo" not in redact("x-api-key: sk-segredo")
+
+    def test_preserva_texto_sem_segredo(self):
+        assert redact("connection refused") == "connection refused"
 
 
 # ═══════════════════════════════════════════════════════════════════════════

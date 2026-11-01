@@ -10,6 +10,7 @@ O AIService é responsável por:
 
 from __future__ import annotations
 
+import re
 import time
 from typing import Any
 
@@ -35,6 +36,44 @@ _BILLING_MARKERS = (
     "resource_exhausted",
 )
 
+# ── Falhas de autenticação/permissão ──────────────────────────────────────
+# 401/403 sem marcador de cota são erro de credencial ou configuração: cair
+# para o provedor local esconderia a causa (chave ausente/inválida), então a
+# resposta é explícita em vez de "fantasiar" sucesso.
+_AUTH_STATUS_CODES = (401, 403)
+_AUTH_MARKERS = (
+    "unauthorized",
+    "invalid api key",
+    "invalid_api_key",
+    "invalid api-key",
+    "authentication",
+    "permission denied",
+    "forbidden",
+)
+
+# Padrões de credencial que podem aparecer em mensagens de erro/URLs.
+_SEGREDOS = (
+    re.compile(r"(?i)([?&](?:key|api_key|api-key|token|access_token)=)[^&\s'\"]+"),
+    re.compile(r"(?i)(bearer\s+)[A-Za-z0-9._\-]+"),
+    re.compile(r"(?i)((?:x-api-key|x-goog-api-key)['\"]?\s*[:=]\s*)[^\s,'\"}]+"),
+)
+
+
+def _status_code(exc: BaseException) -> int | None:
+    """HTTP status da exceção (SDK da OpenAI ou httpx), quando houver."""
+    codigo = getattr(exc, "status_code", None)
+    if codigo is None:
+        response = getattr(exc, "response", None)
+        codigo = getattr(response, "status_code", None)
+    return codigo if isinstance(codigo, int) else None
+
+
+def redact(text: str) -> str:
+    """Remove credenciais de uma mensagem antes de logar ou devolver ao cliente."""
+    for padrao in _SEGREDOS:
+        text = padrao.sub(r"\1***", text)
+    return text
+
 
 def billing_reason(exc: BaseException) -> str | None:
     """Motivo quando a falha é de cobrança/cota; ``None`` para outros erros.
@@ -43,15 +82,25 @@ def billing_reason(exc: BaseException) -> str | None:
     exceções do SDK da OpenAI (``.status_code``), além de mensagens que
     mencionam explicitamente cobrança, cota ou créditos.
     """
-    status_code = getattr(exc, "status_code", None)
-    if status_code is None:
-        response = getattr(exc, "response", None)
-        status_code = getattr(response, "status_code", None)
-    if isinstance(status_code, int) and status_code in _BILLING_STATUS_CODES:
+    status_code = _status_code(exc)
+    if status_code in _BILLING_STATUS_CODES:
         return f"HTTP {status_code}"
 
     text = str(exc).lower()
     for marker in _BILLING_MARKERS:
+        if marker in text:
+            return marker
+    return None
+
+
+def auth_failure(exc: BaseException) -> str | None:
+    """Motivo quando a falha é de autenticação/permissão; ``None`` caso contrário."""
+    status_code = _status_code(exc)
+    if status_code in _AUTH_STATUS_CODES:
+        return f"HTTP {status_code}"
+
+    text = str(exc).lower()
+    for marker in _AUTH_MARKERS:
         if marker in text:
             return marker
     return None
@@ -108,6 +157,31 @@ class AIService:
         providers = self._get_providers()
         return [name for name in candidates if name != failed and name in providers]
 
+    # Provedores que só funcionam com credencial configurada (os locais não).
+    _CREDENCIAIS: dict[str, str] = {
+        "openai": "openai_api_key",
+        "claude": "claude_api_key",
+        "gemini": "gemini_api_key",
+        "groq": "groq_api_key",
+        "glm": "glm_api_key",
+        "perplexity": "perplexity_api_key",
+    }
+
+    def _tem_credencial(self, name: str) -> bool:
+        """Indica se o provedor pode ser chamado (nuvem exige chave configurada).
+
+        Sem isso, o roteamento por tarefa escolhia ``openai``/``glm`` mesmo sem
+        chave e cada chamada gastava uma requisição fadada ao erro antes do
+        fallback.
+        """
+        atributo = self._CREDENCIAIS.get(name)
+        if atributo is None:
+            return True  # ollama / bitnet rodam localmente
+        valor = getattr(settings, atributo, None)
+        if isinstance(valor, SecretStr):
+            return bool(valor.get_secret_value())
+        return bool(valor)
+
     async def complete(
         self,
         prompt: str,
@@ -145,6 +219,11 @@ class AIService:
         # Escolhe o provedor
         provider_name = provider or get_default_provider_for_task(task_type)
         if provider_name == "auto" or provider_name not in self._get_providers():
+            provider_name = settings.primary_provider
+        elif provider is None and not self._tem_credencial(provider_name):
+            # O roteamento por tarefa pode apontar para nuvem sem chave: isso
+            # garantia um erro (e um fallback) a cada chamada. Vai direto ao
+            # primário configurado — custo zero por padrão.
             provider_name = settings.primary_provider
 
         # Prepara o prompt com contexto RAG se habilitado
@@ -189,12 +268,26 @@ class AIService:
         except Exception as e:
             status = "error"
             reason = billing_reason(e)
+            auth = None if reason else auth_failure(e)
+            detalhe = redact(str(e))
             logger.error(
                 "Provider %s failed%s: %s",
                 provider_name,
-                f" ({reason})" if reason else "",
-                e,
+                f" ({reason or auth})" if (reason or auth) else "",
+                detalhe,
             )
+
+            # Erro de credencial não cai para o local: o fallback responderia
+            # com sucesso e esconderia a configuração quebrada.
+            if auth:
+                return (
+                    f"❌ **Falha de autenticação no provedor {provider_name} ({auth}).**\n\n"
+                    "Causa provável: chave ausente/inválida ou permissão negada. "
+                    "Não houve fallback para não mascarar erro de configuração — "
+                    "corrija a credencial ou peça explicitamente o provedor local "
+                    f"`{settings.local_provider}`.\n\n"
+                    f"Detalhe: {detalhe}"
+                )
 
             # Fallback: primário configurado e, por último, o provedor local.
             for fallback_name in self._fallback_chain(provider_name):
@@ -205,11 +298,11 @@ class AIService:
                 try:
                     return await fallback_cls().complete(prompt=prompt)
                 except Exception as fallback_e:
-                    logger.error("Fallback %s falhou: %s", fallback_name, fallback_e)
+                    logger.error("Fallback %s falhou: %s", fallback_name, redact(str(fallback_e)))
 
             if reason:
                 return (
-                    f"❌ **Provedor {provider_name} indisponível ({reason}):** {e}\n\n"
+                    f"❌ **Provedor {provider_name} indisponível ({reason}):** {detalhe}\n\n"
                     "Causa provável: cobrança, cota ou créditos do provedor de nuvem. "
                     "Este ambiente opera em **custo zero** (AGENTS.md, regra nº 1), "
                     f"então não há cobrança a resolver: use o provedor local "
@@ -218,7 +311,7 @@ class AIService:
                 )
 
             return (
-                f"❌ **Erro no provedor {provider_name}:** {e}\n\n"
+                f"❌ **Erro no provedor {provider_name}:** {detalhe}\n\n"
                 f"Verifique se a API key está configurada e o serviço está acessível."
             )
         finally:

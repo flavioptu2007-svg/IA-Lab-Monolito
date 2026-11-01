@@ -111,7 +111,10 @@ class GeminiProvider(BaseProvider):
         temperature: float = 0.7,
         max_tokens: int = 4096,
     ) -> str:
-        url = f"{self.base_url}/models/{self.model}:generateContent?key={self.api_key}"
+        # A chave vai no header (x-goog-api-key), nunca na query string: a URL
+        # aparece em mensagens de erro e logs, e vazaria o segredo.
+        url = f"{self.base_url}/models/{self.model}:generateContent"
+        headers = {"x-goog-api-key": self.api_key}
         contents = [{"parts": [{"text": prompt}]}]
         payload: dict = {
             "contents": contents,
@@ -121,7 +124,7 @@ class GeminiProvider(BaseProvider):
             payload["systemInstruction"] = {"parts": [{"text": system_prompt}]}
 
         async with httpx.AsyncClient(timeout=120.0) as client:
-            resp = await client.post(url, json=payload)
+            resp = await client.post(url, json=payload, headers=headers)
             resp.raise_for_status()
             data = resp.json()
             candidates = data.get("candidates", [])

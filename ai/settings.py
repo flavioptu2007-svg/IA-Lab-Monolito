@@ -35,7 +35,10 @@ class Settings(BaseSettings):
     )
 
     # --- Provedor primário ---
-    primary_provider: ProviderName = "openai"
+    # Default LOCAL (Ollama): a política do repositório é custo zero
+    # (AGENTS.md, regra nº 1). Provedor de nuvem só entra quando
+    # IA_LAB_PRIMARY_PROVIDER aponta para ele explicitamente.
+    primary_provider: ProviderName = "ollama"
     local_provider: ProviderName = "ollama"
 
     # --- GLM (Zhipu) ---
@@ -44,7 +47,10 @@ class Settings(BaseSettings):
     glm_base_url: str = "https://open.bigmodel.cn/api/paas/v4"
 
     # --- Ollama (sem API key — autenticação local) ---
-    ollama_model: str = "qwen3:latest"  # modelo local instalado (qwen2.5:7b não existia no ollama)
+    # Precisa constar em `ollama list`: "qwen3:latest" não existe (há
+    # qwen3:8b), então o fallback local respondia 404. glm4:latest está
+    # instalado e é o mesmo default do Aplicativo_Coraci.
+    ollama_model: str = "glm4:latest"
     ollama_base_url: str = "http://localhost:11434"
 
     # --- OpenAI ---
