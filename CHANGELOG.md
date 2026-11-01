@@ -41,6 +41,15 @@ versionamento segue o [SemVer](https://semver.org/lang/pt-BR/). A versão corren
 - `README.md`, `README.en.md`, `LICENSE` e `ENV_LOCAL_GEMINI.md` restaurados, e
   `Dockerfile`/`docker-compose.yml` versionados.
 - Hooks de pre-commit com `mypy` e `shellcheck`; todos os `.sh` limpos.
+- Dependências atualizadas e revalidadas: Python (`fastapi` 0.162, `pydantic`
+  2.14, `pydantic-settings` 2.16, `openai` 3.42, `numpy` 2.5.4,
+  `qdrant-client` 1.20, `uvicorn` 0.54, `pytest` 9.2, `ruff` 0.17,
+  `mypy` 2.4, `python-dotenv` 1.2, `langchain-*`, `transformers` 5.22,
+  `openvino` 2026.4 com `openvino-tokenizers` alinhado) e npm (`next` 16.4.3,
+  `react` 19.3.1, `vite` 8.3 no dashboard de `Projetos/web`, `vite` 6.4.5 no
+  dashboard da raiz). `npm audit fix` zerou as vulnerabilidades do dashboard da
+  raiz e derrubou as de `Projetos/web/dashboard` de 14 para 11 (restantes só na
+  cadeia dev do eslint, que exige major 10).
 
 ### Corrigido
 
