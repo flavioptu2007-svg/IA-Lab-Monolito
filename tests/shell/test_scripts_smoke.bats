@@ -20,6 +20,7 @@ HELP_SCRIPTS=(
     "scripts/check_mcp_pin.sh"
     "scripts/chat_local.sh"
     "scripts/servir_projetos.sh"
+    "scripts/test_all.sh"
     "scripts/update_mcps.sh"
     "scripts/audio/backup_audio_config.sh"
     "scripts/audio/demo_audio.sh"
