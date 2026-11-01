@@ -33,13 +33,10 @@ jobs:
           pip install --upgrade pip
           pip install -e ".[dev,education]"
 
-      - name: Lint with ruff (config do pyproject.toml)
-        run: |
-          ruff check ai scripts api src tests --output-format github
-
-      - name: Check formatting com ruff format
-        run: |
-          ruff format --check --diff ai api src tests
+      # Ruff check + ruff format vêm do scripts/test_all.sh, que é a fonte única
+      # da matriz: o job só instala as dependências e escolhe as verificações.
+      - name: Lint with ruff (scripts/test_all.sh)
+        run: ./scripts/test_all.sh --only monolito:ruff-check+ruff-format --verbose
 
   # ─── Test: Python (pytest) ────────────────────────────────────
   test-python:
@@ -64,16 +61,14 @@ jobs:
           pip install --upgrade pip
           pip install -e ".[dev,education]"
 
-      - name: Run tests with pytest
-        run: |
-          python3 -m pytest tests/ -v --tb=short --no-header -x \
-            --cov=ai --cov=api --cov=src \
-            --cov-report=term-missing \
-            --cov-report=html:coverage_html \
-            --cov-fail-under=70
+      # O script roda `pytest tests/ -q --tb=short` com IA_LAB_RAG_ENABLED=false;
+      # PYTEST_ADDOPTS acrescenta o coverage e o -x que o job sempre teve.
+      - name: Run tests with pytest (scripts/test_all.sh)
+        run: ./scripts/test_all.sh --only monolito:pytest --verbose
         env:
-          IA_LAB_RAG_ENABLED: "false"
-          IA_LAB_LOG_LEVEL: "WARNING"
+          PYTEST_ADDOPTS: >-
+            -x --cov=ai --cov=api --cov=src --cov-report=term-missing
+            --cov-report=html:coverage_html --cov-fail-under=70
 
       - name: Upload coverage report
         if: ${{ matrix.python-version == '3.12' }}
@@ -102,9 +97,8 @@ jobs:
           pip install --upgrade pip
           pip install -e ".[dev,education]"
 
-      - name: Typecheck with mypy
-        run: |
-          python3 -m mypy ai src api --ignore-missing-imports
+      - name: Typecheck with mypy (scripts/test_all.sh)
+        run: ./scripts/test_all.sh --only monolito:mypy --verbose
 
   # ─── Build: Dashboard (Vite) ─────────────────────────────────
   build-dashboard:
@@ -136,15 +130,8 @@ jobs:
           cd web/dashboard
           npm ci
 
-      - name: TypeScript check
-        run: |
-          cd web/dashboard
-          npx tsc -b --noEmit
-
-      - name: Build (Vite)
-        run: |
-          cd web/dashboard
-          npm run build
+      - name: TypeScript check e build (scripts/test_all.sh)
+        run: ./scripts/test_all.sh --only dashboard-raiz --verbose
 
       - name: Upload dashboard build
         uses: actions/upload-artifact@v6
@@ -166,12 +153,9 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y shellcheck bats
 
-      - name: Shellcheck (todos os scripts shell)
-        run: |
-          shellcheck -S warning $(git ls-files 'scripts/*.sh')
-
       # Sem guard silencioso: se os testes de shell sumirem, o job FALHA em vez
       # de reportar sucesso sem rodar nada (mesmo padrão do build-dashboard).
+      # O script trata ausência de tests/shell como SKIP, o que sairia verde.
       - name: Verificar presença dos testes de shell
         run: |
           if [ ! -d tests/shell ]; then
@@ -180,8 +164,8 @@ jobs:
             exit 1
           fi
 
-      - name: Bats (testes dos scripts shell)
-        run: bats tests/shell/
+      - name: Shellcheck e bats (scripts/test_all.sh)
+        run: ./scripts/test_all.sh --only monolito:shellcheck+bats --verbose
 
   # ─── Summary ─────────────────────────────────────────────────
   ci-summary:

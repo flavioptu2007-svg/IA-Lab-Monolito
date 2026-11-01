@@ -10,6 +10,7 @@ on:
       - "Projetos/next-app/**"
       - "Projetos/web/**"
       - "Projetos/leituraia/**"
+      - "scripts/test_all.sh"
       - ".github/workflows/projects-ci.yml"
   pull_request:
     branches: [main, master]
@@ -17,6 +18,7 @@ on:
       - "Projetos/next-app/**"
       - "Projetos/web/**"
       - "Projetos/leituraia/**"
+      - "scripts/test_all.sh"
       - ".github/workflows/projects-ci.yml"
   workflow_dispatch: {}
 
@@ -26,6 +28,9 @@ concurrency:
 
 jobs:
   # ─── next-app: typecheck + lint + build ──────────────────────────
+  # Os jobs baixam as dependências e delegam a execução ao
+  # scripts/test_all.sh, que é a fonte única da matriz (mesmas verificações que
+  # rodam localmente). --verbose devolve ao log a saída completa de cada passo.
   next-app:
     name: next-app (typecheck, lint, build)
     runs-on: ubuntu-latest
@@ -45,14 +50,9 @@ jobs:
       - name: Install
         run: npm ci
 
-      - name: Typecheck
-        run: npm run typecheck
-
-      - name: Lint
-        run: npm run lint
-
-      - name: Build
-        run: npm run build
+      - name: Typecheck, lint e build (scripts/test_all.sh)
+        working-directory: ${{ github.workspace }}
+        run: ./scripts/test_all.sh --only next-app --verbose
 
   # ─── web/dashboard: lint + build ─────────────────────────────────
   web-dashboard:
@@ -74,11 +74,9 @@ jobs:
       - name: Install
         run: npm ci
 
-      - name: Lint
-        run: npm run lint
-
-      - name: Build
-        run: npm run build
+      - name: Lint e build (scripts/test_all.sh)
+        working-directory: ${{ github.workspace }}
+        run: ./scripts/test_all.sh --only dashboard-projetos --verbose
 
   # ─── leituraia: pytest ───────────────────────────────────────────
   leituraia:
@@ -99,9 +97,8 @@ jobs:
       - name: Install deps
         run: pip install pytest fastapi httpx "pydantic[email]" "python-jose[cryptography]"
 
-      - name: Run tests
-        working-directory: Projetos
-        run: python -m pytest leituraia/tests -q
+      - name: Run tests (scripts/test_all.sh)
+        run: ./scripts/test_all.sh --only leituraia --verbose
 
   # ─── web/api: pytest (monolito stubado) ──────────────────────────
   web-api:
@@ -122,6 +119,5 @@ jobs:
       - name: Install deps
         run: pip install pytest fastapi httpx prometheus-client
 
-      - name: Run tests
-        working-directory: Projetos/web
-        run: python -m pytest api/tests -q
+      - name: Run tests (scripts/test_all.sh)
+        run: ./scripts/test_all.sh --only web-api --verbose

@@ -25,6 +25,9 @@ versionamento segue o [SemVer](https://semver.org/lang/pt-BR/). A versão corren
 - `tests/test_core_config.py`: testes de `src/core/config.py` — defaults,
   override por variável de ambiente e a guarda que impede subir em produção com
   o segredo JWT padrão.
+- `scripts/test_all.sh`: matriz única de testes dos sete projetos, com
+  `--only`/`--skip` por projeto ou por verificação (ex.:
+  `--only monolito:ruff-check`), `--fast`, `--verbose` e resumo por projeto.
 - `.dockerignore` em allowlist, para o contexto de build da imagem não incluir
   segredos nem o repositório inteiro.
 - Documentação comunitária: `SECURITY.md` (divulgação responsável) e
@@ -33,6 +36,10 @@ versionamento segue o [SemVer](https://semver.org/lang/pt-BR/). A versão corren
 
 ### Alterado
 
+- CI: os jobs de `ci.yml` e `projects-ci.yml` baixam as dependências e delegam a
+  execução ao `scripts/test_all.sh --only <projeto>`, em vez de repetir os
+  comandos; a matrix, o limite de cobertura de 70% (via `PYTEST_ADDOPTS`) e os
+  artefatos continuam iguais.
 - CI: `ruff` e `mypy` passam a cobrir `ai`, `api`, `src`, `scripts` e `tests`;
   `shellcheck` roda em `$(git ls-files 'scripts/*.sh')` (inclui `scripts/audio/`);
   `test-python` exige cobertura mínima de 70%.
