@@ -50,6 +50,12 @@ versionamento segue o [SemVer](https://semver.org/lang/pt-BR/). A versão corren
   dashboard da raiz). `npm audit fix` zerou as vulnerabilidades do dashboard da
   raiz e derrubou as de `Projetos/web/dashboard` de 14 para 11 (restantes só na
   cadeia dev do eslint, que exige major 10).
+- Majors de frontend: `web/dashboard` sobe `vite` 6 → 8, `@vitejs/plugin-react`
+  4 → 6, `lucide-react` 0.485 → 1.66 e `typescript` 5.7 → 7.0 (`tsc` nativo);
+  `Projetos/next-app` sobe `eslint` 9 → 10. `recharts` foi removido do dashboard
+  da raiz — estava declarado mas não era importado em nenhum arquivo de `src`,
+  e a major 3 dele é incompatível. No lucide 1.x os ícones de marca saíram do
+  pacote, então `Github` virou `GitBranch` em `Landing.tsx`.
 
 ### Corrigido
 
@@ -70,6 +76,11 @@ versionamento segue o [SemVer](https://semver.org/lang/pt-BR/). A versão corren
   `pytest-flask`).
 - `np.asarray` em `remove_silence` — o numpy 2.5 rejeita a união
   `float | ndarray`.
+- `typescript` fica em 6.x em `Projetos/next-app` e `Projetos/web/dashboard`: o
+  `typescript-eslint` 8.72 recusa TS 7 (`does not support TS 7.0`), e é ele que
+  sustenta o `npm run lint` dos dois no CI. TS 7 entra só no dashboard da raiz,
+  que não tem lint. Reavaliar quando sair o suporte a 7.1
+  (typescript-eslint#10940).
 
 ### Segurança
 
