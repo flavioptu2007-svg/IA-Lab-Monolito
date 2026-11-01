@@ -4,7 +4,7 @@ import {
   BookOpen,
   Bot,
   Cpu,
-  Github,
+  GitBranch,
   Globe,
   Headphones,
   Layers,
@@ -199,7 +199,7 @@ export function LandingPage({ onNavigate }: PageProps) {
               className="btn btn-ghost"
               style={{ padding: "12px 28px", fontSize: "1rem", textDecoration: "none" }}
             >
-              <Github size={18} />
+              <GitBranch size={18} />
               GitHub
             </a>
           </div>
