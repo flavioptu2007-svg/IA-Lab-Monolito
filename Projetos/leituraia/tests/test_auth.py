@@ -2,7 +2,6 @@
 
 import pytest
 from fastapi import HTTPException
-
 from leituraia.auth import (
     UserStore,
     criar_access_token,

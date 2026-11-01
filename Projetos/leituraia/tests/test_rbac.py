@@ -3,7 +3,6 @@
 import pytest
 from fastapi import Depends, FastAPI
 from fastapi.testclient import TestClient
-
 from leituraia.auth import get_current_user
 from leituraia.rbac import PERMISSIONS, Profile, require, tem_permissao
 
