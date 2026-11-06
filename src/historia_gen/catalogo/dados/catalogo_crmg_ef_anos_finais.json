@@ -1,0 +1,909 @@
+{
+ "meta": {
+  "documento": "Currículo Referência de Minas Gerais — Educação Infantil e Ensino Fundamental",
+  "url_oficial": "https://portalpedagogico.educacao.mg.gov.br/estrutura-curricular-e-ensino/curriculo-referencia-de-minas-gerais",
+  "url_pdf": "https://portalpedagogico.educacao.mg.gov.br/wp-content/uploads/2026/05/CRMG-Infantil-e-Ensino-Fundamental-_Versao-atualizada.pdf",
+  "versao": "Versão atualizada (conteúdo do PDF gerado em 2023-05-19; igual à cópia do Drive por MD5)",
+  "data_acesso": "2026-11-01",
+  "pdf_md5": "123289db779177aa9e1c75fcd5182aed",
+  "pdf_sha256": "792857369c0c80dd87fff092137053e7a5cbed1c61fcbbd6caa6efbc072154ea",
+  "escopo": "História — Anos Finais do Ensino Fundamental (6º a 9º ano); seção 15 do documento (páginas impressas 547–592)",
+  "contagens_esperadas": {
+   "6º ano EF": 19,
+   "7º ano EF": 17,
+   "8º ano EF": 27,
+   "9º ano EF": 34
+  },
+  "legenda_modificacoes": {
+   "X": "Habilidade alterada da BNCC dentro das possibilidades estabelecidas pelo MEC (legenda do próprio documento)",
+   "MG": "Habilidade criada — não existia na BNCC (legenda do próprio documento)",
+   "A/B/C": "Habilidade desmembrada (legenda do próprio documento)",
+   "P1/P2": "Habilidade com progressão anual (legenda do próprio documento)"
+  },
+  "revisao_aprovada": true,
+  "revisado_por": "conferência literal automática contra o PDF; visto do professor pendente (ver docs/historia_gen/validacoes.md)",
+  "extraido_em": "2026-11-02",
+  "ferramenta": "pymupdf 1.28.2 sobre a grade desenhada do organizador (src/historia_gen/catalogo/extraidor.py)",
+  "anomalias_do_documento": [
+   "7º ano: a unidade 'O mundo moderno e a conexão…' aparece quebrada entre duas linhas do organizador; EF07HI01 e EF07HI03X registram o fragmento literal 'moderno e a conexão entre sociedades africanas, americanas e europeias' — transcrição fiel, correção pendente da revisão manual.",
+   "9º ano: o nome da unidade 'Modernização, ditadura civil-militar e redemocratização: o Brasil após …' varia o ano a cada linha do organizador (1946, 1947, 1948, 1949, 1951, 1953, 1954, 1955) — transcrição fiel do documento impresso; provável cadeia de erratas no próprio CRMG. Decisão pedagógica pendente da revisão manual."
+  ],
+  "revisao_metodo": "conferência literal automática da camada de texto do PDF (crmg_infantil_ef.pdf)",
+  "revisao_data": "2026-11-03"
+ },
+ "habilidades": [
+  {
+   "codigo": "EF06HI01X",
+   "descricao": "Identificar diferentes formas de compreensão da noção de tempo e de periodização dos processos históricos (continuidades e rupturas), comparando os marcos referenciais dos períodos históricos.",
+   "ano": "6º ano EF",
+   "unidade_tematica": "História: tempo, espaço e formas de registros",
+   "objeto_conhecimento": "A questão do tempo, sincronias e diacronias: reflexões sobre o sentido das cronologias.",
+   "pagina": 565,
+   "tipo_modificacao": "alterada"
+  },
+  {
+   "codigo": "EF06HI02X",
+   "descricao": "Identificar a gênese da produção do saber histórico e analisar o significado das fontes que originaram determinadas formas de registro em sociedades e épocas distintas, assim como as especificidades e singularidades das transformações históricas nas respectivas comunidades.",
+   "ano": "6º ano EF",
+   "unidade_tematica": "História: tempo, espaço e formas de registros",
+   "objeto_conhecimento": "Formas de registro da história e da produção do conhecimento histórico.",
+   "pagina": 566,
+   "tipo_modificacao": "alterada"
+  },
+  {
+   "codigo": "EF06HI03X",
+   "descricao": "Identificar as hipóteses científicas sobre o surgimento da espécie humana e sua historicidade e analisar os significados dos mitos de fundação e comparar as diferentes visões a respeito da origem da vida no planeta.",
+   "ano": "6º ano EF",
+   "unidade_tematica": "História: tempo, espaço e formas de registros",
+   "objeto_conhecimento": "As origens da humanidade, seus deslocamentos e os processos de sedentarização.",
+   "pagina": 566,
+   "tipo_modificacao": "alterada"
+  },
+  {
+   "codigo": "EF06HI04X",
+   "descricao": "Conhecer as teorias sobre a origem do homem americano, refletindo sobre a importância da preservação do patrimônio arqueológico e do meio natural em que ele está inserido.",
+   "ano": "6º ano EF",
+   "unidade_tematica": "História: tempo, espaço e formas de registros",
+   "objeto_conhecimento": "As origens da humanidade, seus deslocamentos e os processos de sedentarização.",
+   "pagina": 566,
+   "tipo_modificacao": "alterada"
+  },
+  {
+   "codigo": "EF06HI05",
+   "descricao": "Descrever modificações da natureza e da paisagem realizadas por diferentes tipos de sociedade com destaque para os povos indígenas originários, povos africanos, discutindo a natureza e a lógica das transformações ocorridas.",
+   "ano": "6º ano EF",
+   "unidade_tematica": "História: tempo, espaço e formas de registros",
+   "objeto_conhecimento": "As origens da humanidade, seus deslocamentos e os processos de sedentarização.",
+   "pagina": 566,
+   "tipo_modificacao": "original"
+  },
+  {
+   "codigo": "EF06HI06X",
+   "descricao": "Identificar histórico e geograficamente as rotas de povoamento no território americano com foco no povoamento do atual território brasileiro.",
+   "ano": "6º ano EF",
+   "unidade_tematica": "História: tempo, espaço e formas de registros",
+   "objeto_conhecimento": "As origens da humanidade, seus deslocamentos e os processos de sedentarização.",
+   "pagina": 566,
+   "tipo_modificacao": "alterada"
+  },
+  {
+   "codigo": "EF06HI07X",
+   "descricao": "Identificar aspectos e formas de registro das sociedades antigas na África, Ásia, no Oriente Médio e nas Américas, distinguindo alguns significados presentes na cultura material e imaterial na tradição oral dessas sociedades.",
+   "ano": "6º ano EF",
+   "unidade_tematica": "A invenção do mundo clássico e o contraponto com outras sociedades",
+   "objeto_conhecimento": "Povos da Antiguidade na África (egípcios), no Oriente Médio (mesopotâmicos) e nas Américas (pré-colombianos).",
+   "pagina": 566,
+   "tipo_modificacao": "alterada"
+  },
+  {
+   "codigo": "EF06HI08",
+   "descricao": "Identificar os espaços territoriais ocupados e os aportes culturais, científicos, sociais e econômicos dos astecas, maias e incas e dos povos indígenas de diversas regiões brasileiras.",
+   "ano": "6º ano EF",
+   "unidade_tematica": "A invenção do mundo clássico e o contraponto com outras sociedades",
+   "objeto_conhecimento": "Os povos indígenas originários do atual território brasileiro e seus hábitos culturais e sociais.",
+   "pagina": 566,
+   "tipo_modificacao": "original"
+  },
+  {
+   "codigo": "EF06HI09",
+   "descricao": "Discutir o conceito de Antiguidade Clássica, seu alcance e limite na tradição ocidental, assim como os impactos sobre outras sociedades e culturas.",
+   "ano": "6º ano EF",
+   "unidade_tematica": "A invenção do mundo clássico e o contraponto com outras sociedades",
+   "objeto_conhecimento": "O Ocidente Clássico: aspectos da cultura na Grécia e em Roma.",
+   "pagina": 566,
+   "tipo_modificacao": "original"
+  },
+  {
+   "codigo": "EF06HI10X",
+   "descricao": "Explicar a formação da Grécia Antiga, com ênfase na formação da polis e nas transformações políticas, sociais, culturais e seu legado para a contemporaneidade.",
+   "ano": "6º ano EF",
+   "unidade_tematica": "Lógicas de organização política",
+   "objeto_conhecimento": "As noções de cidadania e política na Grécia e em Roma.",
+   "pagina": 566,
+   "tipo_modificacao": "alterada"
+  },
+  {
+   "codigo": "EF06HI11X",
+   "descricao": "Caracterizar o processo de formação da Roma Antiga e suas configurações sociais e políticas nos períodos monárquico, republicano e imperial.",
+   "ano": "6º ano EF",
+   "unidade_tematica": "Lógicas de organização política",
+   "objeto_conhecimento": "Domínios e expansão das culturas grega e romana.",
+   "pagina": 566,
+   "tipo_modificacao": "alterada"
+  },
+  {
+   "codigo": "EF06HI12X",
+   "descricao": "Associar o conceito de cidadania a dinâmicas de inclusão e exclusão na Grécia e Roma antigas, contextualizando em nossa sociedade atual.",
+   "ano": "6º ano EF",
+   "unidade_tematica": "Lógicas de organização política",
+   "objeto_conhecimento": "Significados do conceito de “império” e as lógicas de conquista, conflito e negociação dessa forma de organização política.",
+   "pagina": 567,
+   "tipo_modificacao": "alterada"
+  },
+  {
+   "codigo": "EF06HI13",
+   "descricao": "Conceituar “império” no mundo antigo, com vistas à análise das diferentes formas de equilíbrio e desequilíbrio entre as partes envolvidas.",
+   "ano": "6º ano EF",
+   "unidade_tematica": "Lógicas de organização política",
+   "objeto_conhecimento": "As diferentes formas de organização política na África: reinos, impérios, cidades-estados e sociedades linhageiras ou aldeias.",
+   "pagina": 567,
+   "tipo_modificacao": "original"
+  },
+  {
+   "codigo": "EF06HI14",
+   "descricao": "Identificar e analisar diferentes formas de contato, adaptação ou exclusão entre populações em diferentes tempos e espaços.",
+   "ano": "6º ano EF",
+   "unidade_tematica": "Lógicas de organização política",
+   "objeto_conhecimento": "A passagem do mundo antigo para o mundo medieval. A fragmentação do poder político na Idade Média.",
+   "pagina": 567,
+   "tipo_modificacao": "original"
+  },
+  {
+   "codigo": "EF06HI15",
+   "descricao": "Descrever as dinâmicas de circulação de pessoas, produtos e culturas no Mediterrâneo e seu significado.",
+   "ano": "6º ano EF",
+   "unidade_tematica": "Lógicas de organização política",
+   "objeto_conhecimento": "O Mediterrâneo como espaço de interação entre as sociedades da Europa, da África e do Oriente Médio.",
+   "pagina": 567,
+   "tipo_modificacao": "original"
+  },
+  {
+   "codigo": "EF06HI16X",
+   "descricao": "Caracterizar e comparar as dinâmicas de abastecimento e as formas de organização do trabalho e da vida social em diferentes sociedades e períodos, com destaque para as relações de conflito e poder entre senhores e servos.",
+   "ano": "6º ano EF",
+   "unidade_tematica": "Trabalho e formas de organização social e cultural",
+   "objeto_conhecimento": "Senhores e servos no mundo antigo e no medieval. Escravidão e trabalho livre em diferentes temporalidades e espaços (Roma Antiga, Europa medieval e África).",
+   "pagina": 567,
+   "tipo_modificacao": "alterada"
+  },
+  {
+   "codigo": "EF06HI17X",
+   "descricao": "Diferenciar escravidão, servidão e trabalho livre no mundo antigo, fazendo uma analogia com os tipos de trabalho na sociedade brasileira atual.",
+   "ano": "6º ano EF",
+   "unidade_tematica": "Trabalho e formas de organização social e cultural",
+   "objeto_conhecimento": "Lógicas comerciais na Antiguidade romana e no mundo medieval.",
+   "pagina": 567,
+   "tipo_modificacao": "alterada"
+  },
+  {
+   "codigo": "EF06HI18X",
+   "descricao": "Analisar o papel da religião cristã na cultura e nos modos de organização social no período medieval, desconstruindo generalizações relacionados a esse período.",
+   "ano": "6º ano EF",
+   "unidade_tematica": "Trabalho e formas de organização social e cultural",
+   "objeto_conhecimento": "O papel da religião cristã, dos mosteiros e da cultura na Idade Média.",
+   "pagina": 567,
+   "tipo_modificacao": "alterada"
+  },
+  {
+   "codigo": "EF06HI19X",
+   "descricao": "Descrever e analisar os diferentes papéis sociais das mulheres no mundo antigo e nas sociedades medievais, identificando as relações de poder e dominação relacionando com a contemporaneidade.",
+   "ano": "6º ano EF",
+   "unidade_tematica": "Trabalho e formas de organização social e cultural",
+   "objeto_conhecimento": "O papel da religião cristã, dos mosteiros e da cultura na Idade Média.",
+   "pagina": 568,
+   "tipo_modificacao": "alterada"
+  },
+  {
+   "codigo": "EF07HI01",
+   "descricao": "Explicar o significado de “modernidade” e suas lógicas de inclusão e exclusão, com base em uma concepção europeia.",
+   "ano": "7º ano EF",
+   "unidade_tematica": "moderno e a conexão entre sociedades africanas, americanas e europeias",
+   "objeto_conhecimento": "A construção da ideia de modernidade e seus impactos na concepção de História.",
+   "pagina": 568,
+   "tipo_modificacao": "original"
+  },
+  {
+   "codigo": "EF07HI02",
+   "descricao": "Identificar conexões e interações entre as sociedades do Novo Mundo, da Europa, da África e da Ásia no contexto das navegações e indicar a complexidade e as interações que ocorrem nos Oceanos Atlântico, Índico e Pacífico.",
+   "ano": "7º ano EF",
+   "unidade_tematica": "O mundo moderno e a conexão entre sociedades africanas, americanas e europeias",
+   "objeto_conhecimento": "A ideia de “Novo Mundo” ante o Mundo Antigo: permanências e rupturas de saberes e práticas na emergência do mundo moderno.",
+   "pagina": 568,
+   "tipo_modificacao": "original"
+  },
+  {
+   "codigo": "EF07HI03X",
+   "descricao": "Identificar aspectos e processos específicos das sociedades africanas e americanas antes da chegada dos europeus, com destaque para as formas de organização social, cultural, política, econômica, religiosa e o desenvolvimento de saberes e técnicas.",
+   "ano": "7º ano EF",
+   "unidade_tematica": "moderno e a conexão entre sociedades africanas, americanas e europeias",
+   "objeto_conhecimento": "Saberes dos povos africanos e pré-colombianos expressos na cultura material e imaterial.",
+   "pagina": 568,
+   "tipo_modificacao": "alterada"
+  },
+  {
+   "codigo": "EF07HI04",
+   "descricao": "Identificar as principais características dos Humanismos e dos Renascimentos e analisar seus significados.",
+   "ano": "7º ano EF",
+   "unidade_tematica": "Humanismos, Renascimentos e o Novo Mundo",
+   "objeto_conhecimento": "Humanismos: uma nova visão de ser humano e de mundo. Renascimentos artísticos e culturais.",
+   "pagina": 568,
+   "tipo_modificacao": "original"
+  },
+  {
+   "codigo": "EF07HI05X",
+   "descricao": "Identificar e relacionar as vinculações entre as reformas religiosas e os processos culturais e sociais do período moderno na Europa e na América, destacando o papel da Igreja em Minas Gerais no período colonial.",
+   "ano": "7º ano EF",
+   "unidade_tematica": "Humanismos, Renascimentos e o Novo Mundo",
+   "objeto_conhecimento": "Reformas religiosas: a cristandade fragmentada.",
+   "pagina": 568,
+   "tipo_modificacao": "alterada"
+  },
+  {
+   "codigo": "EF07HI06X",
+   "descricao": "Comparar as navegações no Atlântico e no Pacífico entre os séculos XIV e XVI e seus desdobramentos no processo de globalização.",
+   "ano": "7º ano EF",
+   "unidade_tematica": "Humanismos, Renascimentos e o Novo Mundo",
+   "objeto_conhecimento": "As descobertas científicas e a expansão marítima",
+   "pagina": 568,
+   "tipo_modificacao": "alterada"
+  },
+  {
+   "codigo": "EF07HI07",
+   "descricao": "Descrever os processos de formação e consolidação das monarquias e suas principais características com vistas à compreensão das razões da centralização política.",
+   "ano": "7º ano EF",
+   "unidade_tematica": "A organização do poder e as dinâmicas do mundo colonial americano",
+   "objeto_conhecimento": "A formação e o funcionamento das monarquias europeias: a lógica da centralização política e os conflitos na Europa.",
+   "pagina": 568,
+   "tipo_modificacao": "original"
+  },
+  {
+   "codigo": "EF07HI08X",
+   "descricao": "Descrever as formas de organização das sociedades americanas no tempo da conquista com vistas à compreensão dos mecanismos de alianças, confrontos e resistências, ampliando a discussão do conceito de colonização sob o ponto de vista do colonizado e do colonizador.",
+   "ano": "7º ano EF",
+   "unidade_tematica": "A organização do poder e as dinâmicas do mundo colonial americano",
+   "objeto_conhecimento": "A conquista da América e as formas de organização política dos indígenas e europeus: conflitos, dominação e conciliação.",
+   "pagina": 569,
+   "tipo_modificacao": "alterada"
+  },
+  {
+   "codigo": "EF07HI09X",
+   "descricao": "Analisar os diferentes impactos da conquista europeia da América para as populações ameríndias e identificar as formas de resistência, com destaque para a ação dos distintos grupos indígenas que povoavam Minas Gerais e o Brasil.",
+   "ano": "7º ano EF",
+   "unidade_tematica": "A organização do poder e as dinâmicas do mundo colonial americano",
+   "objeto_conhecimento": "A conquista da América e as formas de organização política dos indígenas e europeus: conflitos, dominação e conciliação.",
+   "pagina": 569,
+   "tipo_modificacao": "alterada"
+  },
+  {
+   "codigo": "EF07HI10",
+   "descricao": "Analisar, com base em documentos históricos, diferentes interpretações sobre as dinâmicas das sociedades americanas no período colonial.",
+   "ano": "7º ano EF",
+   "unidade_tematica": "A organização do poder e as dinâmicas do mundo colonial americano",
+   "objeto_conhecimento": "A estruturação dos vice-reinos nas Américas. Resistências indígenas, invasões e expansão na América portuguesa.",
+   "pagina": 569,
+   "tipo_modificacao": "original"
+  },
+  {
+   "codigo": "EF07HI11X",
+   "descricao": "Analisar a formação histórico-geográfica do território da América portuguesa por meio de mapas históricos produzidos em diferentes contextos.",
+   "ano": "7º ano EF",
+   "unidade_tematica": "A organização do poder e as dinâmicas do mundo colonial americano",
+   "objeto_conhecimento": "A estruturação dos vice-reinos nas Américas. Resistências indígenas, invasões e expansão na América portuguesa.",
+   "pagina": 569,
+   "tipo_modificacao": "alterada"
+  },
+  {
+   "codigo": "EF07HI12X",
+   "descricao": "Identificar a distribuição territorial da população brasileira em diferentes épocas, considerando a diversidade étnico-racial e étnico-cultural (indígena, africana, europeia e asiática) destacando a miscigenação e a diversidade cultural em Minas Gerais.",
+   "ano": "7º ano EF",
+   "unidade_tematica": "A organização do poder e as dinâmicas do mundo colonial americano",
+   "objeto_conhecimento": "A estruturação dos vice-reinos nas Américas. Resistências indígenas, invasões e expansão na América portuguesa.",
+   "pagina": 569,
+   "tipo_modificacao": "alterada"
+  },
+  {
+   "codigo": "EF07HI13X",
+   "descricao": "Caracterizar a ação dos europeus e suas lógicas mercantis visando ao domínio no mundo atlântico, observando a dimensão do comércio atlântico onde circulavam pessoas, bens materiais e culturais, plantas e também doenças.",
+   "ano": "7º ano EF",
+   "unidade_tematica": "Lógicas comerciais e mercantis da modernidade",
+   "objeto_conhecimento": "As lógicas mercantis e o domínio europeu sobre os mares e o contraponto oriental.",
+   "pagina": 569,
+   "tipo_modificacao": "alterada"
+  },
+  {
+   "codigo": "EF07HI14X",
+   "descricao": "Descrever as dinâmicas comerciais das sociedades americanas e africanas e analisar suas interações com outras sociedades do Ocidente e do Oriente, reconhecendo o papel da América e da África no comércio do Atlântico, relatando as interações desse comércio com outras sociedades.",
+   "ano": "7º ano EF",
+   "unidade_tematica": "Lógicas comerciais e mercantis da modernidade",
+   "objeto_conhecimento": "As lógicas mercantis e o domínio europeu sobre os mares e o contraponto oriental.",
+   "pagina": 570,
+   "tipo_modificacao": "alterada"
+  },
+  {
+   "codigo": "EF07HI15",
+   "descricao": "Discutir o conceito de escravidão moderna e suas distinções em relação ao escravismo antigo e à servidão medieval.",
+   "ano": "7º ano EF",
+   "unidade_tematica": "Lógicas comerciais e mercantis da modernidade",
+   "objeto_conhecimento": "As lógicas internas das sociedades africanas. As formas de organização das sociedades ameríndias.",
+   "pagina": 570,
+   "tipo_modificacao": "original"
+  },
+  {
+   "codigo": "EF07HI16X",
+   "descricao": "Analisar os mecanismos e as dinâmicas de comércio de escravizados em suas diferentes fases, identificando os agentes responsáveis pelo tráfico e as regiões e zonas africanas de procedência dos escravizados, dando enfoque na existência de um sistema escravista na África antes da chegada dos europeus.",
+   "ano": "7º ano EF",
+   "unidade_tematica": "Lógicas comerciais e mercantis da modernidade",
+   "objeto_conhecimento": "A escravidão moderna e o tráfico de escravizados.",
+   "pagina": 570,
+   "tipo_modificacao": "alterada"
+  },
+  {
+   "codigo": "EF07HI17X",
+   "descricao": "Discutir as razões da passagem do mercantilismo para o capitalismo, identificando e compreendendo suas diferenças e os seus impactos para a sociedade contemporânea.",
+   "ano": "7º ano EF",
+   "unidade_tematica": "Lógicas comerciais e mercantis da modernidade",
+   "objeto_conhecimento": "A emergência do capitalismo.",
+   "pagina": 570,
+   "tipo_modificacao": "alterada"
+  },
+  {
+   "codigo": "EF08HI01X",
+   "descricao": "Identificar os principais aspectos conceituais do iluminismo e do liberalismo e discutir a relação entre eles e suas contribuições para a organização do mundo contemporâneo.",
+   "ano": "8º ano EF",
+   "unidade_tematica": "O mundo contemporâneo: o Antigo Regime em crise",
+   "objeto_conhecimento": "A questão do iluminismo e da ilustração.",
+   "pagina": 570,
+   "tipo_modificacao": "alterada"
+  },
+  {
+   "codigo": "EF08HI02X",
+   "descricao": "Identificar as particularidades político-sociais da Inglaterra do século XVII e analisar os desdobramentos posteriores à Revolução Gloriosa, enfatizando a importância da Declaração dos Direitos de 1689 (Bill o Rigths) para ampliação de direitos de liberdade civil no mundo contemporâneo.",
+   "ano": "8º ano EF",
+   "unidade_tematica": "O mundo contemporâneo: o Antigo Regime em crise",
+   "objeto_conhecimento": "As revoluções inglesas e os princípios do liberalismo.",
+   "pagina": 570,
+   "tipo_modificacao": "alterada"
+  },
+  {
+   "codigo": "EF08HI03X",
+   "descricao": "Analisar os impactos da Revolução Industrial, suas transformações tecnológicas na produção e circulação de povos, produtos e culturas e na formação de estruturas sociais desiguais evidenciando os movimentos sociais para a conquista de direitos trabalhistas, a explosão do consumo e o processo do crescimento urbano desordenado.",
+   "ano": "8º ano EF",
+   "unidade_tematica": "O mundo contemporâneo: o Antigo Regime em crise",
+   "objeto_conhecimento": "Revolução Industrial e seus impactos na produção e circulação de povos, produtos e culturas.",
+   "pagina": 570,
+   "tipo_modificacao": "alterada"
+  },
+  {
+   "codigo": "EF08HI04X",
+   "descricao": "Identificar e relacionar os processos da Revolução Francesa e seus desdobramentos na Europa e no mundo, destacando a importância da Declaração dos Direitos Humanos para a sociedade atual.",
+   "ano": "8º ano EF",
+   "unidade_tematica": "O mundo contemporâneo: o Antigo Regime em crise",
+   "objeto_conhecimento": "Revolução Francesa e seus desdobramentos.",
+   "pagina": 570,
+   "tipo_modificacao": "alterada"
+  },
+  {
+   "codigo": "EF08HI05X",
+   "descricao": "Explicar os movimentos e as rebeliões da América portuguesa, articulando as temáticas locais e suas interfaces com processos ocorridos na Europa e nas Américas, enfatizando as conjurações mineira e baiana.",
+   "ano": "8º ano EF",
+   "unidade_tematica": "O mundo contemporâneo: o Antigo Regime em crise",
+   "objeto_conhecimento": "Rebeliões na América portuguesa: as conjurações mineiras e baiana.",
+   "pagina": 570,
+   "tipo_modificacao": "alterada"
+  },
+  {
+   "codigo": "EF08HI06",
+   "descricao": "Aplicar os conceitos de Estado, nação, território, governo e país para o entendimento de conflitos e tensões.",
+   "ano": "8º ano EF",
+   "unidade_tematica": "Os processos de independência nas Américas",
+   "objeto_conhecimento": "Independência dos Estados Unidos da América.",
+   "pagina": 570,
+   "tipo_modificacao": "original"
+  },
+  {
+   "codigo": "EF08HI07",
+   "descricao": "Identificar e contextualizar as especificidades dos diversos processos de independência nas Américas, seus aspectos populacionais e suas conformações territoriais.",
+   "ano": "8º ano EF",
+   "unidade_tematica": "Os processos de independência nas Américas",
+   "objeto_conhecimento": "Independências na América espanhola.",
+   "pagina": 571,
+   "tipo_modificacao": "original"
+  },
+  {
+   "codigo": "EF08HI08",
+   "descricao": "Conhecer o ideário dos líderes dos movimentos independentistas e seu papel nas revoluções que levaram à independência das colônias hispano-americanas.",
+   "ano": "8º ano EF",
+   "unidade_tematica": "Os processos de independência nas Américas",
+   "objeto_conhecimento": "A revolução dos escravizados em São Domingo e seus múltiplos significados e desdobramentos: o caso do Haiti.",
+   "pagina": 571,
+   "tipo_modificacao": "original"
+  },
+  {
+   "codigo": "EF08HI09",
+   "descricao": "Conhecer as características e os principais pensadores do Pan-americanismo.",
+   "ano": "8º ano EF",
+   "unidade_tematica": "Os processos de independência nas Américas",
+   "objeto_conhecimento": "Os caminhos até a independência do Brasil.",
+   "pagina": 571,
+   "tipo_modificacao": "original"
+  },
+  {
+   "codigo": "EF08HI10X",
+   "descricao": "Identificar a Revolução de São Domingo como evento singular e desdobramento da Revolução Francesa e avaliar suas implicações sociais, políticas, culturais e econômicas.",
+   "ano": "8º ano EF",
+   "unidade_tematica": "Os processos de independência nas Américas",
+   "objeto_conhecimento": "Os caminhos até a independência do Brasil.",
+   "pagina": 571,
+   "tipo_modificacao": "alterada"
+  },
+  {
+   "codigo": "EF08HI11",
+   "descricao": "Identificar e explicar os protagonismos e a atuação de diferentes grupos sociais e étnicos nas lutas de independência no Brasil, na América espanhola e no Haiti.",
+   "ano": "8º ano EF",
+   "unidade_tematica": "Os processos de independência nas Américas",
+   "objeto_conhecimento": "Os caminhos até a independência do Brasil.",
+   "pagina": 571,
+   "tipo_modificacao": "original"
+  },
+  {
+   "codigo": "EF08HI12",
+   "descricao": "Caracterizar a organização política e social no Brasil desde a chegada da Corte portuguesa, em 1808, até 1822 e seus desdobramentos para a história política brasileira.",
+   "ano": "8º ano EF",
+   "unidade_tematica": "Os processos de independência nas Américas",
+   "objeto_conhecimento": "Os caminhos até a independência do Brasil.",
+   "pagina": 571,
+   "tipo_modificacao": "original"
+  },
+  {
+   "codigo": "EF08HI13",
+   "descricao": "Analisar o processo de independência em diferentes países latino-americanos e comparar as formas de governo neles adotadas.",
+   "ano": "8º ano EF",
+   "unidade_tematica": "Os processos de independência nas Américas",
+   "objeto_conhecimento": "Os caminhos até a independência do Brasil.",
+   "pagina": 571,
+   "tipo_modificacao": "original"
+  },
+  {
+   "codigo": "EF08HI14X",
+   "descricao": "Discutir a noção da tutela dos grupos indígenas e a participação dos negros na sociedade brasileira do final do período colonial, identificando permanências na forma de preconceitos, estereótipos e violências sobre as populações indígenas e negras no Brasil, bem como para as populações quilombolas e indígenas de Minas Gerais, e nas Américas.",
+   "ano": "8º ano EF",
+   "unidade_tematica": "Os processos de independência nas Américas",
+   "objeto_conhecimento": "A tutela da população indígena, a escravidão dos negros e a tutela dos egressos da escravidão.",
+   "pagina": 571,
+   "tipo_modificacao": "alterada"
+  },
+  {
+   "codigo": "EF08HI15X",
+   "descricao": "Identificar e analisar o equilíbrio das forças e os sujeitos envolvidos nas disputas políticas durante o Primeiro Reinado, Regências e o Segundo Reinado.",
+   "ano": "8º ano EF",
+   "unidade_tematica": "O Brasil no século XIX",
+   "objeto_conhecimento": "Brasil: Primeiro Reinado. O Período Regencial e as contestações ao poder central.",
+   "pagina": 571,
+   "tipo_modificacao": "alterada"
+  },
+  {
+   "codigo": "EF08HI16",
+   "descricao": "Identificar, comparar e analisar a diversidade política, social e regional nas rebeliões e nos movimentos contestatórios ao poder centralizado.",
+   "ano": "8º ano EF",
+   "unidade_tematica": "O Brasil no século XIX",
+   "objeto_conhecimento": "O Brasil do Segundo Reinado: política e economia. A Lei de Terras e seus desdobramentos na política do Segundo Reinado. Territórios e fronteiras: a Guerra do Paraguai.",
+   "pagina": 571,
+   "tipo_modificacao": "original"
+  },
+  {
+   "codigo": "EF08HI17X",
+   "descricao": "Relacionar as transformações territoriais, em razão de questões de fronteiras, com as tensões e conflitos durante o Império, com destaque para a Revolução Liberal (1842) em Minas Gerais.",
+   "ano": "8º ano EF",
+   "unidade_tematica": "O Brasil no século XIX",
+   "objeto_conhecimento": "O Brasil do Segundo Reinado: política e economia. A Lei de Terras e seus desdobramentos na política do Segundo Reinado. Territórios e fronteiras: a Guerra do Paraguai.",
+   "pagina": 572,
+   "tipo_modificacao": "alterada"
+  },
+  {
+   "codigo": "EF08HI18X",
+   "descricao": "Identificar as questões internas e externas sobre a atuação do Brasil na Guerra do Paraguai, discutindo diferentes versões para o conflito, seus desdobramentos e influências para o término da monarquia e da escravidão.",
+   "ano": "8º ano EF",
+   "unidade_tematica": "O Brasil no século XIX",
+   "objeto_conhecimento": "O Brasil do Segundo Reinado: política e economia. A Lei de Terras e seus desdobramentos na política do Segundo Reinado. Territórios e fronteiras: a Guerra do Paraguai.",
+   "pagina": 572,
+   "tipo_modificacao": "alterada"
+  },
+  {
+   "codigo": "EF08HI19X",
+   "descricao": "Formular questionamentos sobre o impacto da escravidão e o genocídio das populações afro-ameríndias nas Américas e no Brasil, com base na seleção e consulta de fontes de diferentes naturezas.",
+   "ano": "8º ano EF",
+   "unidade_tematica": "O Brasil no século XIX",
+   "objeto_conhecimento": "O escravismo no Brasil do século XIX: plantations e revoltas de escravizados, abolicionismo e políticas migratórias no Brasil Imperial.",
+   "pagina": 572,
+   "tipo_modificacao": "alterada"
+  },
+  {
+   "codigo": "EF08HI20X",
+   "descricao": "Identificar e relacionar aspectos das estruturas sociais da atualidade com os legados da escravidão no Brasil e discutir a importância de ações afirmativas, para combater a violência, as desigualdades e preconceitos.",
+   "ano": "8º ano EF",
+   "unidade_tematica": "O Brasil no século XIX",
+   "objeto_conhecimento": "O escravismo no Brasil do século XIX: plantations e revoltas de escravizados, abolicionismo e políticas migratórias no Brasil Imperial.",
+   "pagina": 572,
+   "tipo_modificacao": "alterada"
+  },
+  {
+   "codigo": "EF08HI21",
+   "descricao": "Identificar e analisar as políticas oficiais com relação ao indígena durante o Império.",
+   "ano": "8º ano EF",
+   "unidade_tematica": "O Brasil no século XIX",
+   "objeto_conhecimento": "Políticas de extermínio do indígena durante o Império.",
+   "pagina": 572,
+   "tipo_modificacao": "original"
+  },
+  {
+   "codigo": "EF08HI22",
+   "descricao": "Disticutir o papel das culturas letradas, não letradas e das artes na produção das identidades no Brasil do século XIX.",
+   "ano": "8º ano EF",
+   "unidade_tematica": "O Brasil no século XIX",
+   "objeto_conhecimento": "A produção do imaginário nacio-nal brasileiro: cul-tura popular, representações visuais, letras e o romantismo no Brasil.",
+   "pagina": 572,
+   "tipo_modificacao": "original"
+  },
+  {
+   "codigo": "EF08HI23",
+   "descricao": "Estabelecer relações causais entre as ideologias raciais e o determinismo no contexto do imperialismo europeu e seus impactos na África e na Ásia.",
+   "ano": "8º ano EF",
+   "unidade_tematica": "Configurações do mundo no século XIX",
+   "objeto_conhecimento": "Nacionalismo, revoluções e as novas nações europeias.",
+   "pagina": 573,
+   "tipo_modificacao": "original"
+  },
+  {
+   "codigo": "EF08HI24",
+   "descricao": "Reconhecer os principais produtos, utilizados pelos europeus, procedentes do continente africano durante o imperialismo e analisar os impactos sobre as comunidades locais na forma de organização e exploração econômica.",
+   "ano": "8º ano EF",
+   "unidade_tematica": "Configurações do mundo no século XIX",
+   "objeto_conhecimento": "Uma nova ordem econômica: as demandas do capitalismo industrial e o lugar das economias africanas e asiáticas nas dinâmicas globais.",
+   "pagina": 573,
+   "tipo_modificacao": "original"
+  },
+  {
+   "codigo": "EF08HI25",
+   "descricao": "Caracterizar e contextualizar aspectos das relações entre os Estados Unidos da América e a América Latina no século XIX.",
+   "ano": "8º ano EF",
+   "unidade_tematica": "Configurações do mundo no século XIX",
+   "objeto_conhecimento": "Os Estados Unidos da América e a América Latina no século XIX.",
+   "pagina": 573,
+   "tipo_modificacao": "original"
+  },
+  {
+   "codigo": "EF08HI26",
+   "descricao": "Identificar e contextualizar o protagonismo das populações locais na resistência ao imperialismo na África e Ásia.",
+   "ano": "8º ano EF",
+   "unidade_tematica": "Configurações do mundo no século XIX",
+   "objeto_conhecimento": "O imperialismo europeu e a partilha da África e da Ásia.",
+   "pagina": 573,
+   "tipo_modificacao": "original"
+  },
+  {
+   "codigo": "EF08HI27X",
+   "descricao": "Identificar as tensões e os significados dos discursos civilizatórios e a política de \"branqueamento\", avaliando seus impactos negativos para os povos indígenas originários e as populações negras nas Américas.",
+   "ano": "8º ano EF",
+   "unidade_tematica": "Configurações do mundo no século XIX",
+   "objeto_conhecimento": "Pensamento e cultura no século XIX: darwinismo e racismo. O discurso civilizatório nas Américas, o silenciamento dos saberes indígenas e as formas de integração e destruição de comunidades e povos indígenas. A resistência dos povos e comunidades indígenas diante da ofensiva civilizatória.",
+   "pagina": 573,
+   "tipo_modificacao": "alterada"
+  },
+  {
+   "codigo": "EF09HI01X",
+   "descricao": "Descrever e contextualizar os principais aspectos sociais, culturais, econômicos e políticos da emergência da República no Brasil, destacando os movimentos contestatórios como parte constituinte da identidade nacional e mostrando a enorme desigualdade social entre as elites e a população pobre.",
+   "ano": "9º ano EF",
+   "unidade_tematica": "O nascimento da República no Brasil e os processos históricos até a metade do século XX",
+   "objeto_conhecimento": "Experiências republicanas e práticas autoritárias: as tensões e disputas do mundo contemporâneo.",
+   "pagina": 573,
+   "tipo_modificacao": "alterada"
+  },
+  {
+   "codigo": "EF09HI02",
+   "descricao": "Caracterizar e compreender os ciclos da história republicana, identificando particularidades da história local e regional até 1954.",
+   "ano": "9º ano EF",
+   "unidade_tematica": "O nascimento da República no Brasil e os processos históricos até a metade do século XX",
+   "objeto_conhecimento": "A Proclamação da República e seus primeiros desdobramentos.",
+   "pagina": 574,
+   "tipo_modificacao": "original"
+  },
+  {
+   "codigo": "EF09HI03X",
+   "descricao": "Identificar os mecanismos de inserção/exclusão dos negros na sociedade brasileira pós-abolição e avaliar os seus resultados.",
+   "ano": "9º ano EF",
+   "unidade_tematica": "O nascimento da República no Brasil e os processos históricos até a metade do século XX",
+   "objeto_conhecimento": "A questão da inserção dos negros no período republicano do pós-abolição.",
+   "pagina": 574,
+   "tipo_modificacao": "alterada"
+  },
+  {
+   "codigo": "EF09HI04X",
+   "descricao": "Discutir a importância da participação da população negra na formação econômica, política e social do Brasil, identificando as lutas de resistência das comunidades quilombolas e movimentos negros no Brasil e em Minas Gerais contra o preconceito e a discriminação.",
+   "ano": "9º ano EF",
+   "unidade_tematica": "O nascimento da República no Brasil e os processos históricos até a metade do século XX",
+   "objeto_conhecimento": "Os movimentos sociais e a imprensa negra; a cultura afro-brasileira como elemento de resistência e superação das discriminações.",
+   "pagina": 574,
+   "tipo_modificacao": "alterada"
+  },
+  {
+   "codigo": "EF09HI05",
+   "descricao": "Identificar os processos de urbanização e modernização da sociedade brasileira e avaliar suas contradições e impactos na região em que vive.",
+   "ano": "9º ano EF",
+   "unidade_tematica": "O nascimento da República no Brasil e os processos históricos até a metade do século XX",
+   "objeto_conhecimento": "Primeira República e suas características. Contestações e dinâmicas da vida cultural no Brasil entre 1900 e 1930.",
+   "pagina": 574,
+   "tipo_modificacao": "original"
+  },
+  {
+   "codigo": "EF09HI06",
+   "descricao": "Identificar e discutir o papel do trabalhismo como força política, social e cultural no Brasil, em diferentes escalas (nacional, regional, cidade, comunidade).",
+   "ano": "9º ano EF",
+   "unidade_tematica": "O nascimento da República no Brasil e os processos históricos até a metade do século XX",
+   "objeto_conhecimento": "O período varguista e suas contradições. A emergência da vida urbana e a segregação espacial. O trabalhismo e seu protagonismo político.",
+   "pagina": 574,
+   "tipo_modificacao": "original"
+  },
+  {
+   "codigo": "EF09HI07X",
+   "descricao": "Identificar e explicar, em meio a lógicas de inclusão e exclusão, as pautas dos povos indígenas, no contexto republicano (até 1964), e das populações afrodescendentes, considerando as particularidades da história regional e local.",
+   "ano": "9º ano EF",
+   "unidade_tematica": "O nascimento da República no Brasil e os processos históricos até a metade do século XX",
+   "objeto_conhecimento": "A questão indígena durante a República (até 1964).",
+   "pagina": 574,
+   "tipo_modificacao": "alterada"
+  },
+  {
+   "codigo": "EF09HI08X",
+   "descricao": "Identificar as transformações ocorridas no debate sobre as questões da diversidade no Brasil durante o século XX e compreender o significado das mudanças de abordagem em relação ao tema, ressaltando que a nação brasileira é multirracial e pluriétnica",
+   "ano": "9º ano EF",
+   "unidade_tematica": "O nascimento da República no Brasil e os processos históricos até a metade do século XX",
+   "objeto_conhecimento": "Anarquismo e protagonismo feminino.",
+   "pagina": 574,
+   "tipo_modificacao": "alterada"
+  },
+  {
+   "codigo": "EF09HI09X",
+   "descricao": "Relacionar as conquistas de direitos políticos, sociais e civis à atuação de movimentos sociais enfatizando o protagonismo feminino.",
+   "ano": "9º ano EF",
+   "unidade_tematica": "O nascimento da República no Brasil e os processos históricos até a metade do século XX",
+   "objeto_conhecimento": "Anarquismo e protagonismo feminino.",
+   "pagina": 575,
+   "tipo_modificacao": "alterada"
+  },
+  {
+   "codigo": "EF09HI10",
+   "descricao": "Identificar e relacionar as dinâmicas do capitalismo e suas crises, os grandes conflitos mundiais e os conflitos vivenciados na Europa.",
+   "ano": "9º ano EF",
+   "unidade_tematica": "Totalitarismos e conflitos mundiais",
+   "objeto_conhecimento": "O mundo em conflito: a Primeira Guerra Mundial. A questão da Palestina.",
+   "pagina": 575,
+   "tipo_modificacao": "original"
+  },
+  {
+   "codigo": "EF09HI11",
+   "descricao": "Identificar as especificidades e os desdobramentos mundiais da Revolução Russa e seu significado histórico.",
+   "ano": "9º ano EF",
+   "unidade_tematica": "Totalitarismos e conflitos mundiais",
+   "objeto_conhecimento": "A Revolução Russa.",
+   "pagina": 575,
+   "tipo_modificacao": "original"
+  },
+  {
+   "codigo": "EF09HI12X",
+   "descricao": "Analisar a crise capitalista de 1929 e seus desdobramentos em relação à economia global, com ênfase na economia brasileira (crise do café e estímulo à industrialização).",
+   "ano": "9º ano EF",
+   "unidade_tematica": "Totalitarismos e conflitos mundiais",
+   "objeto_conhecimento": "A crise capitalista de 1929.",
+   "pagina": 575,
+   "tipo_modificacao": "alterada"
+  },
+  {
+   "codigo": "EF09HI13X",
+   "descricao": "Descrever e contextualizar os processos da emergência do fascismo e do nazismo, a consolidação dos estados totalitários e as práticas de extermínio (como o holocausto), trazendo a reflexão para as tendências totalitárias na contemporaneidade.",
+   "ano": "9º ano EF",
+   "unidade_tematica": "Totalitarismos e conflitos mundiais",
+   "objeto_conhecimento": "A emergência do fascismo e do nazismo. A Segunda Guerra Mundial. Judeus e outras vítimas do holocausto.",
+   "pagina": 575,
+   "tipo_modificacao": "alterada"
+  },
+  {
+   "codigo": "EF09HI14",
+   "descricao": "Caracterizar e discutir as dinâmicas do colonialismo no continente africano e asiático e as lógicas de resistência das populações locais diante das questões internacionais.",
+   "ano": "9º ano EF",
+   "unidade_tematica": "Totalitarismos e conflitos mundiais",
+   "objeto_conhecimento": "O colonialismo na África. As guerras mundiais, a crise do colonialismo e o advento dos nacionalismos africanos e asiáticos.",
+   "pagina": 575,
+   "tipo_modificacao": "original"
+  },
+  {
+   "codigo": "EF09HI15",
+   "descricao": "Discutir as motivações que levaram à criação da Organização das Nações Unidas (ONU) no contexto do pós-guerra e os propósitos dessa organização.",
+   "ano": "9º ano EF",
+   "unidade_tematica": "Totalitarismos e conflitos mundiais",
+   "objeto_conhecimento": "A Organização das Nações Unidas (ONU) e a questão dos Direitos Humanos.",
+   "pagina": 575,
+   "tipo_modificacao": "original"
+  },
+  {
+   "codigo": "EF09HI16X",
+   "descricao": "Relacionar a Carta dos Direitos Humanos ao processo de afirmação dos direitos fundamentais e de defesa da dignidade humana, valorizando e reconhecendo a importância das instituições e ONGs voltadas para a defesa desses direitos e para a identificação dos agentes responsáveis por sua violação no Brasil, em Minas Gerais e Municípios.",
+   "ano": "9º ano EF",
+   "unidade_tematica": "Totalitarismos e conflitos mundiais",
+   "objeto_conhecimento": "A Organização das Nações Unidas (ONU) e a questão dos Direitos Humanos.",
+   "pagina": 575,
+   "tipo_modificacao": "alterada"
+  },
+  {
+   "codigo": "EF09HI17",
+   "descricao": "Identificar e analisar processos sociais, econômicos, culturais e políticos do Brasil a partir de 1946.",
+   "ano": "9º ano EF",
+   "unidade_tematica": "Modernização, ditadura civil-militar e redemocratização: o Brasil após 1946",
+   "objeto_conhecimento": "O Brasil da era JK e o ideal de uma nação moderna: a urbanização e seus desdobramentos em um país em transformação.",
+   "pagina": 575,
+   "tipo_modificacao": "original"
+  },
+  {
+   "codigo": "EF09HI18",
+   "descricao": "Descrever e analisar as relações entre as transformações urbanas e seus impactos na cultura brasileira entre 1946 e 1964 e na produção das desigualdades regionais e sociais.",
+   "ano": "9º ano EF",
+   "unidade_tematica": "Modernização, ditadura civil-militar e redemocratização: o Brasil após 1947",
+   "objeto_conhecimento": "O Brasil da era JK e o ideal de uma nação moderna: a urbanização e seus desdobramentos em um país em transformação.",
+   "pagina": 576,
+   "tipo_modificacao": "original"
+  },
+  {
+   "codigo": "EF09HI19",
+   "descricao": "Identificar e compreender o processo que resultou na ditadura civil-militar no Brasil e discutir a emergência de questões relacionadas à memória e à justiça sobre os casos de violação dos direitos humanos.",
+   "ano": "9º ano EF",
+   "unidade_tematica": "Modernização, ditadura civil-militar e redemocratização: o Brasil após 1948",
+   "objeto_conhecimento": "Os anos 1960: revolução cultural? A ditadura civil-militar e os processos de resistência. As questões indígena e negra e a ditadura.",
+   "pagina": 576,
+   "tipo_modificacao": "original"
+  },
+  {
+   "codigo": "EF09HI20X",
+   "descricao": "Discutir os processos de resistência e as propostas de reorganização da sociedade brasileira durante a ditadura civil-militar, destacando a produção cultural e os aspectos políticos e econômicos.",
+   "ano": "9º ano EF",
+   "unidade_tematica": "Modernização, ditadura civil-militar e redemocratização: o Brasil após 1951",
+   "objeto_conhecimento": "Os anos 1960: revolução cultural? A ditadura civil-militar e os processos de resistência. As questões indígena e negra e a ditadura.",
+   "pagina": 576,
+   "tipo_modificacao": "alterada"
+  },
+  {
+   "codigo": "EF09HI21X",
+   "descricao": "Identificar e relacionar as demandas indígenas e quilombolas como forma de contestação ao modelo desenvolvimentista da ditadura no Brasil, em Minas Gerais e no Município.",
+   "ano": "9º ano EF",
+   "unidade_tematica": "Modernização, ditadura civil-militar e redemocratização: o Brasil após 1953",
+   "objeto_conhecimento": "As questões indígena e negra e a ditadura.",
+   "pagina": 576,
+   "tipo_modificacao": "alterada"
+  },
+  {
+   "codigo": "EF09HI22",
+   "descricao": "Discutir o papel da mobilização da sociedade brasileira do final do período ditatorial até a Constituição de 1988.",
+   "ano": "9º ano EF",
+   "unidade_tematica": "Modernização, ditadura civil-militar e redemocratização: o Brasil após 1954",
+   "objeto_conhecimento": "O processo de redemocratização.",
+   "pagina": 576,
+   "tipo_modificacao": "original"
+  },
+  {
+   "codigo": "EF09HI23X",
+   "descricao": "Identificar direitos civis, políticos e sociais expressos na Constituição de 1988 e relacioná-los à noção de cidadania e ao pacto da sociedade brasileira de combate a diversas formas de preconceito, como o racismo, homofobia, xenofobia, LGBTfobia entre outros.",
+   "ano": "9º ano EF",
+   "unidade_tematica": "Modernização, ditadura civil-militar e redemocratização: o Brasil após 1955",
+   "objeto_conhecimento": "A Constituição de 1988 e a emancipação das cidadanias (analfabetos, indígenas, negros, jovens etc.).",
+   "pagina": 576,
+   "tipo_modificacao": "alterada"
+  },
+  {
+   "codigo": "EF09HI24",
+   "descricao": "Analisar as transformações políticas, econômicas, sociais e culturais de 1989 aos dias atuais, identificando questões prioritárias para a promoção da cidadania e dos valores democráticos.",
+   "ano": "9º ano EF",
+   "unidade_tematica": "Modernização, ditadura civil-militar e redemocratização: o Brasil após 1946",
+   "objeto_conhecimento": "A história recente do Brasil: transformações políticas, econômicas, sociais e culturais de 1989 aos dias atuais.",
+   "pagina": 576,
+   "tipo_modificacao": "original"
+  },
+  {
+   "codigo": "EF09HI25X",
+   "descricao": "Relacionar as transformações da sociedade brasileira aos protagonismos da sociedade civil após 1989, reconhecendo os diferentes agentes ou atores sociais que protagonizaram essas transformações no Brasil, em Minas Gerais e no Município.",
+   "ano": "9º ano EF",
+   "unidade_tematica": "Modernização, ditadura civil-militar e redemocratização: o Brasil após 1947",
+   "objeto_conhecimento": "Os protagonismos da sociedade civil e as alterações da sociedade brasileira.",
+   "pagina": 577,
+   "tipo_modificacao": "alterada"
+  },
+  {
+   "codigo": "EF09HI26X",
+   "descricao": "Discutir e analisar as causas da violência contra populações marginalizadas (de periferias, negros, indígenas, mulheres, LGBTQ, camponeses, pobres etc.) com vistas à tomada de consciência e à construção de uma cultura de paz, empatia, tolerância e inclusão, respeito às pessoas e a desconstrução de visões estereotipadas sobre essas populações.",
+   "ano": "9º ano EF",
+   "unidade_tematica": "Modernização, ditadura civil-militar e redemocratização: o Brasil após 1948",
+   "objeto_conhecimento": "A questão da violência contra populações marginalizadas.",
+   "pagina": 577,
+   "tipo_modificacao": "alterada"
+  },
+  {
+   "codigo": "EF09HI27",
+   "descricao": "Relacionar aspectos das mudanças econômicas, culturais e sociais ocorridas no Brasil a partir da década de 1990 ao papel do País no cenário internacional na era da globalização.",
+   "ano": "9º ano EF",
+   "unidade_tematica": "Modernização, ditadura civil-militar e redemocratização: o Brasil após 1949",
+   "objeto_conhecimento": "O Brasil e suas relações internacionais na era da globalização.",
+   "pagina": 577,
+   "tipo_modificacao": "original"
+  },
+  {
+   "codigo": "EF09HI28",
+   "descricao": "Identificar e analisar aspectos da Guerra Fria, seus principais conflitos e as tensões geopolíticas no interior dos blocos liderados por soviéticos e estadunidenses.",
+   "ano": "9º ano EF",
+   "unidade_tematica": "A história recente",
+   "objeto_conhecimento": "A Guerra Fria: confrontos de dois modelos políticos. A Revolução Chinesa e as tensões entre China e Rússia. A Revolução Cubana e as tensões entre Estados Unidos da América e Cuba.",
+   "pagina": 577,
+   "tipo_modificacao": "original"
+  },
+  {
+   "codigo": "EF09HI29",
+   "descricao": "Descrever e analisar as experiências ditatoriais na América Latina, seus procedimentos e vínculos com o poder, em nível nacional e internacional, e a atuação de movimentos de contestação às ditaduras.",
+   "ano": "9º ano EF",
+   "unidade_tematica": "A história recente",
+   "objeto_conhecimento": "As experiências ditatoriais na América Latina.",
+   "pagina": 577,
+   "tipo_modificacao": "original"
+  },
+  {
+   "codigo": "EF09HI30X",
+   "descricao": "Comparar e discutir as características dos regimes ditatoriais latino-americanos, com especial atenção para a censura política, a opressão e o uso da força, bem como para as reformas econômicas e sociais e seus impactos.",
+   "ano": "9º ano EF",
+   "unidade_tematica": "A história recente",
+   "objeto_conhecimento": "As experiências ditatoriais na América Latina.",
+   "pagina": 577,
+   "tipo_modificacao": "alterada"
+  },
+  {
+   "codigo": "EF09HI31X",
+   "descricao": "Descrever e avaliar os processos de descolonização na África e na Ásia, ressaltando os impactos da nova ordem econômica mundial para tais continentes.",
+   "ano": "9º ano EF",
+   "unidade_tematica": "A história recente",
+   "objeto_conhecimento": "Os processos de descolonização na África e na Ásia.",
+   "pagina": 577,
+   "tipo_modificacao": "alterada"
+  },
+  {
+   "codigo": "EF09HI32",
+   "descricao": "Analisar mudanças e permanências associadas ao processo de globalização, considerando os argumentos dos movimentos críticos às políticas globais.",
+   "ano": "9º ano EF",
+   "unidade_tematica": "A história recente",
+   "objeto_conhecimento": "O fim da Guerra Fria e o processo de globalização.",
+   "pagina": 577,
+   "tipo_modificacao": "original"
+  },
+  {
+   "codigo": "EF09HI33X",
+   "descricao": "Analisar as transformações nas relações políticas locais e globais geradas pelo desenvolvimento das tecnologias digitais de informação e comunicação, discutindo as consequências do consumo desenfreado das novidades tecnológicas para os recursos naturais e de energia.",
+   "ano": "9º ano EF",
+   "unidade_tematica": "A história recente",
+   "objeto_conhecimento": "Políticas econômicas na América Latina.",
+   "pagina": 577,
+   "tipo_modificacao": "alterada"
+  },
+  {
+   "codigo": "EF09HI34",
+   "descricao": "Discutir as motivações da adoção de diferentes políticas econômicas na América Latina, assim como seus impactos sociais nos países da região.",
+   "ano": "9º ano EF",
+   "unidade_tematica": "A história recente",
+   "objeto_conhecimento": "Políticas econômicas na América Latina.",
+   "pagina": 577,
+   "tipo_modificacao": "original"
+  }
+ ]
+}

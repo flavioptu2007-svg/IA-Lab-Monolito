@@ -1,0 +1,261 @@
+{
+ "tema": "Roma Antiga: monarquia, República e Império",
+ "ano": "6º ano EF",
+ "modo": "regular",
+ "nivel_suporte": 2,
+ "habilidade": {
+  "codigo": "EF06HI11X",
+  "descricao": "Caracterizar o processo de formação da Roma Antiga e suas configurações sociais e políticas nos períodos monárquico, republicano e imperial.",
+  "ano": "6º ano EF",
+  "unidade_tematica": "Lógicas de organização política",
+  "objeto_conhecimento": "Domínios e expansão das culturas grega e romana.",
+  "pagina": 566,
+  "tipo_modificacao": "alterada"
+ },
+ "confirmado_pelo_professor": true,
+ "blocos": [
+  {
+   "texto": "Roma nasceu às margens do rio Tibre, no Lácio, e a tradição situa sua fundação em 753 a.C. Durante o período monárquico, a cidade foi governada por reis; no fim do século VI a.C., a aristocracia romana expulsou o último rei e instituiu a República, com magistrados eleitos anualmente e um Senado de caráter vitalício. A expansão pela península itálica e pelo Mediterrâneo enriqueceu generais e ampliou a escravidão, e as guerras civis do século I a.C. abriram caminho para a concentração de poderes: em 27 a.C., Otaviano recebeu o título de Augusto, dando início ao período imperial.",
+   "pergunta": "",
+   "fonte": {
+    "tipo": "primaria",
+    "origem": "web",
+    "obra": "Ab Urbe Condita, livros I–II (texto latino)",
+    "autor": "Tito Lívio",
+    "ano": "séc. I a.C.",
+    "url": "https://www.thelatinlibrary.com/livy.html",
+    "data_acesso": "2026-11-02"
+   }
+  }
+ ],
+ "itens_parear": [
+  {
+   "palavras": [
+    "Roma",
+    "Tibre",
+    "Lácio",
+    "Senado"
+   ],
+   "fonte": {
+    "tipo": "primaria",
+    "origem": "web",
+    "obra": "Ab Urbe Condita, livros I–II (texto latino)",
+    "autor": "Tito Lívio",
+    "ano": "séc. I a.C.",
+    "url": "https://www.thelatinlibrary.com/livy.html",
+    "data_acesso": "2026-11-02"
+   }
+  }
+ ],
+ "itens_ordenar": [
+  {
+   "enunciado": "Numere os acontecimentos na ordem em que ocorreram.",
+   "itens": [
+    "Fundação de Roma, segundo a tradição (753 a.C.)",
+    "Expulsão do último rei e início da República (509 a.C.)",
+    "Otaviano recebe o título de Augusto (27 a.C.)"
+   ],
+   "fonte": {
+    "tipo": "primaria",
+    "origem": "web",
+    "obra": "Ab Urbe Condita, livros I–II (texto latino)",
+    "autor": "Tito Lívio",
+    "ano": "séc. I a.C.",
+    "url": "https://www.thelatinlibrary.com/livy.html",
+    "data_acesso": "2026-11-02"
+   }
+  }
+ ],
+ "itens_completar": [
+  {
+   "frase_com_lacuna": "Segundo a tradição registrada por Tito Lívio, Roma foi fundada em ___ a.C., na região do Lácio.",
+   "resposta": "753",
+   "distratores": [
+    "509",
+    "27"
+   ],
+   "fonte": {
+    "tipo": "primaria",
+    "origem": "web",
+    "obra": "Ab Urbe Condita, livros I–II (texto latino)",
+    "autor": "Tito Lívio",
+    "ano": "séc. I a.C.",
+    "url": "https://www.thelatinlibrary.com/livy.html",
+    "data_acesso": "2026-11-02"
+   }
+  },
+  {
+   "frase_com_lacuna": "No período monárquico, Roma era governada por ___, cargo vitalício e não eletivo.",
+   "resposta": "reis",
+   "distratores": [
+    "cônsules",
+    "senadores"
+   ],
+   "fonte": {
+    "tipo": "primaria",
+    "origem": "web",
+    "obra": "Ab Urbe Condita, livros I–II (texto latino)",
+    "autor": "Tito Lívio",
+    "ano": "séc. I a.C.",
+    "url": "https://www.thelatinlibrary.com/livy.html",
+    "data_acesso": "2026-11-02"
+   }
+  },
+  {
+   "frase_com_lacuna": "Na República, dois ___ eleitos anualmente exerciam o comando militar e a administração da cidade.",
+   "resposta": "cônsules",
+   "distratores": [
+    "imperadores",
+    "tribunos"
+   ],
+   "fonte": {
+    "tipo": "primaria",
+    "origem": "web",
+    "obra": "Ab Urbe Condita, livros I–II (texto latino)",
+    "autor": "Tito Lívio",
+    "ano": "séc. I a.C.",
+    "url": "https://www.thelatinlibrary.com/livy.html",
+    "data_acesso": "2026-11-02"
+   }
+  },
+  {
+   "frase_com_lacuna": "Em 27 a.C., Otaviano recebeu o título de ___, marcando o início do período imperial.",
+   "resposta": "Augusto",
+   "distratores": [
+    "César",
+    "Rômulo"
+   ],
+   "fonte": {
+    "tipo": "primaria",
+    "origem": "web",
+    "obra": "De Vita Caesarum, 'Divus Augustus'",
+    "autor": "Suetônio",
+    "ano": "séc. II d.C.",
+    "url": "https://www.thelatinlibrary.com/suetonius.html",
+    "data_acesso": "2026-11-02"
+   }
+  }
+ ],
+ "vocabulario": ["MONARQUIA", "REPÚBLICA", "IMPÉRIO", "SENADO"],
+ "pares_ligar": [
+  {
+   "esquerda": "Monarquia",
+   "direita": "governo dos reis, da fundação até a expulsão de Tarquínio, em 509 a.C.",
+   "fonte": {
+    "tipo": "primaria",
+    "origem": "web",
+    "obra": "Ab Urbe Condita, livros I–II (texto latino)",
+    "autor": "Tito Lívio",
+    "ano": "séc. I a.C.",
+    "url": "https://www.thelatinlibrary.com/livy.html",
+    "data_acesso": "2026-11-02"
+   }
+  },
+  {
+   "esquerda": "República",
+   "direita": "magistrados eleitos e Senado; expansão por toda a península itálica",
+   "fonte": {
+    "tipo": "primaria",
+    "origem": "web",
+    "obra": "Ab Urbe Condita, livros I–II (texto latino)",
+    "autor": "Tito Lívio",
+    "ano": "séc. I a.C.",
+    "url": "https://www.thelatinlibrary.com/livy.html",
+    "data_acesso": "2026-11-02"
+   }
+  },
+  {
+   "esquerda": "Império",
+   "direita": "poder concentrado em Augusto a partir de 27 a.C.",
+   "fonte": {
+    "tipo": "primaria",
+    "origem": "web",
+    "obra": "De Vita Caesarum, 'Divus Augustus'",
+    "autor": "Suetônio",
+    "ano": "séc. II d.C.",
+    "url": "https://www.thelatinlibrary.com/suetonius.html",
+    "data_acesso": "2026-11-02"
+   }
+  },
+  {
+   "esquerda": "Senado",
+   "direita": "conselho de aristocratas que sobreviveu aos três períodos",
+   "fonte": {
+    "tipo": "primaria",
+    "origem": "web",
+    "obra": "Ab Urbe Condita, livros I–II (texto latino)",
+    "autor": "Tito Lívio",
+    "ano": "séc. I a.C.",
+    "url": "https://www.thelatinlibrary.com/livy.html",
+    "data_acesso": "2026-11-02"
+   }
+  }
+ ],
+ "itens_marcar": [
+  {
+   "enunciado": "Pinte o título que Otaviano recebeu em 27 a.C.",
+   "frase": "Em 27 a.C., o Senado concedeu a Otaviano o título de ___.",
+   "opcoes": [
+    "Augusto",
+    "César",
+    "Rômulo"
+   ],
+   "correta": "Augusto",
+   "fonte": {
+    "tipo": "primaria",
+    "origem": "web",
+    "obra": "De Vita Caesarum, 'Divus Augustus'",
+    "autor": "Suetônio",
+    "ano": "séc. II d.C.",
+    "url": "https://www.thelatinlibrary.com/suetonius.html",
+    "data_acesso": "2026-11-02"
+   }
+  }
+ ],
+ "itens_vf": [
+  {
+   "afirmacao": "Na República, dois cônsules eram eleitos anualmente.",
+   "verdadeiro": true,
+   "fonte": {
+    "tipo": "primaria",
+    "origem": "web",
+    "obra": "Ab Urbe Condita, livros I–II (texto latino)",
+    "autor": "Tito Lívio",
+    "ano": "séc. I a.C.",
+    "url": "https://www.thelatinlibrary.com/livy.html",
+    "data_acesso": "2026-11-02"
+   }
+  },
+  {
+   "afirmacao": "A monarquia romana terminou com a eleição do primeiro imperador.",
+   "verdadeiro": false,
+   "correcao": "A monarquia terminou em 509 a.C., com a expulsão do último rei e a criação da República; o Império só começa em 27 a.C.",
+   "fonte": {
+    "tipo": "primaria",
+    "origem": "web",
+    "obra": "Ab Urbe Condita, livros I–II (texto latino)",
+    "autor": "Tito Lívio",
+    "ano": "séc. I a.C.",
+    "url": "https://www.thelatinlibrary.com/livy.html",
+    "data_acesso": "2026-11-02"
+   }
+  }
+ ],
+ "quantidade_questoes": 13,
+ "gabarito": true,
+ "registro_mediacao": true,
+ "orientacoes_aplicacao": [
+  "Leve para a aula a linha do tempo (753 a.C., 509 a.C., 27 a.C.) copiada em cartolina.",
+  "Deixe o gabarito fora do alcance do estudante durante a aplicação."
+ ],
+ "planejamento": {
+  "objetivo": "Reconhecer as formas de governo de Roma Antiga e a passagem da monarquia à república.",
+  "duracao": "2 aulas de 50 min",
+  "metodologia": "Leitura mediada em voz alta, linha do tempo e marcação antes da escrita.",
+  "recursos": ["Folha impressa", "Lápis e borracha", "Linha do tempo em cartolina"],
+  "publico": "6º ano EF — turma regular"
+ },
+ "observacoes_pedagogicas": "Ler o bloco em voz alta antes dos itens; usar a linha do tempo (753 a.C., 509 a.C., 27 a.C.) no caderno.",
+ "documento_apoio": "",
+ "respostas_do_professor": []
+}
