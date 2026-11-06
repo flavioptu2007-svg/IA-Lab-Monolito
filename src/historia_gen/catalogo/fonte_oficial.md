@@ -12,6 +12,11 @@ Registro de proveniência da fonte de códigos do projeto. Atualizar **uma vez p
 * **`pdf_md5`:** `123289db779177aa9e1c75fcd5182aed` — igual à cópia do Drive registrada no `drive-audit/inventory.csv`
 * **`pdf_sha256`:** `792857369c0c80dd87fff092137053e7a5cbed1c61fcbbd6caa6efbc072154ea`
 * **Cópia versionada no repositório:** `dados/fonte_oficial/crmg_infantil_ef.pdf` (8.968.394 bytes)
+  * Única exceção ao limite de 500 KB do hook `check-added-large-files`, declarada em
+    `.pre-commit-config.yaml`: o PDF é insumo do extrator e de
+    `test_extrator_reproduz_o_catalogo_versionado`, e não pode ser reobtido às cegas
+    (o site da SEE-MG pode trocar a versão). Sem Git LFS: o binário é versionado
+    direto, para que um clone comum já contenha a fonte.
 
 ## Estrutura do documento usada na extração
 
