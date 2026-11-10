@@ -1,6 +1,6 @@
 """Serviços educacionais — Planos de aula, atividades, avaliações, BNCC.
 
-Armazenamento em memória com SQLite opcional via UnifiedSettings.
+SQLite configurado via UnifiedSettings; memória para instâncias de teste.
 Adaptado do projeto HistóriaIA (AI/historiaia/).
 """
 
@@ -9,9 +9,12 @@ from __future__ import annotations
 import logging
 import uuid
 from datetime import UTC, datetime
-from typing import Any
+from typing import Any, TypeVar
+
+from pydantic import BaseModel
 
 from src.education.enums import BNCC_SKILLS
+from src.education.persistence import SQLiteEducationRepository
 from src.education.schemas import (
     ActivityCreate,
     ActivityResponse,
@@ -19,6 +22,7 @@ from src.education.schemas import (
     BNCCSkillSchema,
     CalendarEventCreate,
     CalendarEventResponse,
+    EducationBase,
     EvaluationCreate,
     EvaluationResponse,
     EvaluationUpdate,
@@ -28,6 +32,7 @@ from src.education.schemas import (
 )
 
 logger = logging.getLogger(__name__)
+Model = TypeVar("Model", bound=EducationBase)
 
 
 def _utcnow() -> datetime:
@@ -36,22 +41,75 @@ def _utcnow() -> datetime:
 
 
 # ═══════════════════════════════════════════════════════════════
-# Store em memória (compatível com o monolito)
+# Store educacional (SQLite ou memória para testes)
 # ═══════════════════════════════════════════════════════════════
 
 
 class EducationStore:
-    """Armazenamento em memória para entidades educacionais.
+    """Materiais educacionais; db_path=None mantém o modo em memória para testes."""
 
-    Futuramente pode ser substituído por SQLAlchemy + PostgreSQL
-    quando o módulo HistóriaIA completo for integrado.
-    """
-
-    def __init__(self) -> None:
+    def __init__(self, db_path: str | None = None) -> None:
+        self._repository = SQLiteEducationRepository(db_path) if db_path else None
         self._lesson_plans: dict[str, LessonPlanResponse] = {}
         self._activities: dict[str, ActivityResponse] = {}
         self._evaluations: dict[str, EvaluationResponse] = {}
         self._calendar_events: dict[str, CalendarEventResponse] = {}
+
+    def _save(self, collection: str, item: EducationBase) -> None:
+        if self._repository is not None:
+            self._repository.save(collection, item)
+        else:
+            getattr(self, "_" + collection)[item.id] = item
+
+    def _get(self, collection: str, item_id: str, model: type[Model]) -> Model | None:
+        if self._repository is not None:
+            return self._repository.get(collection, item_id, model)
+        return getattr(self, "_" + collection).get(item_id)
+
+    def _all(self, collection: str, model: type[Model]) -> list[Model]:
+        if self._repository is not None:
+            return self._repository.all(collection, model)
+        return list(getattr(self, "_" + collection).values())
+
+    def _update(
+        self, collection: str, item_id: str, data: BaseModel, model: type[Model]
+    ) -> Model | None:
+        changes = {**data.model_dump(exclude_unset=True), "updated_at": _utcnow()}
+        if self._repository is not None:
+            return self._repository.update(collection, item_id, model, changes)
+        item = self._get(collection, item_id, model)
+        if item is None:
+            return None
+        updated = model.model_validate({**item.model_dump(), **changes})
+        getattr(self, "_" + collection)[item_id] = updated
+        return updated
+
+    def _delete(self, collection: str, item_id: str) -> bool:
+        if self._repository is not None:
+            return self._repository.delete(collection, item_id)
+        return getattr(self, "_" + collection).pop(item_id, None) is not None
+
+    def counts(self) -> dict[str, int]:
+        """Contagens sem carregar materiais completos nem depender de cache local."""
+        counts = (
+            self._repository.counts()
+            if self._repository is not None
+            else {
+                name: len(getattr(self, "_" + name))
+                for name in (
+                    "lesson_plans",
+                    "activities",
+                    "evaluations",
+                    "calendar_events",
+                )
+            }
+        )
+        return {
+            "lesson_plans": counts.get("lesson_plans", 0),
+            "activities": counts.get("activities", 0),
+            "evaluations": counts.get("evaluations", 0),
+            "events": counts.get("calendar_events", 0),
+        }
 
     # ── Planos de Aula ──────────────────────────────────────────
 
@@ -59,11 +117,11 @@ class EducationStore:
         plan_id = str(uuid.uuid4())
         now = _utcnow()
         plan = LessonPlanResponse(id=plan_id, created_at=now, updated_at=now, **data.model_dump())
-        self._lesson_plans[plan_id] = plan
+        self._save("lesson_plans", plan)
         return plan
 
     def get_lesson_plan(self, plan_id: str) -> LessonPlanResponse | None:
-        return self._lesson_plans.get(plan_id)
+        return self._get("lesson_plans", plan_id, LessonPlanResponse)
 
     def list_lesson_plans(
         self,
@@ -72,7 +130,7 @@ class EducationStore:
         limit: int = 50,
         offset: int = 0,
     ) -> list[LessonPlanResponse]:
-        plans = list(self._lesson_plans.values())
+        plans = self._all("lesson_plans", LessonPlanResponse)
         if academic_year:
             plans = [p for p in plans if p.academic_year == academic_year]
         if subject:
@@ -81,17 +139,10 @@ class EducationStore:
         return plans[offset : offset + limit]
 
     def update_lesson_plan(self, plan_id: str, data: LessonPlanUpdate) -> LessonPlanResponse | None:
-        plan = self._lesson_plans.get(plan_id)
-        if plan is None:
-            return None
-        update_data = data.model_dump(exclude_unset=True)
-        for key, value in update_data.items():
-            setattr(plan, key, value)
-        plan.updated_at = _utcnow()
-        return plan
+        return self._update("lesson_plans", plan_id, data, LessonPlanResponse)
 
     def delete_lesson_plan(self, plan_id: str) -> bool:
-        return self._lesson_plans.pop(plan_id, None) is not None
+        return self._delete("lesson_plans", plan_id)
 
     # ── Atividades ──────────────────────────────────────────────
 
@@ -99,11 +150,11 @@ class EducationStore:
         act_id = str(uuid.uuid4())
         now = _utcnow()
         activity = ActivityResponse(id=act_id, created_at=now, updated_at=now, **data.model_dump())
-        self._activities[act_id] = activity
+        self._save("activities", activity)
         return activity
 
     def get_activity(self, activity_id: str) -> ActivityResponse | None:
-        return self._activities.get(activity_id)
+        return self._get("activities", activity_id, ActivityResponse)
 
     def list_activities(
         self,
@@ -112,7 +163,7 @@ class EducationStore:
         limit: int = 50,
         offset: int = 0,
     ) -> list[ActivityResponse]:
-        activities = list(self._activities.values())
+        activities = self._all("activities", ActivityResponse)
         if academic_year:
             activities = [a for a in activities if a.academic_year == academic_year]
         if activity_type:
@@ -121,17 +172,10 @@ class EducationStore:
         return activities[offset : offset + limit]
 
     def update_activity(self, activity_id: str, data: ActivityUpdate) -> ActivityResponse | None:
-        activity = self._activities.get(activity_id)
-        if activity is None:
-            return None
-        update_data = data.model_dump(exclude_unset=True)
-        for key, value in update_data.items():
-            setattr(activity, key, value)
-        activity.updated_at = _utcnow()
-        return activity
+        return self._update("activities", activity_id, data, ActivityResponse)
 
     def delete_activity(self, activity_id: str) -> bool:
-        return self._activities.pop(activity_id, None) is not None
+        return self._delete("activities", activity_id)
 
     # ── Avaliações ──────────────────────────────────────────────
 
@@ -141,11 +185,11 @@ class EducationStore:
         evaluation = EvaluationResponse(
             id=eval_id, created_at=now, updated_at=now, **data.model_dump()
         )
-        self._evaluations[eval_id] = evaluation
+        self._save("evaluations", evaluation)
         return evaluation
 
     def get_evaluation(self, evaluation_id: str) -> EvaluationResponse | None:
-        return self._evaluations.get(evaluation_id)
+        return self._get("evaluations", evaluation_id, EvaluationResponse)
 
     def list_evaluations(
         self,
@@ -154,7 +198,7 @@ class EducationStore:
         limit: int = 50,
         offset: int = 0,
     ) -> list[EvaluationResponse]:
-        evaluations = list(self._evaluations.values())
+        evaluations = self._all("evaluations", EvaluationResponse)
         if academic_year:
             evaluations = [e for e in evaluations if e.academic_year == academic_year]
         if evaluation_type:
@@ -165,17 +209,10 @@ class EducationStore:
     def update_evaluation(
         self, evaluation_id: str, data: EvaluationUpdate
     ) -> EvaluationResponse | None:
-        evaluation = self._evaluations.get(evaluation_id)
-        if evaluation is None:
-            return None
-        update_data = data.model_dump(exclude_unset=True)
-        for key, value in update_data.items():
-            setattr(evaluation, key, value)
-        evaluation.updated_at = _utcnow()
-        return evaluation
+        return self._update("evaluations", evaluation_id, data, EvaluationResponse)
 
     def delete_evaluation(self, evaluation_id: str) -> bool:
-        return self._evaluations.pop(evaluation_id, None) is not None
+        return self._delete("evaluations", evaluation_id)
 
     # ── Calendário ──────────────────────────────────────────────
 
@@ -187,7 +224,7 @@ class EducationStore:
         if "event_date" in raw and hasattr(raw["event_date"], "isoformat"):
             raw["event_date"] = raw["event_date"].isoformat()
         event = CalendarEventResponse(id=event_id, created_at=now, updated_at=now, **raw)
-        self._calendar_events[event_id] = event
+        self._save("calendar_events", event)
         return event
 
     def list_events(
@@ -197,7 +234,7 @@ class EducationStore:
         limit: int = 100,
         offset: int = 0,
     ) -> list[CalendarEventResponse]:
-        events = list(self._calendar_events.values())
+        events = self._all("calendar_events", CalendarEventResponse)
         if academic_year:
             events = [e for e in events if e.academic_year == academic_year]
         if event_type:
@@ -206,7 +243,7 @@ class EducationStore:
         return events[offset : offset + limit]
 
     def delete_event(self, event_id: str) -> bool:
-        return self._calendar_events.pop(event_id, None) is not None
+        return self._delete("calendar_events", event_id)
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -334,5 +371,15 @@ def get_store() -> EducationStore:
     """Retorna o singleton do EducationStore."""
     global _store
     if _store is None:
-        _store = EducationStore()
+        from src.core.config import unified_settings
+
+        url = unified_settings.education_db_url
+        prefixes = ("sqlite+aiosqlite:///", "sqlite:///")
+        prefix = next((value for value in prefixes if url.startswith(value)), None)
+        if prefix is None:
+            raise ValueError("IA_LAB_EDUCATION_DB_URL deve usar sqlite:/// ou sqlite+aiosqlite:///")
+        path = url[len(prefix) :]
+        if not path or "?" in path or "#" in path:
+            raise ValueError("Configure um caminho SQLite sem parâmetros ou fragmentos")
+        _store = EducationStore(None if path == ":memory:" else path)
     return _store
