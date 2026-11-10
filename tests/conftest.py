@@ -17,6 +17,14 @@ os.environ.setdefault("IA_LAB_AUDIO_STT_DEVICE", "cpu")  # = default
 # stt_model, record_temp_dir, etc.) para nao poluir testes de defaults.
 
 
+@pytest.fixture(autouse=True)
+def _isolar_educacao(monkeypatch):
+    """Evita gravar no banco real e compartilhar materiais entre testes."""
+    import src.education.services as services
+
+    monkeypatch.setattr(services, "_store", services.EducationStore())
+
+
 @pytest.fixture(scope="session", autouse=True)
 def _isolar_estado_local(tmp_path_factory: pytest.TempPathFactory):
     """Isola o estado local do Coraci em um diretorio temporario.

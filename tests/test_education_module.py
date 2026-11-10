@@ -171,7 +171,9 @@ class TestEducationSchemas:
         from src.education.schemas import CalendarEventCreate
 
         event = CalendarEventCreate(
-            title="Avaliação bimestral", event_date=date(2026, 6, 15), event_type="PROVA"
+            title="Avaliação bimestral",
+            event_date=date(2026, 6, 15),
+            event_type="PROVA",
         )
         assert event.title == "Avaliação bimestral"
         assert str(event.event_date) == "2026-06-15"
@@ -214,10 +216,10 @@ class TestEducationStore:
         """Retorna uma instância limpa do EducationStore."""
         # Reseta o singleton para cada teste
         import src.education.services as svc
-        from src.education.services import get_store
+        from src.education.services import EducationStore
 
-        svc._store = None
-        return get_store()
+        svc._store = EducationStore()
+        return svc._store
 
     def test_create_lesson_plan(self, store):
         """Deve criar e armazenar um plano de aula."""
@@ -319,7 +321,9 @@ class TestEducationStore:
 
         store.create_event(
             CalendarEventCreate(
-                title="Prova bimestral", event_date=date(2026, 6, 15), event_type="PROVA"
+                title="Prova bimestral",
+                event_date=date(2026, 6, 15),
+                event_type="PROVA",
             )
         )
         store.create_event(
@@ -533,7 +537,11 @@ class TestEducationEndpoints:
         # Cria evento
         post_resp = client.post(
             "/api/v2/education/calendar",
-            json={"title": "Avaliação", "event_date": "2026-06-15", "event_type": "PROVA"},
+            json={
+                "title": "Avaliação",
+                "event_date": "2026-06-15",
+                "event_type": "PROVA",
+            },
         )
         assert post_resp.status_code == 201
 
