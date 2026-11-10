@@ -100,3 +100,11 @@ O professor deve verificar correção histórica, referências, gabaritos e adeq
 assinatura ou identificação individual do professor nesta entrega. A autenticação
 continua compartilhada por chave. Não há exportação para PDF/Word, integração
 com o Copilot ou sincronização entre servidores nesta etapa.
+
+## Conferir a preservação da revisão entre abas
+
+Com um rascunho aberto, altere um campo sem salvar, abra a aba BNCC Habilidades e
+retorne a Criar e revisar com IA. O texto editado e a chave de acesso informada
+devem continuar disponíveis. As abas educacionais mantêm o estúdio montado;
+essa garantia não equivale a salvar no banco. Use Salvar revisão como rascunho
+antes de fechar a página ou navegar para outra seção do painel.
