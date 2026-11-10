@@ -8,12 +8,15 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
+from ai.agents.education_agents import PresentationDesignerAgent
 from ai.providers.ollama import OllamaProvider
 from src.education.enums import BNCC_SKILLS
+from src.education.presentation_models import PresentationCreate
 from src.education.schemas import ActivityCreate, EvaluationCreate, LessonPlanCreate
 
-MaterialType = Literal["lesson_plan", "activity", "evaluation"]
+MaterialType = Literal["lesson_plan", "activity", "evaluation", "presentation"]
 CREATE_MODELS: dict[str, type[BaseModel]] = {
+    "presentation": PresentationCreate,
     "lesson_plan": LessonPlanCreate,
     "activity": ActivityCreate,
     "evaluation": EvaluationCreate,
@@ -30,6 +33,8 @@ class GenerationRequest(BaseModel):
     learning_objectives: list[str] = Field(default_factory=list, max_length=20)
     bncc_skills: list[str] = Field(default_factory=list, max_length=20)
     instructions: str = Field(default="", max_length=3000)
+    slide_count: int = Field(default=8, ge=3, le=20)
+    theme: Literal["navy", "paper"] = "navy"
 
 
 class ReviewRequest(BaseModel):
@@ -116,9 +121,12 @@ async def generate_material(request: GenerationRequest) -> dict[str, Any]:
         "alternativas quando necessárias, correct_answer e feedback; a soma dos scores deve "
         "coincidir com total_score e passing_score não pode exceder total_score."
     )
-    raw = await OllamaProvider().complete(
-        prompt=prompt, system_prompt=system, temperature=0.4, max_tokens=4096
-    )
+    if request.material_type == "presentation":
+        raw = await PresentationDesignerAgent().run(prompt)
+    else:
+        raw = await OllamaProvider().complete(
+            prompt=prompt, system_prompt=system, temperature=0.4, max_tokens=4096
+        )
     try:
         if not raw or len(raw) > 100_000:
             raise ValueError("Resposta vazia ou muito extensa")
@@ -136,6 +144,10 @@ async def generate_material(request: GenerationRequest) -> dict[str, Any]:
             duration_minutes=request.duration_minutes,
             bncc_skills=request.bncc_skills,
         )
+        if request.material_type == "presentation":
+            content["theme"] = request.theme
+            if len(content.get("slides", [])) != request.slide_count:
+                raise ValueError("A apresentação precisa ter a quantidade de slides solicitada")
         if request.material_type == "lesson_plan":
             content["topic"] = request.topic
             if request.learning_objectives:
