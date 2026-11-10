@@ -22,6 +22,7 @@ except ImportError:  # leituraia ausente (CI/instalação mínima)
 
 from src.api.v2.chat_coraci import router as chat_v2_router
 from src.api.v2.education import router as education_router
+from src.api.v2.education_generation import router as education_generation_router
 from src.api.v2.openvino import router as openvino_router
 
 
@@ -30,6 +31,7 @@ def register_routers(app: FastAPI) -> None:
     app.include_router(chat_v2_router)
     app.include_router(openvino_router)
     app.include_router(education_router)
+    app.include_router(education_generation_router)
     if leituraia_router is not None:
         app.include_router(leituraia_router)
     if leitor_pages is not None:

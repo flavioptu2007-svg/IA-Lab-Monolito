@@ -1,3 +1,4 @@
+import { EducationStudio } from "./EducationStudio";
 import { FormEvent, useEffect, useState } from "react";
 import { api, BNCCSkill, BNCCCompetence, LessonPlan, Activity } from "../api/client";
 import { FileText, ListTree, Plus, Search, Trash2 } from "lucide-react";
@@ -15,6 +16,7 @@ function Tabs({
     <div
       style={{
         display: "flex",
+        flexWrap: "wrap",
         gap: 4,
         marginBottom: 24,
         background: "var(--bg-primary)",
@@ -368,9 +370,10 @@ function ActivitiesTab() {
 // ─── Main ──────────────────────────────────────────────────────────────
 
 export function EducationPage() {
-  const [activeTab, setActiveTab] = useState("bncc");
+  const [activeTab, setActiveTab] = useState("studio");
 
   const tabs = [
+    { id: "studio", label: "Criar e revisar com IA" },
     { id: "bncc", label: "BNCC Habilidades" },
     { id: "plans", label: "Planos de Aula" },
     { id: "activities", label: "Atividades" },
@@ -386,6 +389,7 @@ export function EducationPage() {
       <div className="page-content">
         <Tabs tabs={tabs} active={activeTab} onChange={setActiveTab} />
 
+        <div hidden={activeTab !== "studio"}><EducationStudio /></div>
         {activeTab === "bncc" && <BNCCSkills />}
         {activeTab === "plans" && <LessonPlans />}
         {activeTab === "activities" && <ActivitiesTab />}

@@ -4,12 +4,27 @@ from __future__ import annotations
 
 import sqlite3
 from contextlib import closing
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, TypeVar
 
 from src.education.schemas import EducationBase
 
 Model = TypeVar("Model", bound=EducationBase)
+
+
+class MaterialConflictError(ValueError):
+    """O professor tentou salvar uma versão anterior à persistida."""
+
+
+def check_revision(current: EducationBase, expected: datetime | None) -> None:
+    if expected is not None:
+        if expected.tzinfo is not None:
+            expected = expected.astimezone(UTC).replace(tzinfo=None)
+        if current.updated_at != expected:
+            raise MaterialConflictError(
+                "O material foi alterado. Reabra a versão mais recente antes de salvar."
+            )
 
 
 class SQLiteEducationRepository:
@@ -53,7 +68,12 @@ class SQLiteEducationRepository:
         return [model.model_validate_json(row[0]) for row in rows]
 
     def update(
-        self, collection: str, item_id: str, model: type[Model], changes: dict[str, Any]
+        self,
+        collection: str,
+        item_id: str,
+        model: type[Model],
+        changes: dict[str, Any],
+        expected_updated_at: datetime | None = None,
     ) -> Model | None:
         """Serializa leitura e atualização para preservar edições de outros workers."""
         with closing(self._connect()) as db, db:
@@ -65,6 +85,7 @@ class SQLiteEducationRepository:
             if row is None:
                 return None
             current = model.model_validate_json(row[0])
+            check_revision(current, expected_updated_at)
             updated = model.model_validate({**current.model_dump(), **changes})
             db.execute(
                 "UPDATE education_materials SET payload = ? WHERE collection = ? AND id = ?",
