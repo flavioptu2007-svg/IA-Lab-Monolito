@@ -22,6 +22,7 @@ class EducationBase(BaseModel):
     id: str = ""
     created_at: datetime | None = None
     updated_at: datetime | None = None
+    reviewed_at: datetime | None = None
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -151,6 +152,7 @@ class ActivityResponse(EducationBase):
     subject: str = ""
     bncc_skills: list[str] = Field(default_factory=list)
     instructions: str = ""
+    status: str = "rascunho"
     is_ai_generated: bool = False
 
 

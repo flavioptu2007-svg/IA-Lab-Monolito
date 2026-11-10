@@ -529,6 +529,9 @@ textarea.input {
 
 /* Responsive */
 @media (max-width: 768px) {
+  .app-layout {
+    flex-direction: column;
+  }
   .sidebar {
     width: 100%;
     position: relative;
@@ -536,6 +539,8 @@ textarea.input {
   }
   .main-content {
     margin-left: 0;
+    width: 100%;
+    min-width: 0;
   }
   .grid-2,
   .grid-3,
@@ -601,3 +606,18 @@ textarea.input {
   color: var(--text-muted);
   margin-top: 4px;
 }
+
+/* Criação e revisão de materiais educacionais */
+.education-studio { display: grid; gap: 20px; }
+.education-studio fieldset { border: 0; padding: 0; margin: 16px 0 0; min-width: 0; display: grid; gap: 14px; }
+.education-studio label { display: grid; gap: 6px; font-size: .9rem; }
+.education-studio p { margin: 10px 0; }
+.education-studio textarea { resize: vertical; }
+.studio-item { display: grid; gap: 12px; padding: 16px; border: 1px solid var(--border); border-radius: var(--radius-sm); }
+.studio-actions, .studio-saved { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+.studio-saved { padding: 14px 0; border-bottom: 1px solid var(--border); }
+.education-studio .studio-approval { display: flex; align-items: center; gap: 10px; }
+.studio-error { color: var(--error); }
+.studio-notice { color: var(--text-primary); padding: 12px; border: 1px solid var(--accent); border-radius: var(--radius-sm); }
+
+.education-studio button:disabled { opacity: .55; cursor: not-allowed; }

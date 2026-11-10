@@ -14,7 +14,7 @@ from typing import Any, TypeVar
 from pydantic import BaseModel
 
 from src.education.enums import BNCC_SKILLS
-from src.education.persistence import SQLiteEducationRepository
+from src.education.persistence import SQLiteEducationRepository, check_revision
 from src.education.schemas import (
     ActivityCreate,
     ActivityResponse,
@@ -33,6 +33,11 @@ from src.education.schemas import (
 
 logger = logging.getLogger(__name__)
 Model = TypeVar("Model", bound=EducationBase)
+MATERIAL_MODELS: dict[str, tuple[str, type[EducationBase]]] = {
+    "lesson_plan": ("lesson_plans", LessonPlanResponse),
+    "activity": ("activities", ActivityResponse),
+    "evaluation": ("evaluations", EvaluationResponse),
+}
 
 
 def _utcnow() -> datetime:
@@ -75,6 +80,9 @@ class EducationStore:
         self, collection: str, item_id: str, data: BaseModel, model: type[Model]
     ) -> Model | None:
         changes = {**data.model_dump(exclude_unset=True), "updated_at": _utcnow()}
+        if data.model_fields_set:
+            changes["reviewed_at"] = None
+            changes.setdefault("status", "rascunho")
         if self._repository is not None:
             return self._repository.update(collection, item_id, model, changes)
         item = self._get(collection, item_id, model)
@@ -110,6 +118,62 @@ class EducationStore:
             "evaluations": counts.get("evaluations", 0),
             "events": counts.get("calendar_events", 0),
         }
+
+    def create_generated_material(self, kind: str, content: dict[str, Any]) -> EducationBase:
+        """Grava a saída validada da IA como rascunho, nunca como aprovada."""
+        collection, model = MATERIAL_MODELS[kind]
+        now = _utcnow()
+        material = model.model_validate(
+            {
+                **content,
+                "id": str(uuid.uuid4()),
+                "created_at": now,
+                "updated_at": now,
+                "status": "rascunho",
+                "is_ai_generated": True,
+                "reviewed_at": None,
+            }
+        )
+        self._save(collection, material)
+        return material
+
+    def list_materials(self, limit: int = 50, offset: int = 0) -> list[dict[str, Any]]:
+        """Acervo unificado para reabrir e revisar materiais depois de reiniciar."""
+        records: list[dict[str, Any]] = []
+        for kind, (collection, model) in MATERIAL_MODELS.items():
+            for item in self._all(collection, model):
+                records.append({"material_type": kind, "material": item.model_dump()})
+        records.sort(key=lambda item: item["material"]["updated_at"] or datetime.min, reverse=True)
+        return records[offset : offset + limit]
+
+    def review_material(
+        self,
+        kind: str,
+        material_id: str,
+        content: dict[str, Any],
+        expected_updated_at: datetime,
+        approve: bool,
+    ) -> EducationBase | None:
+        """Salva a revisão com controle de versão e aprovação explícita."""
+        collection, model = MATERIAL_MODELS[kind]
+        now = _utcnow()
+        changes = {
+            **content,
+            "status": "aprovado" if approve else "rascunho",
+            "reviewed_at": now if approve else None,
+            "updated_at": now,
+        }
+        if self._repository is not None:
+            return self._repository.update(
+                collection, material_id, model, changes, expected_updated_at
+            )
+        current = self._get(collection, material_id, model)
+        if current is None:
+            return None
+        check_revision(current, expected_updated_at)
+        updated = model.model_validate({**current.model_dump(), **changes})
+        getattr(self, "_" + collection)[material_id] = updated
+        return updated
 
     # ── Planos de Aula ──────────────────────────────────────────
 

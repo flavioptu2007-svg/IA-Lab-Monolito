@@ -3,7 +3,8 @@
 Planos de aula, atividades, avaliações e calendário são gravados em SQLite.
 O banco é consultado a cada operação: reiniciar a aplicação mantém os materiais,
 inclusive questões, respostas, momentos pedagógicos e edições do professor.
-Esta entrega armazena conteúdo fornecido pelo usuário; não adiciona geração com IA.
+O fluxo de geração local e revisão está descrito em
+[EDUCATION_AI_WORKFLOW.md](EDUCATION_AI_WORKFLOW.md).
 
 ## Configurar
 
