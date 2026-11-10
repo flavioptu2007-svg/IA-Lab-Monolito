@@ -7,7 +7,6 @@ on:
   push:
     branches: [main, master]
     paths:
-      - "Projetos/next-app/**"
       - "Projetos/web/**"
       - "Projetos/leituraia/**"
       - "scripts/test_all.sh"
@@ -15,7 +14,6 @@ on:
   pull_request:
     branches: [main, master]
     paths:
-      - "Projetos/next-app/**"
       - "Projetos/web/**"
       - "Projetos/leituraia/**"
       - "scripts/test_all.sh"
@@ -27,33 +25,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # ─── next-app: typecheck + lint + build ──────────────────────────
-  # Os jobs baixam as dependências e delegam a execução ao
-  # scripts/test_all.sh, que é a fonte única da matriz (mesmas verificações que
-  # rodam localmente). --verbose devolve ao log a saída completa de cada passo.
-  next-app:
-    name: next-app (typecheck, lint, build)
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: Projetos/next-app
-    steps:
-      - uses: actions/checkout@v5
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: Projetos/next-app/package-lock.json
-
-      - name: Install
-        run: npm ci
-
-      - name: Typecheck, lint e build (scripts/test_all.sh)
-        working-directory: ${{ github.workspace }}
-        run: ./scripts/test_all.sh --only next-app --verbose
-
   # ─── web/dashboard: lint + build ─────────────────────────────────
   web-dashboard:
     name: web/dashboard (lint, build)

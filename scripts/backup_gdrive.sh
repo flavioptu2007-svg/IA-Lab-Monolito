@@ -3,7 +3,7 @@
 #  ☁️  backup_gdrive.sh — Backup dos projetos-fonte para o Google Drive
 #
 #  Sincroniza os projetos-fonte (OpenManus, portal_projetos, leituraia,
-#  next-app, Projetos) para o remote rclone `gdrive:IA-Lab-Projetos`,
+#  Projetos) para o remote rclone `gdrive:IA-Lab-Projetos`,
 #  excluindo caches, venvs, node_modules, .git e repositórios de terceiros
 #  (ai-skills-repos) que não são código-fonte próprio.
 #
@@ -34,7 +34,6 @@ PROJETOS=(
   "OpenManus"
   "portal_projetos"
   "leituraia"
-  "next-app"
   "Projetos"
 )
 

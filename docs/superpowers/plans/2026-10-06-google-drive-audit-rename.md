@@ -1749,10 +1749,31 @@ Expected: gera `empty_folders.csv`, `duplicates.csv`, `rename_plan.csv` e `summa
 > destinos: prévia em `~/drive-audit/top_pastas_move-previa.md` (198 movimentos
 > prontos, 2 `PDF` para mesclar; nada executado).
 >
+> **Continuação (2026-11-07) — parada diagnosticada:** o processo morreu em
+> 2026-10-30 20:38 UTC e o monitor caiu junto; `logs/renomeacao-final.md` não
+> existia e foi reconstruído do log (sem chamada à API). Números por **último
+> status de cada id**: **7.726 de 81.775** concluídos, **2.770** com
+> `esgotou` (retentáveis) e **71.279** nunca tentados; 0 renomes em pasta de
+> código e 0 com assunto-hash. O `pos_lote.py` encerrou por timeout sem mover
+> pastas nem esvaziar a lixeira (`logs/pos_lote-final.md`), como previsto no
+> guardrail. Causa do ritmo de ~6 arquivos/min: cada worker insistia sozinho
+> dentro da janela de cota — 60 tentativas por arquivo, ~25 min cada, e 27% do
+> lote terminou como `esgotou`. `renomear_lote.py` passou a ter **portão global
+> de cota** (o primeiro 403 de cota para o tráfego de todos, e a espera não
+> conta tentativa) e **teto global de requisições** (`--rps`, padrão 4/s), com
+> parada limpa se a janela ficar fechada por mais de 45 min em vez de marcar
+> arquivo a arquivo. Medido em simulação com relógio e sessão falsos: janela
+> curta (120 s) **146 s e 25 requisições**, contra 158,8 s e 26 do laço antigo;
+> janela de 45 min o laço antigo gasta 127 requisições (108 delas 403) e perde
+> item com `esgotou`, enquanto o novo para sem gravar `esgotou`. O teto real
+> continua sendo o `client_id` público do rclone (compartilhado) — um projeto
+> OAuth próprio, gratuito, é o que elevaria a vazão. **A aplicação não foi
+> retomada.**
+>
 > **Pendente de decisão:** esvaziar a lixeira (~142 GiB, irreversível);
 > consolidar as 236 pastas de topo (a raiz tem `História`, `HISTÓRIA`,
 > `Historia - Ano 6…`, `6º ANO`, `1ºs ANOS`, `Segunda Série` ×2, `PDF` ×2);
-> concluir a aplicação de `rename_lote1.csv` (em andamento).
+> concluir a aplicação de `rename_lote1.csv` — parada em 7.726/81.775 ids.
 
 - [ ] **Step 4: Conferir o resumo**
 

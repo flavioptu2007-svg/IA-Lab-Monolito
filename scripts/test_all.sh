@@ -14,7 +14,7 @@
 # Uso:
 #   scripts/test_all.sh                      # matriz completa
 #   scripts/test_all.sh --fast               # sem builds npm e sem odysseus
-#   scripts/test_all.sh --only monolito,next-app
+#   scripts/test_all.sh --only monolito
 #   scripts/test_all.sh --only monolito:ruff-check+ruff-format
 #   scripts/test_all.sh --skip odysseus --verbose
 #
@@ -34,7 +34,6 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 # a mensagem de erro de nome inválido.
 PROJETOS_CONHECIDOS=(
     monolito
-    next-app
     dashboard-raiz
     dashboard-projetos
     leituraia
@@ -46,7 +45,6 @@ PROJETOS_CONHECIDOS=(
 # aceitos em --only/--skip; o rótulo exibido sai deles trocando '-' por espaço.
 declare -A CHECKS_CONHECIDOS=(
     [monolito]="pytest ruff-check ruff-format mypy shellcheck bats"
-    [next-app]="typecheck lint build"
     [dashboard-raiz]="tsc build"
     [dashboard-projetos]="lint build"
     [leituraia]="pytest"
@@ -348,21 +346,6 @@ roda_monolito() {
         anota_skip monolito bats "bats não instalado"
     fi
 }
-
-roda_next_app() {
-    selecionado next-app || return 0
-    local dir="$REPO_ROOT/Projetos/next-app"
-    exige_node_modules next-app "$dir" || return 0
-
-    executa next-app typecheck "$dir" npm run typecheck
-    executa next-app lint "$dir" npm run lint
-    if [[ $FAST -eq 1 ]]; then
-        anota_skip next-app build "--fast"
-    else
-        executa next-app build "$dir" npm run build
-    fi
-}
-
 roda_dashboard_raiz() {
     selecionado dashboard-raiz || return 0
     local dir="$REPO_ROOT/web/dashboard"
