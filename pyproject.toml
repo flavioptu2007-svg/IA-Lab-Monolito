@@ -29,6 +29,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+presentations = ["python-pptx>=1.0.2,<2"]
 education = [
     # RAG / Educação (HistóriaIA)
     "langchain-core>=0.3.0",
@@ -70,3 +71,6 @@ ignore = ["E501"]
 [tool.mypy]
 python_version = "3.12"  # stubs de numpy usam `type` statement (>=3.12); CI typecheck roda em 3.12
 ignore_missing_imports = true
+
+[tool.setuptools.package-data]
+"ai.agents" = ["skills/*/SKILL.md"]

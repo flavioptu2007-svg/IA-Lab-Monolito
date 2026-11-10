@@ -1,3 +1,4 @@
+import { PresentationEditor } from "./PresentationEditor";
 import { FormEvent, useEffect, useState } from "react";
 import {
   educationStudioApi,
@@ -5,9 +6,11 @@ import {
   Material,
   MaterialType,
   SavedMaterial,
+  EducationTools,
 } from "../api/educationStudio";
 
 const NAMES: Record<MaterialType, string> = {
+  presentation: "Apresentação profissional",
   lesson_plan: "Plano de aula",
   activity: "Atividade",
   evaluation: "Avaliação",
@@ -39,6 +42,8 @@ export function EducationStudio() {
     learning_objectives: [],
     bncc_skills: [],
     instructions: "",
+    slide_count: 8,
+    theme: "navy",
   });
   const [objectives, setObjectives] = useState("");
   const [skills, setSkills] = useState("");
@@ -53,13 +58,19 @@ export function EducationStudio() {
   const [error, setError] = useState("");
   const [listError, setListError] = useState("");
   const [notice, setNotice] = useState("");
+  const [tools, setTools] = useState<EducationTools | null>(null);
+  const [checks, setChecks] = useState<string[]>([]);
   const api = educationStudioApi(token);
 
   async function load(page = offset) {
     setLoading(true);
     setListError("");
     try {
-      const result = await api.list(page);
+      const [result, available] = await Promise.all([
+        api.list(page),
+        api.tools(),
+      ]);
+      setTools(available);
       setItems(result.materials);
       setOffset(page);
     } catch (error) {
@@ -89,6 +100,7 @@ export function EducationStudio() {
       )
     )
       return;
+    setChecks([]);
     setSaved(item);
     setEditing(structuredClone(item.material));
     setDirty(false);
@@ -118,12 +130,43 @@ export function EducationStudio() {
         learning_objectives: lines(objectives),
         bncc_skills: skills.split(/[,\s]+/).filter(Boolean),
       });
+      setChecks([]);
       setSaved(item);
       setEditing(structuredClone(item.material));
       setDirty(false);
       setApproved(false);
       setNotice("Rascunho gerado e salvo. Revise o conteúdo antes de aprovar.");
       await load(0);
+    } catch (error) {
+      setError(message(error));
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function exportDeck(format: "html" | "pptx") {
+    if (!saved || dirty) return;
+    setBusy(true);
+    setError("");
+    try {
+      await api.download(saved.material.id, format);
+    } catch (error) {
+      setError(message(error));
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function checkDeck() {
+    if (!saved || dirty) return;
+    setBusy(true);
+    setError("");
+    try {
+      const result = await api.checks(saved.material.id);
+      setChecks(result.issues);
+      setNotice(
+        result.issues.length
+          ? "Verificação concluída. Revise as pendências abaixo."
+          : "Verificação editorial concluída sem pendências automáticas. Confira também as fontes e os fatos.",
+      );
     } catch (error) {
       setError(message(error));
     } finally {
@@ -137,6 +180,7 @@ export function EducationStudio() {
     setNotice("");
     try {
       const item = await api.review(saved, editing, approve);
+      setChecks([]);
       setSaved(item);
       setEditing(structuredClone(item.material));
       setDirty(false);
@@ -159,6 +203,35 @@ export function EducationStudio() {
       className="education-studio"
       aria-label="Criação e revisão de materiais"
     >
+      {tools && (
+        <details className="card">
+          <summary>Agentes, skills e plugins gratuitos</summary>
+          <h4>Agentes locais</h4>
+          <ul>
+            {tools.agents.map((agent) => (
+              <li key={agent.id}>{agent.name} — Ollama</li>
+            ))}
+          </ul>
+          <h4>Exportação</h4>
+          <ul>
+            {tools.plugins.map((plugin) => (
+              <li key={plugin.id}>
+                {plugin.name}:{" "}
+                {plugin.installed
+                  ? "disponível"
+                  : "não instalado neste servidor"}
+              </li>
+            ))}
+          </ul>
+          <h4>Skills reutilizáveis</h4>
+          {tools.skills.map((skill) => (
+            <details key={skill.id}>
+              <summary>{skill.id}</summary>
+              <pre style={{ whiteSpace: "pre-wrap" }}>{skill.content}</pre>
+            </details>
+          ))}
+        </details>
+      )}
       <div className="card">
         <h3>Da ideia ao material revisado</h3>
         <p>
@@ -217,6 +290,43 @@ export function EducationStudio() {
                 </select>
               </label>
             </div>
+            {form.material_type === "presentation" && (
+              <div className="grid-2">
+                <label>
+                  Quantidade de slides
+                  <input
+                    className="input"
+                    type="number"
+                    min={3}
+                    max={20}
+                    value={form.slide_count}
+                    onChange={(event) =>
+                      setForm({
+                        ...form,
+                        slide_count: Number(event.target.value),
+                      })
+                    }
+                  />
+                </label>
+                <label>
+                  Estilo visual
+                  <select
+                    className="input"
+                    aria-label="Estilo visual"
+                    value={form.theme}
+                    onChange={(event) =>
+                      setForm({
+                        ...form,
+                        theme: event.target.value as "navy" | "paper",
+                      })
+                    }
+                  >
+                    <option value="navy">Azul profundo</option>
+                    <option value="paper">Papel claro</option>
+                  </select>
+                </label>
+              </div>
+            )}
             <label>
               Tema
               <input
@@ -329,6 +439,60 @@ export function EducationStudio() {
                 }
               />
             </label>
+            {saved.material_type === "presentation" && (
+              <>
+                <PresentationEditor material={editing} onChange={edit} />
+                <div className="studio-actions">
+                  <button
+                    type="button"
+                    className="btn btn-ghost"
+                    disabled={dirty}
+                    onClick={() => void checkDeck()}
+                  >
+                    Verificar qualidade editorial
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-ghost"
+                    disabled={dirty}
+                    onClick={() => void exportDeck("html")}
+                  >
+                    Baixar slides HTML
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    disabled={
+                      dirty ||
+                      !tools?.plugins.some(
+                        (plugin) =>
+                          plugin.format === "pptx" && plugin.installed,
+                      )
+                    }
+                    onClick={() => void exportDeck("pptx")}
+                  >
+                    Baixar PowerPoint
+                  </button>
+                </div>
+                <p className="metric-sub">
+                  Salve as alterações antes de verificar ou exportar. Rascunhos
+                  levam uma indicação de revisão pendente.
+                </p>
+                {checks.length > 0 && (
+                  <aside aria-label="Pendências editoriais">
+                    <p>
+                      A verificação automática não certifica os fatos
+                      históricos.
+                    </p>
+                    <ul>
+                      {checks.map((check, index) => (
+                        <li key={index}>{check}</li>
+                      ))}
+                    </ul>
+                  </aside>
+                )}
+              </>
+            )}
             {saved.material_type === "lesson_plan" && (
               <>
                 <label>
@@ -508,7 +672,8 @@ export function EducationStudio() {
                 </label>
               </>
             )}
-            {saved.material_type !== "lesson_plan" && (
+            {(saved.material_type === "activity" ||
+              saved.material_type === "evaluation") && (
               <label>
                 Instruções
                 <textarea
