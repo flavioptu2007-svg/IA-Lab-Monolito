@@ -235,3 +235,23 @@ def test_missing_material_and_unsupported_export(client):
     assert client.get("/api/v2/education/materials/presentation/abc/export/html").status_code == 404
     assert client.get("/api/v2/education/materials/presentation/abc/checks").status_code == 404
     assert client.get("/api/v2/education/materials/presentation/abc/export/exe").status_code == 422
+
+
+def test_powerpoint_multiline_subtitle_is_normalized_and_fitted():
+    pptx = pytest.importorskip("pptx")
+    from pptx.enum.text import MSO_AUTO_SIZE
+
+    deck = PresentationResponse.model_validate(content())
+    deck.slides[0].subtitle = "Linha um\nLinha dois\nLinha três\nLinha quatro"
+    presentation = pptx.Presentation(BytesIO(export_pptx(deck)))
+    subtitle = next(
+        shape
+        for shape in presentation.slides[0].shapes
+        if shape.has_text_frame and shape.text == "Linha um Linha dois Linha três Linha quatro"
+    )
+    assert subtitle.text_frame.auto_size == MSO_AUTO_SIZE.TEXT_TO_FIT_SHAPE
+    assert subtitle.top + subtitle.height <= min(
+        shape.top
+        for shape in presentation.slides[0].shapes
+        if shape.has_text_frame and shape.text.startswith("• ")
+    )

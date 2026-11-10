@@ -87,6 +87,7 @@ def export_pptx(deck: PresentationResponse) -> bytes:
         from pptx import Presentation
         from pptx.dml.color import RGBColor
         from pptx.enum.shapes import MSO_SHAPE
+        from pptx.enum.text import MSO_AUTO_SIZE
         from pptx.util import Inches, Pt
     except ImportError as exc:
         raise RuntimeError('Instale o plugin gratuito: pip install -e ".[presentations]"') from exc
@@ -111,6 +112,7 @@ def export_pptx(deck: PresentationResponse) -> bytes:
         shape = slide.shapes.add_textbox(Inches(x), Inches(y), Inches(width), Inches(height))
         frame = shape.text_frame
         frame.word_wrap = True
+        frame.auto_size = MSO_AUTO_SIZE.TEXT_TO_FIT_SHAPE
         frame.margin_left = frame.margin_right = 0
         frame.margin_top = frame.margin_bottom = 0
         paragraph = frame.paragraphs[0]
@@ -152,7 +154,7 @@ def export_pptx(deck: PresentationResponse) -> bytes:
         )
         text(slide, f"{index:02d} / {len(deck.slides):02d}", 0.7, 0.92, 3, 0.35, 14, accent)
         text(slide, item.title, 0.7, 1.38, 11.9, 1.22, 36, bold=True)
-        text(slide, item.subtitle, 0.7, 2.65, 11.9, 0.65, 20)
+        text(slide, " ".join(item.subtitle.split()), 0.7, 2.65, 11.9, 0.65, 20)
         for bullet_index, bullet in enumerate(item.bullets):
             if item.layout == "comparison":
                 column, row = bullet_index % 2, bullet_index // 2

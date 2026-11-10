@@ -389,7 +389,7 @@ export function EducationPage() {
       <div className="page-content">
         <Tabs tabs={tabs} active={activeTab} onChange={setActiveTab} />
 
-        {activeTab === "studio" && <EducationStudio />}
+        <div hidden={activeTab !== "studio"}><EducationStudio /></div>
         {activeTab === "bncc" && <BNCCSkills />}
         {activeTab === "plans" && <LessonPlans />}
         {activeTab === "activities" && <ActivitiesTab />}
