@@ -118,3 +118,11 @@ resultado antes de usá-lo em aula. Não é necessário contratar um serviço de
 
 Este PR depende do fluxo de geração/revisão do PR #29 e da persistência do #28;
 integre essas etapas antes desta extensão. A branch deste PR contém as três etapas.
+
+## Legibilidade dos subtítulos no PowerPoint
+
+Quebras de linha inseridas no subtítulo são normalizadas em espaços na exportação
+PowerPoint. As caixas de texto usam ajuste automático ao espaço disponível para
+que textos válidos não invadam os tópicos seguintes. O conteúdo salvo no acervo
+permanece intacto. Confira também o arquivo no editor utilizado pela escola,
+pois a aparência depende das fontes e do suporte a ajuste automático desse editor.
