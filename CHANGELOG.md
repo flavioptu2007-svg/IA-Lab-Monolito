@@ -167,8 +167,10 @@ versionamento segue o [SemVer](https://semver.org/lang/pt-BR/). A versão corren
   `web/dashboard` e `src/api/v2/chat_coraci.py`.
 - `scripts/test_all.sh` explica a falha do odysseus quando ela é ambiental
   (hook `im-config`/`systemd-cat` sem `/run` no sandbox), tanto no bloco da
-  verificação quanto na linha de "Falhas". O resultado continua FALHOU e o
-  código de saída continua 1 — o aviso não mascara a falha.
+  verificação quanto na linha de "Falhas", com um comando `bwrap` de sandbox
+  mínimo que reproduz o contraste (3 linhas de erro sem `/run`, nenhuma com
+  ele). O resultado continua FALHOU e o código de saída continua 1 — o aviso
+  não mascara a falha.
 - CI e Dependabot apontavam para `Projetos/web/dashboard`, removido na
   unificação do dashboard da raiz: o job `web-dashboard` do `projects-ci.yml`
   falhava com "working directory not found", o bloco npm duplicado do

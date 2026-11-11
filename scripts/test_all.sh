@@ -305,6 +305,16 @@ explica_ambiental() {
         '        não monta /run. O stderr extra entra na comparação de stdout dos' \
         '        testes de containment e não é regressão do projeto: o mesmo teste' \
         '        passa em host sem esse hook, ou com /run montado no sandbox.'
+
+    if ! command -v bwrap >/dev/null 2>&1; then
+        printf '        (bubblewrap não instalado: sem sandbox para reproduzir)\n'
+        return 0
+    fi
+
+    printf '%s\n' \
+        '        Reproduza no sandbox mínimo — 3 linhas de erro sem /run, nenhuma com ele:' \
+        "          bwrap --ro-bind /usr /usr --ro-bind /etc /etc --ro-bind /usr/bin /bin --ro-bind /usr/lib /lib --ro-bind /usr/lib64 /lib64 --proc /proc --dev /dev --tmpfs /tmp /bin/bash -lc 'echo ok'" \
+        '          # acrescente --ro-bind /run /run antes de /bin/bash para o caso bom'
 }
 
 # anota_skip <projeto> <verificação> <motivo>
