@@ -165,6 +165,10 @@ versionamento segue o [SemVer](https://semver.org/lang/pt-BR/). A versão corren
   `src/historia_gen/catalogo/fonte_oficial.md` (subia um nível a menos) e
   referências a `web/ui` e `src/api/v2/chat_coragi.py` corrigidas para
   `web/dashboard` e `src/api/v2/chat_coraci.py`.
+- `docs/troubleshooting/odysseus-sandbox-im-config.md`: nota curta sobre a
+  falha dos testes de containment do odysseus neste host (hook `im-config` do
+  `/etc/profile` chamando `systemd-cat` sem `/run` no sandbox), com reprodução
+  mínima por `bwrap` e o registro do que já foi testado sem sucesso.
 - `scripts/test_all.sh` explica a falha do odysseus quando ela é ambiental
   (hook `im-config`/`systemd-cat` sem `/run` no sandbox), tanto no bloco da
   verificação quanto na linha de "Falhas", com um comando `bwrap` de sandbox
