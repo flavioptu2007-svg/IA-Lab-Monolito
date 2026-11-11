@@ -23,7 +23,9 @@
 # job exatamente o que ele já rodava. Os nomes estão em `--help`.
 #
 # Saída: uma linha por verificação, uma tabela por projeto e um detalhamento
-# das falhas. Código de saída 0 quando nada falhou, 1 quando algo falhou.
+# das falhas. Código de saída 0 quando nada falhou, 1 quando algo falhou — uma
+# falha reconhecida como ambiental (hoje só o im-config/systemd-cat no sandbox
+# do odysseus) ganha explicação, mas continua contando como falha.
 # =============================================================================
 
 set -uo pipefail
@@ -254,7 +256,11 @@ executa() {
         PROJ_FAIL["$projeto"]=$((PROJ_FAIL["$projeto"] + 1))
         TOTAL_FAIL=$((TOTAL_FAIL + 1))
         printf 'FALHOU  %3ds\n' "$duracao"
-        FALHAS+=("$projeto :: $nome :: saída $status :: $log")
+        local nota=""
+        if motivo_ambiental "$projeto" "$log"; then
+            nota=' :: falha ambiental (im-config/systemd-cat)'
+        fi
+        FALHAS+=("$projeto :: $nome :: saída $status :: $log$nota")
     fi
 
     if [[ $VERBOSE -eq 1 ]]; then
@@ -264,12 +270,41 @@ executa() {
         printf '      │ (log completo: %s)\n' "$log"
     fi
 
+    if [[ $status -ne 0 ]] && motivo_ambiental "$projeto" "$log"; then
+        explica_ambiental
+    fi
+
     if [[ $status -ne 0 && $FAIL_FAST -eq 1 ]]; then
         printf '\n--fail-fast: interrompendo na primeira falha\n'
         resume
         exit 1
     fi
     return 0
+}
+
+# motivo_ambiental <projeto> <log> — falha causada pelo host, não pelo código;
+# explica_ambiental escreve a explicação. Só acrescenta o aviso: o resultado
+# continua FALHOU e o código de saída segue 1, porque o problema existe nesta
+# máquina.
+# Hoje cobre um caso: os testes de containment do odysseus comparam o stdout
+# exato e recebem no stderr as linhas que o hook `im-config` de /etc/profile
+# escreve via `systemd-cat` — que falha porque o sandbox monta /usr, /etc e
+# /tmp, mas não /run (o socket do journald).
+motivo_ambiental() {
+    local projeto=$1 log=$2
+
+    [[ "$projeto" == odysseus ]] || return 1
+    grep -q "Failed to create stream fd" "$log" 2>/dev/null || return 1
+}
+
+explica_ambiental() {
+    printf '%s\n' \
+        '      ⚠ falha ambiental provável: dentro do sandbox do odysseus o shell de' \
+        '        login (/bin/bash -lc) carrega /etc/profile → hook do im-config →' \
+        '        systemd-cat, que não encontra o socket do journald porque o sandbox' \
+        '        não monta /run. O stderr extra entra na comparação de stdout dos' \
+        '        testes de containment e não é regressão do projeto: o mesmo teste' \
+        '        passa em host sem esse hook, ou com /run montado no sandbox.'
 }
 
 # anota_skip <projeto> <verificação> <motivo>
