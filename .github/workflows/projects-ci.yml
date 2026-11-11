@@ -7,6 +7,7 @@ on:
   push:
     branches: [main, master]
     paths:
+      - "web/**"
       - "Projetos/web/**"
       - "Projetos/leituraia/**"
       - "scripts/test_all.sh"
@@ -14,6 +15,7 @@ on:
   pull_request:
     branches: [main, master]
     paths:
+      - "web/**"
       - "Projetos/web/**"
       - "Projetos/leituraia/**"
       - "scripts/test_all.sh"
@@ -25,13 +27,13 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # ─── web/dashboard: lint + build ─────────────────────────────────
+  # ─── web/dashboard: tsc + build ──────────────────────────────────
   web-dashboard:
-    name: web/dashboard (lint, build)
+    name: web/dashboard (tsc, build)
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: Projetos/web/dashboard
+        working-directory: web/dashboard
     steps:
       - uses: actions/checkout@v5
 
@@ -40,14 +42,14 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: Projetos/web/dashboard/package-lock.json
+          cache-dependency-path: web/dashboard/package-lock.json
 
       - name: Install
         run: npm ci
 
-      - name: Lint e build (scripts/test_all.sh)
+      - name: tsc e build (scripts/test_all.sh)
         working-directory: ${{ github.workspace }}
-        run: ./scripts/test_all.sh --only dashboard-projetos --verbose
+        run: ./scripts/test_all.sh --only dashboard-raiz --verbose
 
   # ─── leituraia: pytest ───────────────────────────────────────────
   leituraia:

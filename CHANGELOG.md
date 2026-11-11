@@ -153,6 +153,12 @@ versionamento segue o [SemVer](https://semver.org/lang/pt-BR/). A versão corren
 
 ### Corrigido
 
+- CI e Dependabot apontavam para `Projetos/web/dashboard`, removido na
+  unificação do dashboard da raiz: o job `web-dashboard` do `projects-ci.yml`
+  falhava com "working directory not found", o bloco npm duplicado do
+  Dependabot nunca encontraria o `package-lock.json`, e a matriz de testes
+  mantinha um `dashboard-projetos` órfão. Agora tudo aponta para
+  `web/dashboard`, e o workflow também dispara em mudanças de `web/**`.
 - Auditoria do Google Drive: a reanálise sobre o inventário já deduplicado por
   id elimina 20.443 linhas que eram "duplicata do próprio arquivo" (pasta de
   topo re-listada pelo crawl antigo) — de 41.389 para 27.543 grupos e de 67.447

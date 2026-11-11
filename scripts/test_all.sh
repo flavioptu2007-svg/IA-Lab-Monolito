@@ -35,7 +35,6 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PROJETOS_CONHECIDOS=(
     monolito
     dashboard-raiz
-    dashboard-projetos
     leituraia
     web-api
     odysseus
@@ -46,7 +45,6 @@ PROJETOS_CONHECIDOS=(
 declare -A CHECKS_CONHECIDOS=(
     [monolito]="pytest ruff-check ruff-format mypy shellcheck bats"
     [dashboard-raiz]="tsc build"
-    [dashboard-projetos]="lint build"
     [leituraia]="pytest"
     [web-api]="pytest"
     [odysseus]="pytest"
@@ -359,19 +357,6 @@ roda_dashboard_raiz() {
     fi
 }
 
-roda_dashboard_projetos() {
-    selecionado dashboard-projetos || return 0
-    local dir="$REPO_ROOT/Projetos/web/dashboard"
-    exige_node_modules dashboard-projetos "$dir" || return 0
-
-    executa dashboard-projetos lint "$dir" npm run lint
-    if [[ $FAST -eq 1 ]]; then
-        anota_skip dashboard-projetos build "--fast"
-    else
-        executa dashboard-projetos build "$dir" npm run build
-    fi
-}
-
 roda_leituraia() {
     selecionado leituraia || return 0
     # O projects-ci.yml roda a partir de Projetos/ (imports `leituraia.*`).
@@ -504,9 +489,7 @@ printf '\n'
 
 roda_monolito
 printf '\n'
-roda_next_app
 roda_dashboard_raiz
-roda_dashboard_projetos
 printf '\n'
 roda_leituraia
 roda_web_api
