@@ -161,6 +161,10 @@ versionamento segue o [SemVer](https://semver.org/lang/pt-BR/). A versão corren
   existem mais no repositório). Links para traduções inexistentes
   (`README_zh/ja/ko`) e referências a `web/ui`/`next-app` no `SECURITY.md`
   também saíram.
+- Documentação em `docs/`: link de `historia_gen/validacoes.md` para
+  `src/historia_gen/catalogo/fonte_oficial.md` (subia um nível a menos) e
+  referências a `web/ui` e `src/api/v2/chat_coragi.py` corrigidas para
+  `web/dashboard` e `src/api/v2/chat_coraci.py`.
 - CI e Dependabot apontavam para `Projetos/web/dashboard`, removido na
   unificação do dashboard da raiz: o job `web-dashboard` do `projects-ci.yml`
   falhava com "working directory not found", o bloco npm duplicado do

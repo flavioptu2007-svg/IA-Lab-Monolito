@@ -2,7 +2,7 @@
 
 - Status: **revisão pendente (riscos registrados)** — NÃO alterado ainda. Requer decisão/dashboard.
 - Repositório: `flavioptu2007-svg/IA-Lab-Monolito` (working copy `main`, branch `main`)
-- Componente: `api/server.py` + `src/api/v2/chat_coragi.py`, `src/api/v2/education.py`, `src/api/v2/openvino.py`
+- Componente: `api/server.py` + `src/api/v2/chat_coraci.py`, `src/api/v2/education.py`, `src/api/v2/openvino.py`
 
 ## Contexto
 A autenticação por `IA_LAB_API_TOKEN` está aplicada aos routers `/api/v2/**`

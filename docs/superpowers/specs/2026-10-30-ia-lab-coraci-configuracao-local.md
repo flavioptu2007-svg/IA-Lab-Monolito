@@ -79,7 +79,7 @@ removidos): `education_db_url`, `education_redis_url`, `education_jwt_secret`
 ## Riscos e pendências
 
 - `/api/chat` (v1), `/api/providers`, `/api/agents` e `/api/history` não usam
-  `IA_LAB_API_TOKEN`. Protegê-las exige ajustar o dashboard (`web/ui` usa
+  `IA_LAB_API_TOKEN`. Protegê-las exige ajustar o dashboard (`web/dashboard` usa
   `fetch` sem header) — decisão pendente.
 - `docker compose up` colide com containers existentes; se for usado, mapear
   outras portas e não subir Redis/Qdrant duplicados.
