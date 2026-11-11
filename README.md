@@ -537,6 +537,11 @@ O repositório tem mais de um projeto; a matriz que roda tudo num comando só é
 BitNet, OpenVINO, educação, E2E do monolito, áudio, segurança (API key/SSRF),
 `src/historia_gen` e `src/drive_audit`.
 
+> 🔧 Se a verificação `odysseus` falhar com `Failed to create stream fd`, é o
+> hook `im-config` do `/etc/profile` do host, não o projeto: a matriz explica o
+> caso e o diagnóstico completo está em
+> [`docs/troubleshooting/odysseus-sandbox-im-config.md`](docs/troubleshooting/odysseus-sandbox-im-config.md).
+
 > 💡 **Nota:** se o plugin `pytest-flask` estiver instalado no ambiente, ele conflita com as fixtures do FastAPI e gera erros (`AttributeError: response_class`). Remova com `pip uninstall pytest-flask`.
 
 ---
@@ -571,7 +576,7 @@ BitNet, OpenVINO, educação, E2E do monolito, áudio, segurança (API key/SSRF)
 │   ├── leituraia/                # Leitura assistida (pytest próprio)
 │   └── web/                      # API Python do projeto web (tests em api/tests/)
 ├── scripts/                      # Utilitários locais (test_all.sh, chat_local.sh, áudio…)
-├── docs/                         # designs, historia_gen e superpowers (planos/specs)
+├── docs/                         # designs, historia_gen, superpowers e troubleshooting
 ├── tests/                        # Suíte pytest + tests/shell (bats)
 ├── docker-compose.yml            # 13 serviços com profiles
 ├── pyproject.toml                # Dependências + config de ruff, mypy e pytest
@@ -640,6 +645,15 @@ pip install -e ".[dev]"
 # Execute apenas um módulo específico para isolar o problema:
 python3 -m pytest tests/test_education_module.py -v
 ```
+
+### Odysseus falhando com `Failed to create stream fd`
+
+O sandbox do odysseus não monta `/run`, então o hook `im-config` do
+`/etc/profile` do host não encontra o socket do journald e escreve três linhas
+no stderr; os testes de containment comparam o stdout exato e falham. Não é
+regressão do projeto — diagnóstico, reprodução mínima e alternativas
+descartadas em
+[`docs/troubleshooting/odysseus-sandbox-im-config.md`](docs/troubleshooting/odysseus-sandbox-im-config.md).
 
 ### Erro de permissão no Vite
 

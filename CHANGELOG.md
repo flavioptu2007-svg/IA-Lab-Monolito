@@ -30,6 +30,8 @@ versionamento segue o [SemVer](https://semver.org/lang/pt-BR/). A versão corren
   `--only monolito:ruff-check`), `--fast`, `--verbose` e resumo por projeto.
 - `.dockerignore` em allowlist, para o contexto de build da imagem não incluir
   segredos nem o repositório inteiro.
+- README (pt/en): nota na seção de testes e entrada em "Troubleshooting"
+  apontando para `docs/troubleshooting/odysseus-sandbox-im-config.md`.
 - Documentação comunitária: `SECURITY.md` (divulgação responsável) e
   `.github/dependabot.yml` (atualizações semanais de `pip`, `npm`, `docker` e
   GitHub Actions).

@@ -450,6 +450,11 @@ Areas covered in the monolith: core (AI, providers, settings), Coraci SSE chat,
 BitNet, OpenVINO, education, monolith E2E, audio, security (API key/SSRF),
 `src/historia_gen` and `src/drive_audit`.
 
+> 🔧 If the `odysseus` check fails with `Failed to create stream fd`, that is
+> the host's `im-config` hook in `/etc/profile`, not the project: the matrix
+> explains it, and the full diagnosis is in
+> [`docs/troubleshooting/odysseus-sandbox-im-config.md`](docs/troubleshooting/odysseus-sandbox-im-config.md).
+
 ---
 
 ## Project Structure
@@ -482,7 +487,7 @@ BitNet, OpenVINO, education, monolith E2E, audio, security (API key/SSRF),
 │   ├── leituraia/                # Assisted reading (own pytest suite)
 │   └── web/                      # Python API for the web project (tests in api/tests/)
 ├── scripts/                      # Local tooling (test_all.sh, chat_local.sh, audio…)
-├── docs/                         # designs, historia_gen and superpowers (plans/specs)
+├── docs/                         # designs, historia_gen, superpowers and troubleshooting
 ├── tests/                        # pytest suite + tests/shell (bats)
 ├── docker-compose.yml            # 13 services with profiles
 ├── pyproject.toml                # Dependencies + ruff, mypy and pytest config
@@ -551,6 +556,15 @@ pip install -e ".[dev]"
 # Run only a specific module to isolate the issue:
 python3 -m pytest tests/test_education_module.py -v
 ```
+
+### Odysseus failing with `Failed to create stream fd`
+
+The odysseus sandbox does not mount `/run`, so the host's `im-config` hook in
+`/etc/profile` cannot reach the journald socket and writes three lines to
+stderr; the containment tests compare stdout exactly and fail. It is not a
+project regression — diagnosis, minimal reproduction and discarded
+alternatives are in
+[`docs/troubleshooting/odysseus-sandbox-im-config.md`](docs/troubleshooting/odysseus-sandbox-im-config.md).
 
 ### Vite permission error
 
