@@ -153,6 +153,14 @@ versionamento segue o [SemVer](https://semver.org/lang/pt-BR/). A versão corren
 
 ### Corrigido
 
+- `README.md`/`README.en.md` alinhados à estrutura atual: árvore de diretórios
+  reescrita (`Projetos/`, `scripts/`, `docs/`, `src/historia_gen`,
+  `src/drive_audit`), versão 2.1.1, 12 páginas do dashboard, 13 serviços Docker,
+  802 testes, demo de áudio em `scripts/audio/demo_audio.sh` e remoção da seção
+  "Ferramentas do Ambiente" (Multi-Agent-CAD, Brave/OpenManus e Office/Wine não
+  existem mais no repositório). Links para traduções inexistentes
+  (`README_zh/ja/ko`) e referências a `web/ui`/`next-app` no `SECURITY.md`
+  também saíram.
 - CI e Dependabot apontavam para `Projetos/web/dashboard`, removido na
   unificação do dashboard da raiz: o job `web-dashboard` do `projects-ci.yml`
   falhava com "working directory not found", o bloco npm duplicado do

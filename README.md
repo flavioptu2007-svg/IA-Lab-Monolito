@@ -1,6 +1,6 @@
 # IA-Lab Unified
 
-[![🇧🇷 Português](README.md)](README.md) [![🇺🇸 English](README.en.md)](README.en.md) [![🇨🇳 中文](README_zh.md)](README_zh.md) [![🇯🇵 日本語](README_ja.md)](README_ja.md) [![🇰🇷 한국어](README_ko.md)](README_ko.md)
+[![🇧🇷 Português](README.md)](README.md) [![🇺🇸 English](README.en.md)](README.en.md)
 [![CI](https://github.com/flavioptu2007-svg/IA-Lab-Monolito/actions/workflows/ci.yml/badge.svg)](https://github.com/flavioptu2007-svg/IA-Lab-Monolito/actions/workflows/ci.yml)
 
 **Monolito FastAPI** que unifica 5 projetos em um único ecossistema de IA, áudio, RAG, educação e inferência local.
@@ -14,7 +14,7 @@
 ├── 🏫 Módulo educacional (planos de aula, BNCC, avaliações, calendário)
 ├── 🔧 OpenVINO opcional (inferência local Intel)
 ├── 🔢 BitNet (LLM 1-bit ultra-eficiente em CPU)
-├── 🧪 487 testes — suíte completa
+├── 🧪 802 testes — suíte completa
 ├── 📡 53+ endpoints REST
 └── 🐳 13 serviços Docker orquestrados
 ```
@@ -67,7 +67,6 @@ cd web/dashboard && npm install && npm run dev
 - [API Endpoints](#api-endpoints)
 - [Testes](#testes)
 - [Estrutura do Projeto](#estrutura-do-projeto)
-- [Ferramentas do Ambiente](#ferramentas-do-ambiente)
 - [Troubleshooting](#troubleshooting)
 - [Contribuição](#contribuição)
 
@@ -233,7 +232,7 @@ Copie o arquivo de exemplo e configure as variáveis de ambiente:
 cp .env.example .env
 ```
 
-> 📄 O arquivo completo com **todas as variáveis** está em [`.env.example`](.env.example) (47 variáveis).
+> 📄 O modelo está em [`.env.example`](.env.example): só as variáveis essenciais vêm ativas; as demais estão comentadas, com a descrição ao lado.
 
 ### Variáveis principais
 
@@ -326,8 +325,9 @@ O Vite faz proxy de `/api/*` para `localhost:8000` automaticamente.
 ### Demonstração de áudio
 
 ```bash
-python3 demo_audio.py           # Demonstração completa
-python3 demo_audio.py --quick   # Apenas processamento de sinal
+./scripts/audio/demo_audio.sh           # Dry-run: mostra o que seria feito
+./scripts/audio/demo_audio.sh --apply   # Demonstração completa
+./scripts/audio/demo_audio.sh --quick   # Apenas diagnóstico + backup
 ```
 
 ---
@@ -522,51 +522,33 @@ python3 -m pytest tests/ --cov=ai,api,src --cov-report=term-missing
 docker compose --profile test up
 ```
 
-### Cobertura atual: **487 testes**
+### Suíte atual: **802 testes** (`pytest --collect-only`)
+
+O repositório tem mais de um projeto; a matriz que roda tudo num comando só é
+[`scripts/test_all.sh`](scripts/test_all.sh):
+
+```bash
+./scripts/test_all.sh                  # monolito + dashboard + leituraia + web/api + odysseus
+./scripts/test_all.sh --fast           # sem builds npm e sem odysseus
+./scripts/test_all.sh --only monolito  # pytest, ruff, mypy, shellcheck e bats
+```
+
+Áreas cobertas no monolito: core (IA, providers, settings), chat SSE do Coraci,
+BitNet, OpenVINO, educação, E2E do monolito, áudio, segurança (API key/SSRF),
+`src/historia_gen` e `src/drive_audit`.
 
 > 💡 **Nota:** se o plugin `pytest-flask` estiver instalado no ambiente, ele conflita com as fixtures do FastAPI e gera erros (`AttributeError: response_class`). Remova com `pip uninstall pytest-flask`.
-
-| Módulo | Testes | Status |
-|--------|:------:|:------:|
-| Core (IA, Providers, Settings) | 353+ | ✅ |
-| Coraci SSE Chat (v2) | 15 | ✅ |
-| BitNet Provider | 12 | ✅ |
-| OpenVINO Module | 25 (19 + 6 success-path) | ✅ |
-| Education Module | 47 | ✅ |
-| E2E Monolito | 35 (57+ rotas) | ✅ |
 
 ---
 
 ## Estrutura do Projeto
 
 ```
-/home/flavio/
-├── src/                          # Módulos do monolito unificado
-│   ├── __init__.py               # Package marker v2.1.1
-│   ├── core/
-│   │   ├── __init__.py
-│   │   ├── lifespan.py           # 🔄 Startup/shutdown (init DB → fecha conexões)
-│   │   ├── routers.py            # 🔗 register_routers(app) — centraliza includes
-│   │   └── config.py             # UnifiedSettings
-│   ├── api/
-│   │   └── v2/
-│   │       ├── chat_coraci.py    # Chat SSE (Coraci) — streaming + histórico
-│   │       ├── openvino.py       # Endpoints OpenVINO (opcional, 503 guard)
-│   │       └── education.py      # Endpoints Education (BNCC, planos, atividades)
-│   ├── education/                # Módulo HistóriaIA
-│   │   ├── __init__.py
-│   │   ├── enums.py              # Enums acadêmicos + BNCC (30+ habilidades)
-│   │   ├── schemas.py            # 15 schemas Pydantic
-│   │   └── services.py           # EducationStore (CRUD) + BNCC skills
-│   └── openvino/                 # Módulo OpenVINO (opcional)
-│       ├── __init__.py
-│       └── pipelines.py          # OpenVINOPipeline, AudioRagPipeline
-├── ai/                           # Core IA (legado, em uso ativo)
-│   ├── providers/
-│   │   ├── base.py               # BaseProvider + TaskType
-│   │   ├── providers.py          # OpenAI, Claude, Gemini, Groq, GLM, Perplexity
-│   │   ├── ollama.py             # OllamaProvider
-│   │   └── bitnet.py             # BitNetProvider (8º, LLM 1-bit)
+/home/flavio/                     # raiz do repositório (monolito + ferramentas)
+├── api/
+│   └── server.py                 # FastAPI app (lifespan + register_routers)
+├── ai/                           # Núcleo de IA
+│   ├── providers/                # OpenAI, Claude, Gemini, Groq, GLM, Perplexity, Ollama, BitNet
 │   ├── service.py                # AIService — orquestrador de providers
 │   ├── settings.py               # Settings (SecretStr, ProviderName Literal)
 │   ├── classifier.py             # TaskClassifier
@@ -574,160 +556,30 @@ docker compose --profile test up
 │   ├── agents/                   # Agentes especializados (architect, code, audio, writer)
 │   ├── audio/                    # Engine, STT, TTS, VAD, efeitos, microfone virtual
 │   └── telemetry.py              # Prometheus metrics
-├── api/
-│   └── server.py                 # FastAPI app (lifespan + register_routers)
+├── src/
+│   ├── core/                     # lifespan, routers, config
+│   ├── api/v2/                   # chat SSE (Coraci), OpenVINO, Education
+│   ├── education/                # Módulo HistóriaIA (enums, schemas, store)
+│   ├── openvino/                 # Módulo OpenVINO (opcional)
+│   ├── historia_gen/             # Gerador de atividades de História (CLI próprio)
+│   └── drive_audit/              # Auditoria do Google Drive (inventário/apply)
 ├── web/
-│   └── dashboard/                # 🆕 Dashboard React + Vite + TypeScript
-│       ├── src/
-│       │   ├── api/client.ts     # API client tipado (57+ endpoints)
-│       │   ├── pages/            # 10 páginas (Dashboard, Chat, Providers, etc.)
-│       │   ├── components/       # Sidebar com navegação
-│       │   └── styles/           # Tema escuro completo
-│       ├── vite.config.ts        # Proxy /api → localhost:8000
-│       └── package.json          # React 19, lucide-react, recharts
-├── tests/                        # 487 testes
-│   ├── test_service.py
-│   ├── test_classifier.py
-│   ├── test_bitnet_provider.py
-│   ├── test_api_v2_chat.py
-│   ├── test_openvino_module.py
-│   ├── test_education_module.py
-│   ├── test_e2e_monolito.py      # 🆕 35 testes E2E (57 rotas)
-│   └── test_audio/               # STT, TTS, VAD, efeitos, recorder, player…
-├── Aplicativo_Coraci/            # Flask app (mantido para compatibilidade)
-├── AI/                           # Projetos fonte originais
-│   ├── BitNet/
-│   ├── openvino/
-│   └── historiaia/
+│   ├── dashboard/                # React 19 + Vite + TypeScript (12 páginas)
+│   └── api/                      # API Python auxiliar do dashboard
+├── Aplicativo_Coraci/            # Flask app legado (mantido para compatibilidade)
+├── Projetos/                     # Projetos versionados que vivem sob Projetos/
+│   ├── leituraia/                # Leitura assistida (pytest próprio)
+│   └── web/                      # API Python do projeto web (tests em api/tests/)
+├── scripts/                      # Utilitários locais (test_all.sh, chat_local.sh, áudio…)
+├── docs/                         # designs, historia_gen e superpowers (planos/specs)
+├── tests/                        # Suíte pytest + tests/shell (bats)
 ├── docker-compose.yml            # 13 serviços com profiles
-├── pyproject.toml                # Dependências consolidadas (8 grupos)
-└── .env.example                  # 47 variáveis documentadas
+├── pyproject.toml                # Dependências + config de ruff, mypy e pytest
+└── .env.example                  # Modelo comentado (essenciais ativas)
 ```
 
----
-
-## Ferramentas do Ambiente
-
-Ferramentas complementares instaladas neste ambiente, fora do monolito.
-
-### Multi-Agent-CAD (`mac`)
-
-Geração de modelos 3D a partir de texto (**text-to-CAD**) com 4 agentes orquestrados por LangGraph e kernel build123d. Repo local: `Projetos/Multi-Agent-CAD/` (venv Python 3.11, `multi-agent-cad 1.0.0`).
-
-**Provider configurado (Z.AI / GLM):**
-
-| Item | Valor |
-|------|-------|
-| `DS_BASE_URL` | `https://api.z.ai/api/coding/paas/v4` (OpenAI-compatible, Z.AI Coding Plan) |
-| Modelos (4 etapas) | `glm-4.7` (Spec Planner, Architect, Coder, Repair) |
-| Aider | `AIDER_MODEL = openai/glm-4.7` · `AIDER_CHECK_UPDATE=false` (pin aider 0.82.3) |
-| Chave | env `ZAI_API_KEY` (**nunca** em arquivo) — prioridade: `ZAI_API_KEY` → `OPENAI_API_KEY` → `DASHSCOPE_API_KEY` → `DS_API_KEY` |
-| Web UI | `http://localhost:8001` (sessão tmux `macweb`) |
-
-**Comandos:**
-
-| Comando | O que faz |
-|---------|-----------|
-| `mac graph` | Pipeline padrão (determinístico + fallback Aider) na pasta atual |
-| `mac peça "descrição"` | Gera em **subpasta datada** `peca_AAAAMMDD-HHMMSS[_desc]` e abre o STL (f3d/FreeCAD/xdg-open) |
-| `mac aider` | Fluxo Aider-first (modifica `temp_design*.py` existente) |
-| `mac web [porta]` | Sobe a Web UI (porta livre em 8001+, padrão `8001`) |
-| `oc-mac` | Função do `~/.bashrc` — roda `mac graph` em `~/Projetos/peças/` (peças organizadas) |
-| `mac config` / `mac reset` | Ver configuração (sem chaves) / restaurar defaults |
-
-> Detalhes: `multi_agent_cad/config.py` e seção "Z.AI / GLM" do README do projeto (`Projetos/Multi-Agent-CAD/README.md`).
-
----
-
-### Busca na Web — Brave Search API
-
-Busca na web em tempo real para os agentes de IA (grounding com informação atualizada), usando o índice independente da Brave.
-
-**Recursos:**
-
-| Recurso | Detalhe |
-|---|---|
-| Plano gratuito | ~US$ 5/mês em créditos (≈ 1.000 buscas) · 50 req/s |
-| Chave | env `BRAVE_API_KEY` **ou** arquivo `~/.brave_api_key` (obtenha em [brave.com/search/api](https://brave.com/search/api/)) — o fallback de arquivo é necessário porque o cliente MCP sanitiza o env do subprocesso |
-| Servidor MCP | `OpenManus/brave_search_mcp.py` (tools `brave_web_search`, `brave_news_search`, `brave_image_search`, `brave_video_search`, `brave_autosuggest`) |
-| Registro | `OpenManus/config/mcp.json` — o agente Manus conecta via stdio (tools `mcp_brave_*`). O `command` precisa apontar para um interpretador com o pacote `mcp` instalado |
-| Agente local | `buscar_web()` no `OpenManus/agente_ollama.py` (function calling com Ollama) |
-
-**Teste rápido:**
-
-```bash
-export BRAVE_API_KEY=BSA-...
-python3 OpenManus/brave_search_mcp.py   # servidor MCP (stdio)
-python3 OpenManus/agente_ollama.py "pesquise sobre o 7 de setembro de 1822"
-```
-
-> 🔑 Sem a chave configurada, as ferramentas retornam mensagem de erro amigável orientando a criação em https://brave.com/search/api/. Para o MCP, o jeito mais simples é `echo 'BSA-sua-chave' > ~/.brave_api_key` (chmod 600).
-
----
-
-### Microsoft Office no Linux (Wine)
-
-Executar o Office (Word/Excel/PowerPoint) no Linux via Wine num **prefixo isolado**, sem afetar os demais ambientes do sistema (Docker, Python, Node, Ollama, ComfyUI…).
-
-| Ferramenta | O que faz |
-|------------|-----------|
-| [`scripts/diagnose_office_linux.sh`](scripts/diagnose_office_linux.sh) | Diagnóstico **somente leitura** (SO, kernel, CPU, RAM, disco, Wine, Winetricks, CUPS, locale, prefixos e instaladores do Office) — nada é instalado ou alterado |
-| [`scripts/setup_office_wine.sh`](scripts/setup_office_wine.sh) | Prepara o prefixo Wine isolado (`~/wineprefixes/M365`, win64) com as dependências winetricks para M365/Office — opção `--skip-wine-upgrade` para usar o Wine da distro |
-| [`scripts/install_office2016_msi.sh`](scripts/install_office2016_msi.sh) | Instala o **Office 2016 MSI** (a única versão com chance real no Wine) a partir de um `.iso` ou `setup.exe`, no prefixo `~/.wine-office`, com log completo em `~/office2016_install.log` |
-| [`docs/microsoft-office-linux-wine.md`](docs/microsoft-office-linux-wine.md) | Guia completo em 8 etapas: diagnóstico → recomendação → autorização → instalação → configuração → testes → correções → relatório (inclui case study de ago/2026 com o veredito técnico por versão e o registro da preparação do Office 2016 MSI) |
-
-> 📌 **Estado atual (ago/2026):** o prefixo `~/.wine-office` está **preparado** para receber o Office 2016 MSI (Wine 10, Windows 10 build 19045, DLLs nativas `gdiplus`/`msxml3`/`msxml6`/`riched20` + overrides, validadas por checksum). Falta apenas a **mídia MSI legítima** — detalhes no final do [guia](docs/microsoft-office-linux-wine.md).
-
-> ⚠️ Execute **a partir da raiz do repositório** ou por **caminho absoluto**:
->
-> ```bash
-> cd /home/flavio   # raiz deste repositório
-> ./scripts/diagnose_office_linux.sh
-> ```
->
-> O script **não depende do diretório** — `bash /caminho/absoluto/scripts/diagnose_office_linux.sh` funciona de qualquer pasta. O erro `Ficheiro ou pasta inexistente` ocorre quando se roda `./scripts/...` fora da raiz do projeto.
-
-#### `install_office2016_msi.sh` — instalação do Office 2016 MSI
-
-Instala o **Office 2016 (versão MSI — NÃO Click-to-Run)** no prefixo Wine isolado `~/.wine-office`, com log completo em `~/office2016_install.log`. É a **única versão do Office com chance real de funcionar no Wine** (veredito do [case study](docs/microsoft-office-linux-wine.md)).
-
-**Pré-requisitos:**
-
-| Item | Detalhe |
-|------|---------|
-| Wine | `wine` instalado (o script não instala — ver `setup_office_wine.sh` acima) |
-| 7z (`p7zip-full`) | **Apenas** quando o argumento for um `.iso` (extração automática) |
-| DISPLAY | Interface gráfica para o instalador (a instalação é GUI) |
-| Mídia | `.iso` ou `setup.exe` **MSI** legítimo do Office 2016 (Volume License / chave de produto / DVD) |
-
-**Uso:**
-
-```bash
-# A partir de um .iso (extrai com 7z automaticamente):
-bash scripts/install_office2016_msi.sh ~/Downloads/Office2016ProPlus.iso
-
-# Ou direto do executável:
-bash scripts/install_office2016_msi.sh ~/Downloads/setup.exe
-```
-
-**Fluxo do script:** extrai o `.iso` com `7z` (limpando extrações antigas) → detecta se a mídia é **MSI ou Click-to-Run** (aviso, não bloqueia) → cria ou reutiliza o prefixo `~/.wine-office` → executa o instalador → verifica se `WINWORD.EXE`/`EXCEL.EXE` foram instalados.
-
-```bash
-# Resultado esperado (mídia MSI válida):
-### >>> Resumo final
-Office 2016 instalado. Para abrir os aplicativos:
-  export WINEPREFIX="$HOME/.wine-office"
-  wine "$WINEPREFIX/drive_c/Program Files (x86)/Microsoft Office/Office16/WINWORD.EXE"
-
-# Diagnóstico se algo falhar (o script nunca sai com erro por instalação incompleta):
-tail -n 60 ~/office2016_install.log
-```
-
-> ⚠️ Mídia **Click-to-Run** (ODT — `configuration.xml`/`stream.*.dat` na raiz) gera aviso: a instalação pode falhar. Para o Wine, use apenas a **mídia MSI** (pasta `ProPlus.WW` + `setup.exe`).
->
-> 🔒 Ativação apenas por **licença legítima** — o script não fornece nem sugere cracks, ativadores ou serial keys.
->
-> 💡 Override do prefixo: `WINEPREFIX=/caminho/do/prefixo bash scripts/install_office2016_msi.sh ...`
+> 📌 `Projetos/IA-Lab-Enterprise` e `Projetos/auditoria-github` existem só no
+> disco local (listados em `.git/info/exclude`), por isso não aparecem acima.
 
 ---
 

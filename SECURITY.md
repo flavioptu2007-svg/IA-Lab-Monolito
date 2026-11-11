@@ -49,9 +49,9 @@ sem impacto demonstrado, podem ser fechados sem análise detalhada.
   autenticação, injeção, path traversal, exposição de segredos em resposta/log;
 - scripts shell versionados (`scripts/`) — injeção de comando, uso inseguro de
   `eval`/globbing, escrita em caminho arbitrário;
-- dashboards Vite (`web/dashboard/`, `web/ui/`) — XSS, exposição de token;
-- aplicativos em `Projetos/` (`next-app`, `web`, `leituraia`) naquilo que é
-  construído pelo CI/CD deste repositório;
+- dashboard Vite (`web/dashboard/`) — XSS, exposição de token;
+- aplicativos em `Projetos/` (`web`, `leituraia`) naquilo que é construído pelo
+  CI/CD deste repositório;
 - workflows de CI/CD (`.github/workflows/`) — injeção por entrada de workflow,
   permissões de token, exfiltração de segredos em PRs de fork.
 

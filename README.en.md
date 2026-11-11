@@ -3,7 +3,7 @@
 **FastAPI Monolith** that unifies 5 projects into a single ecosystem of AI, audio, RAG, education, and local inference.
 
 ```
-📦 ia-lab-unified v2.0.0
+📦 ia-lab-unified v2.1.1
 ├── 🧠 8 AI providers (OpenAI, Claude, Gemini, Groq, GLM, Perplexity, Ollama, BitNet)
 ├── 🎙️ Complete audio pipeline (STT, TTS, VAD, effects, virtual microphone)
 ├── 📚 RAG with Qdrant (semantic search + augmented context)
@@ -11,9 +11,9 @@
 ├── 🏫 Education module (lesson plans, BNCC, assessments, calendar)
 ├── 🔧 Optional OpenVINO (Intel local inference)
 ├── 🔢 BitNet (ultra-efficient 1-bit LLM on CPU)
-├── 🧪 487 tests — 100% passing
+├── 🧪 802 tests — full suite
 ├── 📡 58+ REST endpoints
-└── 🐳 14 orchestrated Docker services
+└── 🐳 13 orchestrated Docker services
 ```
 
 ---
@@ -277,8 +277,9 @@ Vite automatically proxies `/api/*` to `localhost:8000`.
 ### Audio Demo
 
 ```bash
-python3 demo_audio.py           # Full demo
-python3 demo_audio.py --quick   # Signal processing only
+./scripts/audio/demo_audio.sh           # Dry-run: shows what would be done
+./scripts/audio/demo_audio.sh --apply   # Full demo
+./scripts/audio/demo_audio.sh --quick   # Diagnostics + backup only
 ```
 
 ---
@@ -434,82 +435,62 @@ python3 -m pytest tests/ --cov=ai,api,src --cov-report=term-missing
 docker compose --profile test up
 ```
 
-### Current coverage: **487 tests — 100% passing**
+### Current suite: **802 tests** (`pytest --collect-only`)
 
-| Module | Tests | Status |
-|--------|:-----:|:------:|
-| Core (IA, Providers, Settings) | 353+ | ✅ |
-| Coraci SSE Chat (v2) | 15 | ✅ |
-| BitNet Provider | 12 | ✅ |
-| OpenVINO Module | 25 (19 + 6 success-path) | ✅ |
-| Education Module | 47 | ✅ |
-| E2E Monolith | 35 (57+ routes) | ✅ |
+The repository holds more than one project; [`scripts/test_all.sh`](scripts/test_all.sh)
+runs the whole matrix in one command:
+
+```bash
+./scripts/test_all.sh                  # monolith + dashboard + leituraia + web/api + odysseus
+./scripts/test_all.sh --fast           # no npm builds and no odysseus
+./scripts/test_all.sh --only monolito  # pytest, ruff, mypy, shellcheck and bats
+```
+
+Areas covered in the monolith: core (AI, providers, settings), Coraci SSE chat,
+BitNet, OpenVINO, education, monolith E2E, audio, security (API key/SSRF),
+`src/historia_gen` and `src/drive_audit`.
 
 ---
 
 ## Project Structure
 
 ```
-/home/flavio/
-├── src/                          # Monolith unified modules
-│   ├── __init__.py               # Package marker v2.0.0
-│   ├── core/
-│   │   ├── __init__.py
-│   │   ├── lifespan.py           # 🔄 Startup/shutdown (init DB → close connections)
-│   │   ├── routers.py            # 🔗 register_routers(app) — centralized includes
-│   │   └── config.py             # UnifiedSettings
-│   ├── api/
-│   │   └── v2/
-│   │       ├── chat_coraci.py    # SSE Chat (Coraci) — streaming + history
-│   │       ├── openvino.py       # OpenVINO endpoints (optional, 503 guard)
-│   │       └── education.py      # Education endpoints (BNCC, plans, activities)
-│   ├── education/                # HistóriaIA module
-│   │   ├── __init__.py
-│   │   ├── enums.py              # Academic enums + BNCC (30+ skills)
-│   │   ├── schemas.py            # 15 Pydantic schemas
-│   │   └── services.py           # EducationStore (CRUD) + BNCC skills
-│   └── openvino/                 # OpenVINO module (optional)
-│       ├── __init__.py
-│       └── pipelines.py          # OpenVINOPipeline, AudioRagPipeline
-├── ai/                           # Core AI (legacy, actively used)
-│   ├── providers/
-│   │   ├── base.py               # BaseProvider + TaskType
-│   │   ├── providers.py          # OpenAI, Claude, Gemini, Groq, GLM, Perplexity
-│   │   ├── ollama.py             # OllamaProvider
-│   │   └── bitnet.py             # BitNetProvider (8th, 1-bit LLM)
+/home/flavio/                     # repository root (monolith + tooling)
+├── api/
+│   └── server.py                 # FastAPI app (lifespan + register_routers)
+├── ai/                           # AI core
+│   ├── providers/                # OpenAI, Claude, Gemini, Groq, GLM, Perplexity, Ollama, BitNet
 │   ├── service.py                # AIService — provider orchestrator
 │   ├── settings.py               # Settings (SecretStr, ProviderName Literal)
 │   ├── classifier.py             # TaskClassifier
 │   ├── memory/store.py           # VectorStore (Qdrant — singleton + close())
-│   ├── audio/                    # Engine, STT, TTS, VAD, effects
+│   ├── agents/                   # Specialized agents (architect, code, audio, writer)
+│   ├── audio/                    # Engine, STT, TTS, VAD, effects, virtual microphone
 │   └── telemetry.py              # Prometheus metrics
-├── api/
-│   └── server.py                 # FastAPI app (lifespan + register_routers)
+├── src/
+│   ├── core/                     # lifespan, routers, config
+│   ├── api/v2/                   # SSE chat (Coraci), OpenVINO, Education
+│   ├── education/                # HistóriaIA module (enums, schemas, store)
+│   ├── openvino/                 # OpenVINO module (optional)
+│   ├── historia_gen/             # History activity generator (own CLI)
+│   └── drive_audit/              # Google Drive audit (inventory/apply)
 ├── web/
-│   └── dashboard/                # 🆕 React + Vite + TypeScript Dashboard
-│       ├── src/
-│       │   ├── api/client.ts     # Typed API client (57+ endpoints)
-│       │   ├── pages/            # 11 pages (Landing, Dashboard, Chat, Providers, etc.)
-│       │   ├── components/       # Sidebar navigation
-│       │   └── styles/           # Complete dark theme
-│       ├── vite.config.ts        # Proxy /api → localhost:8000
-│       └── package.json          # React 19, lucide-react, recharts
-├── tests/                        # 487 tests
-│   ├── test_service.py
-│   ├── test_bitnet_provider.py
-│   ├── test_api_v2_chat.py
-│   ├── test_openvino_module.py
-│   ├── test_education_module.py
-│   └── test_e2e_monolito.py      # 🆕 35 E2E tests (57 routes)
-├── Aplicativo_Coraci/            # Flask app (kept for compatibility)
-├── AI/                           # Original source projects
-│   ├── BitNet/
-│   ├── openvino/
-│   └── historiaia/
-├── docker-compose.yml            # 14 services with profiles
-├── pyproject.toml                # Consolidated dependencies (8 groups)
-└── .env.example                  # 50+ documented variables
+│   ├── dashboard/                # React 19 + Vite + TypeScript (12 pages)
+│   └── api/                      # Python API supporting the dashboard
+├── Aplicativo_Coraci/            # Legacy Flask app (kept for compatibility)
+├── Projetos/                     # Versioned projects that live under Projetos/
+│   ├── leituraia/                # Assisted reading (own pytest suite)
+│   └── web/                      # Python API for the web project (tests in api/tests/)
+├── scripts/                      # Local tooling (test_all.sh, chat_local.sh, audio…)
+├── docs/                         # designs, historia_gen and superpowers (plans/specs)
+├── tests/                        # pytest suite + tests/shell (bats)
+├── docker-compose.yml            # 13 services with profiles
+├── pyproject.toml                # Dependencies + ruff, mypy and pytest config
+└── .env.example                  # Commented template (essentials active)
 ```
+
+> 📌 `Projetos/IA-Lab-Enterprise` and `Projetos/auditoria-github` exist only on
+> the local disk (listed in `.git/info/exclude`), so they are not shown above.
 
 ---
 
