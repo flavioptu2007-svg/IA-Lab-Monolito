@@ -50,7 +50,7 @@ cd web/dashboard && npm install && npm run dev
 | Testar chat | `curl -X POST http://localhost:8000/api/chat -H 'Content-Type: application/json' -d '{"prompt":"Olá"}'` |
 | Ver providers | `curl http://localhost:8000/api/providers` |
 | Ver docs da API | Abrir `http://localhost:8000/docs` |
-| Rodar só educação | `pip install -e ".[education]"` |
+| Instalar grupo education (inclui inferência local) | `pip install -e ".[education]"` |
 | Rodar com Docker | `docker compose up -d` |
 
 ---
@@ -72,6 +72,24 @@ cd web/dashboard && npm install && npm run dev
 - [Contribuição](#contribuição)
 
 ---
+
+## Papel no ecossistema
+
+Direção proposta para organizar o desenvolvimento; integrações futuras devem ser
+validadas antes de serem anunciadas como disponíveis.
+
+| Repositório | Responsabilidade |
+| --- | --- |
+| [historiaia-copilot](https://github.com/flavioptu2007-svg/historiaia-copilot) | Experiência do professor: solicitar, revisar e utilizar materiais de História. |
+| [IA-Lab-Monolito](https://github.com/flavioptu2007-svg/IA-Lab-Monolito) | Serviços reutilizáveis de IA, provedores, áudio e RAG. |
+| [portal-projetos](https://github.com/flavioptu2007-svg/portal-projetos) | Acesso às atividades e jogos educacionais; já possui cliente da API IA-Lab. |
+| [historiaia-platform](https://github.com/flavioptu2007-svg/historiaia-platform) | Ambiente de infraestrutura e experimentação com inferência local. |
+| [IA-Lab-Enterprise](https://github.com/flavioptu2007-svg/IA-Lab-Enterprise) | Base a inventariar antes de decidir migração ou arquivamento. |
+
+Novas funcionalidades pedagógicas devem priorizar o Copilot; capacidades genéricas
+de IA devem priorizar o Monolito. A comunicação entre aplicações deve usar contratos
+de API documentados, evitando copiar implementações entre repositórios. Isso é uma
+diretriz de evolução, não uma declaração de integração já concluída.
 
 ## Arquitetura
 
@@ -140,6 +158,13 @@ FastAPI(lifespan=lifespan)
 | **`src/core/routers.py`** | `register_routers(app)` — centraliza todos os `include_router` |
 | **`src/core/config.py`** | `UnifiedSettings` — configuração unificada de todos os módulos |
 
+### LeituraIA opcional
+
+O arquivo `src/core/routers.py` tenta importar o pacote irmão `leituraia`.
+Esse pacote não é distribuído neste repositório. Quando o import falha, a aplicação
+continua sem registrar as rotas de leitura. Uma instalação limpa não deve presumir
+que essas rotas estejam disponíveis. Confira as rotas publicadas em `/docs`.
+
 ### Routers Centralizados
 
 Todos os routers são registrados em um único lugar — `src/core/routers.py`:
@@ -189,39 +214,35 @@ No encerramento da API, o lifespan libera automaticamente:
 pip install -e .
 ```
 
-### Com grupos opcionais
+### Grupos opcionais disponíveis
+
+Os extras declarados no `pyproject.toml` atual são `dev` e `education`:
 
 ```bash
 # Core + ferramentas de desenvolvimento
 pip install -e ".[dev]"
 
-# Core + STT (SpeechBrain + PyTorch)
-pip install -e ".[stt]"
-
-# Core + TTS avançado (Edge-TTS)
-pip install -e ".[tts]"
-
-# Core + OpenVINO (inferência Intel)
-pip install -e ".[openvino]"
-
-# Core + LangChain + RAG avançado
-pip install -e ".[langchain]"
-
-# Core + BitNet (LLM 1-bit)
-pip install -e ".[bitnet]"
-
-# Core + HistóriaIA (PostgreSQL + auth)
+# Core + dependências de RAG e inferência usadas pelo grupo education
 pip install -e ".[education]"
 
-# Tudo (exceto OpenVINO que é pesado)
-pip install -e ".[all]"
+# Ambiente de desenvolvimento com ambos os grupos
+pip install -e ".[dev,education]"
 ```
 
-### Desenvolvimento completo
+O grupo `education` atualmente inclui LangChain, Transformers, OpenVINO e
+optimum-intel. Portanto, também instala dependências de inferência local; não
+representa uma instalação isolada de PostgreSQL e autenticação.
 
-```bash
-pip install -e ".[dev,stt,tts,langchain,bitnet,education]"
-```
+Os extras `stt`, `tts`, `openvino`, `langchain`, `bitnet` e `all` não estão
+declarados neste pacote. Instalar um extra inexistente não habilita o recurso.
+Dependências e serviços adicionais de áudio e modelos devem ser verificados na
+implementação correspondente antes de habilitá-los.
+
+### Evolução da instalação
+
+Separar as dependências de inferência local das dependências educacionais é uma
+próxima etapa. A mudança deve preservar compatibilidade para quem já usa
+`.[education]` e validar inicialização e testes em ambientes mínimos e completos.
 
 ---
 
@@ -600,7 +621,7 @@ docker compose --profile test up
 │   ├── openvino/
 │   └── historiaia/
 ├── docker-compose.yml            # 13 serviços com profiles
-├── pyproject.toml                # Dependências consolidadas (8 grupos)
+├── pyproject.toml                # Dependências consolidadas (extras dev e education)
 └── .env.example                  # 47 variáveis documentadas
 ```
 
@@ -738,8 +759,8 @@ tail -n 60 ~/office2016_install.log
 O OpenVINO é um módulo **opcional**. O monolito funciona sem ele — os endpoints retornam `503` com `detail="openvino_not_available"`.
 
 ```bash
-# Se precisar do OpenVINO:
-pip install -e ".[openvino]"
+# O grupo atual que inclui OpenVINO também instala dependências de RAG:
+pip install -e ".[education]"
 ```
 
 ### `Qdrant connection refused`
