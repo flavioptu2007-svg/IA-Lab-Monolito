@@ -126,3 +126,10 @@ PowerPoint. As caixas de texto usam ajuste automático ao espaço disponível pa
 que textos válidos não invadam os tópicos seguintes. O conteúdo salvo no acervo
 permanece intacto. Confira também o arquivo no editor utilizado pela escola,
 pois a aparência depende das fontes e do suporte a ajuste automático desse editor.
+
+## Candidatos identificados no feed GitHub
+
+A curadoria de novas ferramentas está no
+[catálogo do feed](docs/tooling/GITHUB_FEED_CANDIDATES.md), com um
+[registro estruturado de fontes e decisões](docs/tooling/github-feed-candidates.json).
+Os itens dessa lista são candidatos para avaliação; não são plugins instalados.
