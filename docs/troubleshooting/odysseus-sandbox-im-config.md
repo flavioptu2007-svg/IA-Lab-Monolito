@@ -44,6 +44,10 @@ bwrap --ro-bind /run /run --ro-bind /usr /usr --ro-bind /etc /etc --ro-bind /usr
 # stderr limpo
 ```
 
+Um `--tmpfs /run` não muda nada (o que falta é o socket, não o diretório);
+um bind só de `/run/systemd/journal/stdout` resolve, mas expõe o journal do host
+ao sandbox — ver a tabela de tentativas abaixo.
+
 O `scripts/test_all.sh` já reconhece esse caso (`motivo_ambiental` /
 `explica_ambiental`): quando o log do pytest traz a mensagem acima, a matriz
 imprime a explicação e marca a falha com `:: falha ambiental
@@ -58,12 +62,15 @@ completa em paralelo (`-n auto`, ~110 s):
 | Tentativa | Resultado |
 |---|---|
 | Nada (controle) | 2 falhas, 13834 passed |
+| `--tmpfs /run` | nenhum efeito: o que falta é o socket, não o diretório (3 linhas de erro) |
 | Montar `/run` no `_bwrap_prefix` | some com as 2, mas aparecem 6–7 falhas/timeouts: sockets do host vazam para o sandbox e contaminam ids parametrizados (`[/run#-[::1]:17654]`) |
+| Bind só de `/run/systemd/journal/stdout` | `test_containment_enforcement.py` fica 22/22 verde, mas a suíte paralela (`-n auto`) ficou em 3 falhas alheias (deadline do `test_redos_core_parsers`, baseline do `test_css_computed_style_snapshot`) e 5min17s; esses mesmos testes passam em série (62/62), então não dá para chamar de correção segura |
 | Trocar `-lc` por `-c` | 5–9 falhas: 9 testes dependem do ambiente de login (PATH, locale, variáveis do `/etc/profile`) |
 
 O clone `odysseus/` é de terceiros e não é versionado aqui; mexer nele não
-sobrevive a um `git pull`. A decisão (montar `/run` só nos testes de
-containment, ou isolar o sandbox do `/etc/profile` do host) é do upstream.
+sobrevive a um `git pull`. A decisão (isolar o sandbox do `/etc/profile` do
+host, montar alguma coisa de `/run` só nos testes de containment, ou separar
+stdout e stderr no contrato do `BashTool`) é do upstream.
 
 ## O que não fazer
 
