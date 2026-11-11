@@ -173,7 +173,7 @@ versionamento segue o [SemVer](https://semver.org/lang/pt-BR/). A versão corren
   (hook `im-config`/`systemd-cat` sem `/run` no sandbox), tanto no bloco da
   verificação quanto na linha de "Falhas", com um comando `bwrap` de sandbox
   mínimo que reproduz o contraste (3 linhas de erro sem `/run`, nenhuma com
-  ele). O resultado continua FALHOU e o código de saída continua 1 — o aviso
+  ele) e o caminho de `docs/troubleshooting/odysseus-sandbox-im-config.md`. O resultado continua FALHOU e o código de saída continua 1 — o aviso
   não mascara a falha.
 - CI e Dependabot apontavam para `Projetos/web/dashboard`, removido na
   unificação do dashboard da raiz: o job `web-dashboard` do `projects-ci.yml`

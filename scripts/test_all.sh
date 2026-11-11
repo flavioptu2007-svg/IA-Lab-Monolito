@@ -314,7 +314,8 @@ explica_ambiental() {
     printf '%s\n' \
         '        Reproduza no sandbox mínimo — 3 linhas de erro sem /run, nenhuma com ele:' \
         "          bwrap --ro-bind /usr /usr --ro-bind /etc /etc --ro-bind /usr/bin /bin --ro-bind /usr/lib /lib --ro-bind /usr/lib64 /lib64 --proc /proc --dev /dev --tmpfs /tmp /bin/bash -lc 'echo ok'" \
-        '          # acrescente --ro-bind /run /run antes de /bin/bash para o caso bom'
+        '          # acrescente --ro-bind /run /run antes de /bin/bash para o caso bom' \
+        '        Explicação completa: docs/troubleshooting/odysseus-sandbox-im-config.md'
 }
 
 # anota_skip <projeto> <verificação> <motivo>
