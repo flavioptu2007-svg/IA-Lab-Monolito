@@ -1,0 +1,234 @@
+{
+  "schema_version": 1,
+  "scope": "Curadoria do feed enviado pelo usuário; registro de candidatos, sem instalação ou ativação.",
+  "policy": {
+    "automatic_install": false,
+    "automatic_refresh": false,
+    "paid_services_enabled": false,
+    "credentials_added": false
+  },
+  "tools": [
+    {
+      "id": "presenton",
+      "repository": "presenton/presenton",
+      "feed_label": "presente/presente",
+      "identification": "Correspondência provável: package.json declara 0.9.12-beta; URL original do item traduzido não foi fornecida.",
+      "priority": 1,
+      "decision": "evaluate",
+      "purpose": "Apresentações com templates, edição visual, API/MCP e exportação PPTX/PDF.",
+      "license": "Apache-2.0",
+      "cost_condition": "Avaliar com Ollama/LM Studio local; não habilitar provedores pagos ou geração de imagens cobrada.",
+      "integration_condition": "Prova de conceito isolada; comparar com os exportadores locais existentes antes de integrar.",
+      "evidence": [
+        {
+          "repository": "presenton/presenton",
+          "path": "README.md",
+          "blob_sha": "87f14e593a430dbde67a4999b3c70742e9b13917",
+          "url": "https://github.com/presenton/presenton/blob/main/README.md"
+        },
+        {
+          "repository": "presenton/presenton",
+          "path": "LICENSE",
+          "blob_sha": "5566576249c0c99a84455b2fc8454e03a9b18e20",
+          "url": "https://github.com/presenton/presenton/blob/main/LICENSE"
+        },
+        {
+          "repository": "presenton/presenton",
+          "path": "package.json",
+          "blob_sha": "42b9fff91cf9210e2ff1cbc0a871f926701cbccd",
+          "url": "https://github.com/presenton/presenton/blob/main/package.json"
+        },
+        {
+          "repository": "presenton/presenton",
+          "path": "docker-compose.yml",
+          "blob_sha": "f892db82c795e0e6de70e8abe8fbf766d6fb5103",
+          "url": "https://github.com/presenton/presenton/blob/main/docker-compose.yml"
+        }
+      ],
+      "installed_by_this_catalog": false
+    },
+    {
+      "id": "astryx",
+      "repository": "meta/astryx",
+      "feed_label": "meta/astryx",
+      "identification": "Repositório informado confirmado.",
+      "priority": 2,
+      "decision": "evaluate",
+      "purpose": "Componentes acessíveis e temas para o dashboard React.",
+      "license": "MIT",
+      "cost_condition": "Biblioteca local; não depende por si só de API de IA.",
+      "integration_condition": "Está em beta; exige React 19+. Prototipar um componente e verificar acessibilidade e compatibilidade com o CSS atual.",
+      "evidence": [
+        {
+          "repository": "meta/astryx",
+          "path": "README.md",
+          "blob_sha": "29b89543395d69bd2a5385a9e768ec9bd9015f73",
+          "url": "https://github.com/meta/astryx/blob/main/README.md"
+        },
+        {
+          "repository": "meta/astryx",
+          "path": "LICENSE",
+          "blob_sha": "72c89ba095197227858894e8e6ce5e9be9e25515",
+          "url": "https://github.com/meta/astryx/blob/main/LICENSE"
+        }
+      ],
+      "installed_by_this_catalog": false
+    },
+    {
+      "id": "graphweaver",
+      "repository": "exogee-technology/graphweaver",
+      "feed_label": "tecnologia exogee/tecelão de gráficos",
+      "identification": "Nome normalizado a partir da descrição; confirmar URL original antes de adotar.",
+      "priority": 3,
+      "decision": "defer",
+      "purpose": "API GraphQL agregando fontes de dados.",
+      "license": "Apache-2.0 em LICENSE.md; README também contém referências MIT conflitantes.",
+      "cost_condition": "Autohospedagem a avaliar; acesso aos sistemas integrados pode ter custos próprios.",
+      "integration_condition": "Somente após identificar uma necessidade de agregação que as APIs FastAPI existentes não atendam. Resolver a divergência de licença para os pacotes escolhidos.",
+      "evidence": [
+        {
+          "repository": "exogee-technology/graphweaver",
+          "path": "README.md",
+          "blob_sha": "ea07f7cb0d91594a8b7055fd7f4a022a07ff8671",
+          "url": "https://github.com/exogee-technology/graphweaver/blob/main/README.md"
+        },
+        {
+          "repository": "exogee-technology/graphweaver",
+          "path": "LICENSE.md",
+          "blob_sha": "4d6501c5535477f2e366a0ef2f95933c83d580de",
+          "url": "https://github.com/exogee-technology/graphweaver/blob/main/LICENSE.md"
+        }
+      ],
+      "installed_by_this_catalog": false
+    },
+    {
+      "id": "trigger_docker",
+      "repository": "triggerdotdev/docker",
+      "feed_label": "triggerdotdev/docker",
+      "identification": "Repositório de templates confirmado.",
+      "priority": 3,
+      "decision": "defer",
+      "purpose": "Orquestração de tarefas em segundo plano e processamento em lote.",
+      "license": "Licença dos templates não confirmada nos arquivos consultados; núcleo trigger.dev tem LICENSE Apache-2.0.",
+      "cost_condition": "Autohospedagem exige recursos locais e manutenção; não ativar cloud ou provedores pagos.",
+      "integration_condition": "Conferir a documentação de autohospedagem atual, versão das imagens e compatibilidade dos templates antes de executar.",
+      "evidence": [
+        {
+          "repository": "triggerdotdev/docker",
+          "path": "README.md",
+          "blob_sha": "4738fffc60359e9c182037b1d361717f65816f22",
+          "url": "https://github.com/triggerdotdev/docker/blob/main/README.md"
+        },
+        {
+          "repository": "triggerdotdev/trigger.dev",
+          "path": "LICENSE",
+          "blob_sha": "5e468e5078530707eb8d28fe28cad2f72fb64bf0",
+          "url": "https://github.com/triggerdotdev/trigger.dev/blob/main/LICENSE"
+        }
+      ],
+      "installed_by_this_catalog": false
+    },
+    {
+      "id": "nango",
+      "repository": "NangoHQ/nango",
+      "feed_label": "NangoHQ/nango",
+      "identification": "Repositório confirmado; package.json consultado declara 0.72.4.",
+      "priority": 3,
+      "decision": "conditional",
+      "purpose": "OAuth, armazenamento de credenciais e integrações com APIs.",
+      "license": "Elastic-2.0 (ELv2), com restrições de serviço gerenciado e de funcionalidades protegidas por chave.",
+      "cost_condition": "README descreve autohospedagem gratuita com conjunto limitado de recursos; não presumir gratuidade da plataforma completa ou dos provedores conectados.",
+      "integration_condition": "Definir primeiro quais APIs serão conectadas; conferir recursos gratuitos, política de dados, telemetria e licença da versão selecionada.",
+      "evidence": [
+        {
+          "repository": "NangoHQ/nango",
+          "path": "README.md",
+          "blob_sha": "110b8d51cf1cfaf27b37c78b563a5b211a243ccb",
+          "url": "https://github.com/NangoHQ/nango/blob/master/README.md"
+        },
+        {
+          "repository": "NangoHQ/nango",
+          "path": "LICENSE",
+          "blob_sha": "682d649ce7e27ba96a0d48f43a698b2ec1196e3e",
+          "url": "https://github.com/NangoHQ/nango/blob/master/LICENSE"
+        },
+        {
+          "repository": "NangoHQ/nango",
+          "path": "package.json",
+          "blob_sha": "977b9ee1e982fe2d26d8de61fbac929c37d58952",
+          "url": "https://github.com/NangoHQ/nango/blob/master/package.json"
+        }
+      ],
+      "installed_by_this_catalog": false
+    },
+    {
+      "id": "bitnet_research",
+      "repository": "kyegomez/BitNet",
+      "feed_label": "kyegomez/BitNet",
+      "identification": "Implementação PyTorch de pesquisa confirmada.",
+      "priority": 4,
+      "decision": "research_only",
+      "purpose": "Pesquisa em quantização e treinamento com BitLinear.",
+      "license": "MIT",
+      "cost_condition": "Exige avaliar hardware e checkpoints; treinamento e serviços de nuvem não estão autorizados.",
+      "integration_condition": "Não é uma substituição direta de modelos existentes. O README alerta para a necessidade de treinamento apropriado. Distinguir do provedor BitNet já presente no Monolito.",
+      "evidence": [
+        {
+          "repository": "kyegomez/BitNet",
+          "path": "README.md",
+          "blob_sha": "e77f3d553013403e7c8c65bcf839f927e2e03152",
+          "url": "https://github.com/kyegomez/BitNet/blob/main/README.md"
+        },
+        {
+          "repository": "kyegomez/BitNet",
+          "path": "LICENSE",
+          "blob_sha": "ca69c7eb4955d82bcc187d8b510746d618eb0471",
+          "url": "https://github.com/kyegomez/BitNet/blob/main/LICENSE"
+        }
+      ],
+      "installed_by_this_catalog": false
+    },
+    {
+      "id": "junie_action",
+      "repository": "JetBrains/junie-github-action",
+      "feed_label": "JetBrains/junie-github-action",
+      "identification": "Action confirmada.",
+      "priority": 4,
+      "decision": "blocked_zero_cost",
+      "purpose": "Automação de programação e revisão no GitHub.",
+      "license": "Não confirmada nos arquivos LICENSE, LICENSE.md e LICENSE.txt consultados.",
+      "cost_condition": "README exige chave Junie ou BYOK; não foi confirmado um caminho local sem cobrança.",
+      "integration_condition": "Não adicionar workflow, segredo ou permissão de aprovação automática sem confirmar elegibilidade de custo zero e revisar as permissões.",
+      "evidence": [
+        {
+          "repository": "JetBrains/junie-github-action",
+          "path": "README.md",
+          "blob_sha": "dea2087e061a8ab531003ab3c720b12506becba1",
+          "url": "https://github.com/JetBrains/junie-github-action/blob/main/README.md"
+        }
+      ],
+      "installed_by_this_catalog": false
+    },
+    {
+      "id": "hghub",
+      "repository": "Minireel/HGhub",
+      "feed_label": "Minireel/HGhub",
+      "identification": "README atual informa fim da manutenção e retirada do código.",
+      "priority": 4,
+      "decision": "unavailable",
+      "purpose": "Sem uso educacional estabelecido nesta avaliação.",
+      "license": "Não confirmada; o código foi retirado segundo o README.",
+      "cost_condition": "Não aplicável: não selecionado para integração.",
+      "integration_condition": "Manter apenas como registro do feed; não instalar ou buscar cópias não verificadas.",
+      "evidence": [
+        {
+          "repository": "Minireel/HGhub",
+          "path": "README.md",
+          "blob_sha": "e336047d815823df70bf5dd1533ee42242ae9f25",
+          "url": "https://github.com/Minireel/HGhub/blob/main/README.md"
+        }
+      ],
+      "installed_by_this_catalog": false
+    }
+  ]
+}
