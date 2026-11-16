@@ -100,9 +100,11 @@ class Settings(BaseSettings):
     public_rate_limit_per_minute: int = 20
     public_rate_limit_global_per_minute: int = 300
     public_max_prompt_chars: int = 4000
-    # True = lê o IP do cliente do primeiro valor de X-Forwarded-For. Ligue só
-    # atrás de proxy reverso (Render, Nginx); sem proxy o header é forjável.
-    trust_proxy_headers: bool = False
+    # Quantos proxies reversos confiáveis existem na frente da API. Com N > 0 o
+    # IP do cliente é o N-ésimo valor de X-Forwarded-For contado a partir da
+    # DIREITA — a parte que os seus proxies acrescentam; o que vem à esquerda é
+    # enviado pelo cliente e pode ser forjado. 0 = ignora o header.
+    trusted_proxy_hops: int = 0
     # SSRF: quando False, POST /api/v2/config/test recusa hosts privados,
     # loopback e link-local. Default True porque o projeto é local-first
     # (Ollama/LM Studio na própria máquina e portal na LAN escolar).

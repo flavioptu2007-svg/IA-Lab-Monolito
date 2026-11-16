@@ -58,7 +58,7 @@ def client() -> TestClient:
 def _estado_limpo(monkeypatch):
     """Cada teste começa sem token e com o limitador zerado."""
     monkeypatch.setattr(settings, "api_token", SecretStr(""))
-    monkeypatch.setattr(settings, "trust_proxy_headers", False)
+    monkeypatch.setattr(settings, "trusted_proxy_hops", 0)
     security.public_limiter.reset()
     yield
     security.public_limiter.reset()
@@ -196,7 +196,7 @@ class TestChatPublico:
         assert [_chat(client, headers=KEY).status_code for _ in range(5)] == [200] * 5
 
     def test_limite_global_vale_para_ips_diferentes(self, client, token, chat_ok, monkeypatch):
-        monkeypatch.setattr(settings, "trust_proxy_headers", True)
+        monkeypatch.setattr(settings, "trusted_proxy_hops", 1)
         monkeypatch.setattr(settings, "public_rate_limit_per_minute", 100)
         monkeypatch.setattr(settings, "public_rate_limit_global_per_minute", 2)
 
@@ -207,11 +207,11 @@ class TestChatPublico:
         assert codes == [200, 200, 429]
 
     def test_ips_diferentes_tem_contagens_separadas(self, client, token, chat_ok, monkeypatch):
-        monkeypatch.setattr(settings, "trust_proxy_headers", True)
+        monkeypatch.setattr(settings, "trusted_proxy_hops", 1)
         monkeypatch.setattr(settings, "public_rate_limit_per_minute", 1)
 
         a = {"X-Forwarded-For": "203.0.113.10"}
-        b = {"X-Forwarded-For": "203.0.113.20, 10.0.0.1"}
+        b = {"X-Forwarded-For": "203.0.113.20"}
         assert _chat(client, headers=a).status_code == 200
         assert _chat(client, headers=a).status_code == 429
         assert _chat(client, headers=b).status_code == 200
@@ -219,7 +219,35 @@ class TestChatPublico:
     def test_x_forwarded_for_e_ignorado_sem_proxy_confiavel(
         self, client, token, chat_ok, monkeypatch
     ):
-        """Sem trust_proxy_headers, forjar o header não burla o limite por IP."""
+        """Sem proxy confiável declarado, forjar o header não burla o limite por IP."""
+        monkeypatch.setattr(settings, "public_rate_limit_per_minute", 1)
+        assert _chat(client, headers={"X-Forwarded-For": "1.1.1.1"}).status_code == 200
+        assert _chat(client, headers={"X-Forwarded-For": "2.2.2.2"}).status_code == 429
+
+    def test_valor_forjado_a_esquerda_nao_muda_a_identidade(
+        self, client, token, chat_ok, monkeypatch
+    ):
+        """Proxy que acrescenta: 'forjado, ip-real'. Vale o valor da direita."""
+        monkeypatch.setattr(settings, "trusted_proxy_hops", 1)
+        monkeypatch.setattr(settings, "public_rate_limit_per_minute", 1)
+
+        assert _chat(client, headers={"X-Forwarded-For": "1.1.1.1, 203.0.113.9"}).status_code == 200
+        assert _chat(client, headers={"X-Forwarded-For": "2.2.2.2, 203.0.113.9"}).status_code == 429
+
+    def test_dois_proxies_confiaveis(self, client, token, chat_ok, monkeypatch):
+        monkeypatch.setattr(settings, "trusted_proxy_hops", 2)
+        monkeypatch.setattr(settings, "public_rate_limit_per_minute", 1)
+
+        a = {"X-Forwarded-For": "9.9.9.9, 203.0.113.9, 10.0.0.1"}
+        b = {"X-Forwarded-For": "9.9.9.9, 203.0.113.77, 10.0.0.1"}
+        assert _chat(client, headers=a).status_code == 200
+        assert _chat(client, headers=a).status_code == 429
+        assert _chat(client, headers=b).status_code == 200
+
+    def test_header_mais_curto_que_o_esperado_usa_o_ip_da_conexao(
+        self, client, token, chat_ok, monkeypatch
+    ):
+        monkeypatch.setattr(settings, "trusted_proxy_hops", 2)
         monkeypatch.setattr(settings, "public_rate_limit_per_minute", 1)
         assert _chat(client, headers={"X-Forwarded-For": "1.1.1.1"}).status_code == 200
         assert _chat(client, headers={"X-Forwarded-For": "2.2.2.2"}).status_code == 429
@@ -307,4 +335,29 @@ class TestSlidingWindowLimiter:
         limiter = SlidingWindowLimiter(window_seconds=60, max_keys=100)
         for i in range(1000):
             limiter.check(f"ip:{i}", 5, now=float(i))
-        assert len(limiter._hits) <= 100
+        assert len(limiter._hits) <= 101  # 100 chaves + contador de transbordo
+
+    def test_tabela_cheia_nao_zera_contadores_ativos(self):
+        """Lotar a tabela com chaves novas não pode liberar quem já estava barrado."""
+        limiter = SlidingWindowLimiter(window_seconds=60, max_keys=10)
+        assert limiter.check("vitima", 1, now=0.0) == 0
+        for i in range(500):
+            limiter.check(f"ip:{i}", 1, now=1.0)
+        assert limiter.check("vitima", 1, now=2.0) > 0
+
+    def test_chaves_excedentes_dividem_um_contador(self):
+        limiter = SlidingWindowLimiter(window_seconds=60, max_keys=3)
+        for i in range(3):
+            assert limiter.check(f"ip:{i}", 2, now=0.0) == 0
+        resultados = [limiter.check(f"novo:{i}", 2, now=1.0) for i in range(5)]
+        assert [r == 0 for r in resultados] == [True, True, False, False, False]
+
+
+class TestPublicLimiter:
+    def test_rotatividade_de_ips_nao_zera_o_limite_global(self):
+        """10.001 IPs distintos no mesmo minuto: o global segura em 300."""
+        from src.core.security import PublicLimiter
+
+        limiter = PublicLimiter()
+        admitidas = sum(1 for i in range(10_001) if limiter.check(f"ip:{i}", 20, 300) == 0)
+        assert admitidas == 300

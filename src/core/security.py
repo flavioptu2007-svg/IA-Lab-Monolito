@@ -78,7 +78,14 @@ class SlidingWindowLimiter:
 
     Suficiente para uma instância única (Render free, LAN escolar). Com várias
     réplicas cada uma conta em separado — aí o limite passa a ser por réplica.
+
+    A memória é limitada a ``max_keys`` chaves. Se a tabela lotar de chaves
+    ainda ativas, as chaves novas passam a dividir um único contador de
+    transbordo: nenhum contador ativo é descartado, então lotar a tabela não
+    zera o limite de ninguém.
     """
+
+    OVERFLOW_KEY = "__overflow__"
 
     def __init__(self, window_seconds: float = 60.0, max_keys: int = 10_000) -> None:
         self.window = window_seconds
@@ -97,7 +104,9 @@ class SlidingWindowLimiter:
             if hits is None:
                 if len(self._hits) >= self.max_keys:
                     self._prune(cutoff)
-                hits = self._hits[key] = deque()
+                if len(self._hits) >= self.max_keys:
+                    key = self.OVERFLOW_KEY
+                hits = self._hits.setdefault(key, deque())
             while hits and hits[0] <= cutoff:
                 hits.popleft()
             if len(hits) >= limit:
@@ -106,30 +115,57 @@ class SlidingWindowLimiter:
             return 0.0
 
     def _prune(self, cutoff: float) -> None:
-        """Descarta chaves sem acesso na janela; se ainda lotado, zera tudo."""
+        """Descarta só as chaves sem nenhum acesso dentro da janela."""
         stale = [k for k, v in self._hits.items() if not v or v[-1] <= cutoff]
         for k in stale:
             del self._hits[k]
-        if len(self._hits) >= self.max_keys:
-            self._hits.clear()
 
     def reset(self) -> None:
         with self._lock:
             self._hits.clear()
 
 
-public_limiter = SlidingWindowLimiter()
+class PublicLimiter:
+    """Limites do acesso anônimo: um contador por IP e um contador global.
 
-_GLOBAL_KEY = "__global__"
+    Ficam em tabelas separadas para que a rotatividade de IPs nunca afete o
+    contador global. O limite por IP é conferido primeiro: assim as tentativas
+    barradas de um único IP abusivo não consomem a cota global dos demais.
+    """
+
+    def __init__(self) -> None:
+        self.per_ip = SlidingWindowLimiter()
+        self.total = SlidingWindowLimiter(max_keys=1)
+
+    def check(self, ip: str, ip_limit: int, global_limit: int) -> float:
+        wait = self.per_ip.check(ip, ip_limit)
+        if wait:
+            return wait
+        return self.total.check("global", global_limit)
+
+    def reset(self) -> None:
+        self.per_ip.reset()
+        self.total.reset()
+
+
+public_limiter = PublicLimiter()
 
 
 def client_ip(request: Request) -> str:
-    """IP do cliente; usa X-Forwarded-For só com ``trust_proxy_headers`` ligado."""
-    if settings.trust_proxy_headers:
-        forwarded = request.headers.get("x-forwarded-for", "")
-        first = forwarded.split(",", 1)[0].strip()
-        if first:
-            return first
+    """IP do cliente para o limite de taxa.
+
+    Com ``trusted_proxy_hops = N > 0`` usa o N-ésimo valor de X-Forwarded-For
+    contado a partir da direita: cada proxy confiável acrescenta à direita o
+    endereço de quem se conectou a ele, e tudo à esquerda disso veio do cliente
+    e pode ser forjado. Se o header tiver menos valores que N, cai no endereço
+    da conexão.
+    """
+    hops = settings.trusted_proxy_hops
+    if hops > 0:
+        parts = [p.strip() for p in request.headers.get("x-forwarded-for", "").split(",")]
+        parts = [p for p in parts if p]
+        if len(parts) >= hops:
+            return parts[-hops]
     return request.client.host if request.client else "desconhecido"
 
 
@@ -161,8 +197,10 @@ def public_access(
         )
 
     wait = public_limiter.check(
-        f"ip:{client_ip(request)}", settings.public_rate_limit_per_minute
-    ) or public_limiter.check(_GLOBAL_KEY, settings.public_rate_limit_global_per_minute)
+        client_ip(request),
+        settings.public_rate_limit_per_minute,
+        settings.public_rate_limit_global_per_minute,
+    )
     if wait:
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
