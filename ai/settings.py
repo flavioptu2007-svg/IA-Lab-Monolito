@@ -93,6 +93,16 @@ class Settings(BaseSettings):
     # education, openvino). Vazio = autenticação desabilitada
     # (dev local e suíte de testes).
     api_token: SecretStr = SecretStr("")
+    # Rotas públicas do portal (POST /api/chat e POST /api/audio/tts): alunos
+    # usam sem chave, então, com token configurado, o acesso anônimo é limitado
+    # por IP e no total. Quem envia X-API-Key válida não sofre esses limites.
+    # 0 desliga o respectivo limite.
+    public_rate_limit_per_minute: int = 20
+    public_rate_limit_global_per_minute: int = 300
+    public_max_prompt_chars: int = 4000
+    # True = lê o IP do cliente do primeiro valor de X-Forwarded-For. Ligue só
+    # atrás de proxy reverso (Render, Nginx); sem proxy o header é forjável.
+    trust_proxy_headers: bool = False
     # SSRF: quando False, POST /api/v2/config/test recusa hosts privados,
     # loopback e link-local. Default True porque o projeto é local-first
     # (Ollama/LM Studio na própria máquina e portal na LAN escolar).

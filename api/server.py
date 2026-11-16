@@ -15,13 +15,14 @@ from __future__ import annotations
 import os
 import time
 
-from fastapi import FastAPI, HTTPException, Response, status
+from fastapi import Depends, FastAPI, HTTPException, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 # ── Módulos auxiliares ───────────────────────────────────────────
 from src.core.lifespan import lifespan
 from src.core.routers import register_routers
+from src.core.security import enforce_public_text_limit, public_access, require_api_key
 
 app = FastAPI(
     title="IA-Lab Unified API",
@@ -218,7 +219,7 @@ async def health():
     return {"status": overall, "checks": checks, "version": "2.1.1"}
 
 
-@app.get("/api/providers")
+@app.get("/api/providers", dependencies=[Depends(require_api_key)])
 async def list_providers():
     """Lista providers disponíveis com seus status."""
     cfg = get_settings()
@@ -265,7 +266,7 @@ async def list_providers():
     return {"providers": providers}
 
 
-@app.get("/api/agents")
+@app.get("/api/agents", dependencies=[Depends(require_api_key)])
 async def list_agents():
     """Lista agentes especializados disponíveis."""
     registry = get_agent_registry()
@@ -287,8 +288,12 @@ async def list_agents():
 
 
 @app.post("/api/chat", response_model=ChatResponse)
-async def chat(request: ChatRequest):
-    """Envia uma mensagem para a IA com roteamento inteligente."""
+async def chat(request: ChatRequest, is_public: bool = Depends(public_access)):
+    """Envia uma mensagem para a IA com roteamento inteligente.
+
+    Rota usada sem chave pelo portal dos alunos: ver ``public_access``.
+    """
+    enforce_public_text_limit(is_public, request.prompt)
     from ai.providers.base import TaskType
 
     service = get_service()
@@ -357,21 +362,21 @@ async def chat(request: ChatRequest):
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 
 
-@app.get("/api/history")
+@app.get("/api/history", dependencies=[Depends(require_api_key)])
 async def get_history(limit: int = 50):
     """Retorna o histórico de conversas."""
     entries = history_store.list(limit=limit)
     return {"history": [e.model_dump() for e in entries]}
 
 
-@app.delete("/api/history")
+@app.delete("/api/history", dependencies=[Depends(require_api_key)])
 async def clear_history():
     """Limpa o histórico de conversas."""
     history_store.clear()
     return {"status": "ok"}
 
 
-@app.get("/api/metrics")
+@app.get("/api/metrics", dependencies=[Depends(require_api_key)])
 async def get_metrics():
     """Retorna um snapshot das métricas Prometheus."""
     from prometheus_client.registry import REGISTRY
@@ -389,7 +394,7 @@ async def get_metrics():
     return {"metrics": samples}
 
 
-@app.get("/api/config")
+@app.get("/api/config", dependencies=[Depends(require_api_key)])
 async def get_config():
     """Retorna a configuração atual do sistema (sem secrets)."""
     cfg = get_settings()
@@ -470,7 +475,7 @@ class AudioMicRequest(BaseModel):
 # ── Rotas de áudio ────────────────────────────────────────────────────────
 
 
-@app.get("/api/audio/status")
+@app.get("/api/audio/status", dependencies=[Depends(require_api_key)])
 async def audio_status():
     """Status completo do módulo de áudio."""
     from ai.audio import metrics as am
@@ -492,7 +497,7 @@ async def audio_status():
     return status
 
 
-@app.get("/api/audio/devices")
+@app.get("/api/audio/devices", dependencies=[Depends(require_api_key)])
 async def audio_devices():
     """Lista todos os dispositivos de áudio (entrada e saída)."""
     engine = get_audio_engine()
@@ -506,7 +511,7 @@ async def audio_devices():
     }
 
 
-@app.post("/api/audio/record")
+@app.post("/api/audio/record", dependencies=[Depends(require_api_key)])
 async def audio_record(request: AudioRecordRequest):
     """Grava áudio do microfone.
 
@@ -564,7 +569,7 @@ async def audio_record(request: AudioRecordRequest):
         am.audio_recording.labels(source=request.source or "default").set(0)
 
 
-@app.post("/api/audio/effects")
+@app.post("/api/audio/effects", dependencies=[Depends(require_api_key)])
 async def audio_effects(request: AudioEffectsRequest):
     """Aplica efeitos de processamento a um áudio enviado como base64.
 
@@ -635,7 +640,7 @@ async def audio_effects(request: AudioEffectsRequest):
         raise HTTPException(status_code=500, detail=str(e)) from e
 
 
-@app.post("/api/audio/stt")
+@app.post("/api/audio/stt", dependencies=[Depends(require_api_key)])
 async def audio_stt(request: AudioSTTRequest):
     """Transcreve áudio (enviado como base64 no body) para texto.
 
@@ -694,7 +699,7 @@ async def audio_stt(request: AudioSTTRequest):
 
 
 @app.post("/api/audio/tts")
-async def audio_tts(request: AudioTTSRequest):
+async def audio_tts(request: AudioTTSRequest, is_public: bool = Depends(public_access)):
     """Sintetiza texto em áudio (Text-to-Speech).
 
     Args no body:
@@ -707,6 +712,8 @@ async def audio_tts(request: AudioTTSRequest):
     Returns:
         Áudio em base64 no formato solicitado.
     """
+    enforce_public_text_limit(is_public, request.text)
+
     import base64
     import time
 
@@ -770,7 +777,7 @@ async def audio_tts(request: AudioTTSRequest):
         raise HTTPException(status_code=500, detail=str(e)) from e
 
 
-@app.get("/api/audio/mic/status")
+@app.get("/api/audio/mic/status", dependencies=[Depends(require_api_key)])
 async def audio_mic_status():
     """Status do microfone virtual."""
     from ai.audio import metrics as am
@@ -789,7 +796,7 @@ async def audio_mic_status():
     return status
 
 
-@app.post("/api/audio/mic/create")
+@app.post("/api/audio/mic/create", dependencies=[Depends(require_api_key)])
 async def audio_mic_create(request: AudioMicRequest):
     """Cria o microfone virtual no PipeWire."""
     from ai.audio import metrics as am
@@ -810,7 +817,7 @@ async def audio_mic_create(request: AudioMicRequest):
         raise HTTPException(status_code=500, detail=str(e)) from e
 
 
-@app.post("/api/audio/mic/remove")
+@app.post("/api/audio/mic/remove", dependencies=[Depends(require_api_key)])
 async def audio_mic_remove(request: AudioMicRequest):
     """Remove o microfone virtual do PipeWire."""
     from ai.audio import metrics as am
@@ -829,7 +836,7 @@ async def audio_mic_remove(request: AudioMicRequest):
         raise HTTPException(status_code=500, detail=str(e)) from e
 
 
-@app.get("/api/audio/metrics")
+@app.get("/api/audio/metrics", dependencies=[Depends(require_api_key)])
 async def audio_metrics():
     """Retorna um snapshot das métricas Prometheus específicas de áudio."""
     from prometheus_client.registry import REGISTRY
@@ -849,7 +856,7 @@ async def audio_metrics():
     return {"audio_metrics": samples}
 
 
-@app.get("/api/audio/config")
+@app.get("/api/audio/config", dependencies=[Depends(require_api_key)])
 async def audio_config():
     """Retorna a configuração do módulo de áudio (sem secrets)."""
     from ai.audio.settings import audio_settings as acfg

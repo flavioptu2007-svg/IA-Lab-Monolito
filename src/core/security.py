@@ -2,7 +2,10 @@
 
 A API é local-first (painel Vite, portal escolar, Ollama/LM Studio) e não usa
 cookies nem sessão. Quando ``IA_LAB_API_TOKEN`` está definido, todo router
-protegido exige o header ``X-API-Key``; quando está vazio, a autenticação fica
+protegido exige o header ``X-API-Key`` — inclusive as rotas legadas ``/api/*``
+de ``api/server.py``. As exceções são os health checks e as duas rotas que o
+portal dos alunos chama sem chave (chat e TTS), que ficam sob limite de taxa
+(ver :func:`public_access`); quando está vazio, a autenticação fica
 desabilitada — útil em desenvolvimento local e na suíte de testes — e um aviso
 é registrado no boot (ver :func:`warn_if_auth_disabled`).
 """
@@ -12,10 +15,14 @@ from __future__ import annotations
 import hmac
 import ipaddress
 import logging
+import math
 import socket
+import threading
+import time
+from collections import deque
 from urllib.parse import urlparse
 
-from fastapi import Header, HTTPException, status
+from fastapi import Header, HTTPException, Request, status
 
 from ai.settings import settings
 
@@ -43,8 +50,8 @@ def warn_if_auth_disabled() -> None:
     """Registra um aviso quando a API sobe sem ``IA_LAB_API_TOKEN``."""
     if not auth_enabled():
         logger.warning(
-            "IA_LAB_API_TOKEN não configurado — os routers /api/v2 estão SEM "
-            "autenticação. Defina um token (ex.: `openssl rand -hex 32`) antes "
+            "IA_LAB_API_TOKEN não configurado — as rotas /api e /api/v2 estão SEM "
+            "autenticação nem limite de taxa. Defina um token (ex.: `openssl rand -hex 32`) antes "
             "de expor a API fora de localhost."
         )
 
@@ -63,6 +70,115 @@ def require_api_key(x_api_key: str = Header(default="", alias=API_KEY_HEADER)) -
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="API key ausente ou inválida",
             headers={"WWW-Authenticate": API_KEY_HEADER},
+        )
+
+
+class SlidingWindowLimiter:
+    """Limite de requisições por janela deslizante, em memória e por processo.
+
+    Suficiente para uma instância única (Render free, LAN escolar). Com várias
+    réplicas cada uma conta em separado — aí o limite passa a ser por réplica.
+    """
+
+    def __init__(self, window_seconds: float = 60.0, max_keys: int = 10_000) -> None:
+        self.window = window_seconds
+        self.max_keys = max_keys
+        self._hits: dict[str, deque[float]] = {}
+        self._lock = threading.Lock()
+
+    def check(self, key: str, limit: int, now: float | None = None) -> float:
+        """Registra um acesso. Devolve 0 se permitido ou os segundos até liberar."""
+        if limit <= 0:
+            return 0.0
+        now = time.monotonic() if now is None else now
+        cutoff = now - self.window
+        with self._lock:
+            hits = self._hits.get(key)
+            if hits is None:
+                if len(self._hits) >= self.max_keys:
+                    self._prune(cutoff)
+                hits = self._hits[key] = deque()
+            while hits and hits[0] <= cutoff:
+                hits.popleft()
+            if len(hits) >= limit:
+                return max(hits[0] + self.window - now, 0.001)
+            hits.append(now)
+            return 0.0
+
+    def _prune(self, cutoff: float) -> None:
+        """Descarta chaves sem acesso na janela; se ainda lotado, zera tudo."""
+        stale = [k for k, v in self._hits.items() if not v or v[-1] <= cutoff]
+        for k in stale:
+            del self._hits[k]
+        if len(self._hits) >= self.max_keys:
+            self._hits.clear()
+
+    def reset(self) -> None:
+        with self._lock:
+            self._hits.clear()
+
+
+public_limiter = SlidingWindowLimiter()
+
+_GLOBAL_KEY = "__global__"
+
+
+def client_ip(request: Request) -> str:
+    """IP do cliente; usa X-Forwarded-For só com ``trust_proxy_headers`` ligado."""
+    if settings.trust_proxy_headers:
+        forwarded = request.headers.get("x-forwarded-for", "")
+        first = forwarded.split(",", 1)[0].strip()
+        if first:
+            return first
+    return request.client.host if request.client else "desconhecido"
+
+
+def public_access(
+    request: Request,
+    x_api_key: str = Header(default="", alias=API_KEY_HEADER),
+) -> bool:
+    """Dependência das rotas que o portal chama sem chave (chat e TTS).
+
+    Devolve ``True`` quando a chamada é anônima — o handler usa isso para
+    aplicar limites de tamanho. Regras, com token configurado:
+
+    - ``X-API-Key`` válida: acesso pleno, sem limite de taxa;
+    - ``X-API-Key`` inválida: 401 (chave errada não vira acesso anônimo);
+    - sem chave: permitido, mas com limite por IP e limite global por minuto.
+
+    Sem token configurado nada é checado (dev local / suíte de testes).
+    """
+    expected = settings.api_token.get_secret_value()
+    if not expected:
+        return False
+    if x_api_key:
+        if hmac.compare_digest(x_api_key, expected):
+            return False
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="API key ausente ou inválida",
+            headers={"WWW-Authenticate": API_KEY_HEADER},
+        )
+
+    wait = public_limiter.check(
+        f"ip:{client_ip(request)}", settings.public_rate_limit_per_minute
+    ) or public_limiter.check(_GLOBAL_KEY, settings.public_rate_limit_global_per_minute)
+    if wait:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Muitas requisições. Aguarde um pouco e tente de novo.",
+            headers={"Retry-After": str(math.ceil(wait))},
+        )
+    return True
+
+
+def enforce_public_text_limit(is_public: bool, text: str) -> None:
+    """Recusa texto longo demais em chamada anônima (413)."""
+    limit = settings.public_max_prompt_chars
+    if is_public and limit > 0 and len(text) > limit:
+        raise HTTPException(
+            status_code=413,
+            detail=f"Texto acima do limite de {limit} caracteres para acesso sem chave.",
         )
 
 
