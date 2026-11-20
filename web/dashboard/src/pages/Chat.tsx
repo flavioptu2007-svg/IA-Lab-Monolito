@@ -87,7 +87,7 @@ export function ChatPage() {
       };
       setMessages((prev) => [...prev, assistantMsg]);
       setStreamingContent("");
-    } catch (err) {
+    } catch {
       const fallback: ChatResponse = await api.chat({ message: trimmed }).catch(() => ({
         response: "Desculpe, ocorreu um erro ao processar sua mensagem.",
         provider: "error",
