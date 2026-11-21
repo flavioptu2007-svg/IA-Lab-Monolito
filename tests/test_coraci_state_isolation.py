@@ -33,6 +33,11 @@ def flask_coraci():
     return mod
 
 
+def _ler_se_existir(caminho):
+    """config.json é local e ignorado pelo git: pode não existir (ex.: CI)."""
+    return caminho.read_bytes() if caminho.exists() else None
+
+
 class TestCaminhosIsolados:
     """Os caminhos de config/banco são resolvidos para o diretório real da
     aplicação (dentro do repositório), e o teste de isolamento verifica que
@@ -44,26 +49,26 @@ class TestCaminhosIsolados:
 
         alvo = tmp_path / "config.json"
         monkeypatch.setenv("IA_LAB_CORACI_CONFIG", str(alvo))
-        antes = (RAIZ / "Aplicativo_Coraci" / "config.json").read_bytes()
+        antes = _ler_se_existir(RAIZ / "Aplicativo_Coraci" / "config.json")
 
         chat_coraci.save_config({"model": "modelo-de-teste"})
 
         assert alvo.exists()
         assert "modelo-de-teste" in alvo.read_text()
-        assert (RAIZ / "Aplicativo_Coraci" / "config.json").read_bytes() == antes
+        assert _ler_se_existir(RAIZ / "Aplicativo_Coraci" / "config.json") == antes
 
     def test_flask_save_config_nao_escreve_no_repositorio(
         self, flask_coraci, tmp_path, monkeypatch
     ):
         alvo = tmp_path / "flask-config.json"
         monkeypatch.setenv("IA_LAB_CORACI_FLASK_CONFIG", str(alvo))
-        antes = (RAIZ / "Aplicativo_Coraci" / "config.json").read_bytes()
+        antes = _ler_se_existir(RAIZ / "Aplicativo_Coraci" / "config.json")
 
         flask_coraci.save_config({"model": "modelo-de-teste"})
 
         assert alvo.exists()
         assert "modelo-de-teste" in alvo.read_text()
-        assert (RAIZ / "Aplicativo_Coraci" / "config.json").read_bytes() == antes
+        assert _ler_se_existir(RAIZ / "Aplicativo_Coraci" / "config.json") == antes
 
     """save_config deve gravar no caminho do override, nunca no arquivo versionado."""
 
