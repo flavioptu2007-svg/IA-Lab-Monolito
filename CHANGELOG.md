@@ -235,6 +235,11 @@ versionamento segue o [SemVer](https://semver.org/lang/pt-BR/). A versão corren
 
 ### Removido
 
+- `tests/test_leituraia.py`, que nunca rodava: o `importorskip("leituraia")`
+  pulava o arquivo em todos os jobs do CI (o pacote só é importável a partir de
+  `Projetos/`) e os 19 testes duplicavam `Projetos/leituraia/tests`, já coberto
+  pela matriz de testes do projeto. A suíte do monolito voltou a rodar sem
+  nenhum skip: 818 testes.
 - Instalador do Microsoft Office 2016 via Wine:
   `scripts/install_office2016_msi.sh`, `scripts/setup_office_wine.sh`,
   `scripts/diagnose_office_linux.sh`, `docs/microsoft-office-linux-wine.md` e
