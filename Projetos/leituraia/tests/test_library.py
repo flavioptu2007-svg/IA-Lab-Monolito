@@ -1,19 +1,18 @@
 """Testes da biblioteca de textos do LeituraIA Brasil."""
 
-
 from leituraia.library import LibraryStore, _contar_palavras, _tempo_estimado
 from leituraia.models import TextoCreate
 
 
 def _texto(**overrides) -> TextoCreate:
-    base = dict(
-        titulo="Texto de teste",
-        conteudo="Palavra " * 50,  # 50 palavras
-        ano="7",
-        disciplina="História",
-        tema="Feudalismo",
-        nivel="fundamental2",
-    )
+    base = {
+        "titulo": "Texto de teste",
+        "conteudo": "Palavra " * 50,  # 50 palavras
+        "ano": "7",
+        "disciplina": "História",
+        "tema": "Feudalismo",
+        "nivel": "fundamental2",
+    }
     base.update(overrides)
     return TextoCreate(**base)
 

@@ -12,8 +12,9 @@ import os
 # Força modo offline ANTES de importar o gerador.
 os.environ.setdefault("LEITURAIA_OFFLINE", "1")
 
-from leituraia.generator import gerar_texto  # noqa: E402
-from leituraia.models import GerarTextoRequest  # noqa: E402
+from leituraia.generator import gerar_texto
+from leituraia.models import GerarTextoRequest
+from pydantic import ValidationError
 
 
 @pytest.fixture
@@ -54,5 +55,5 @@ class TestGerarTexto:
         assert r1.texto == r2.texto
 
     def test_validacao_de_palavras(self):
-        with pytest.raises(Exception):
+        with pytest.raises(ValidationError):
             GerarTextoRequest(ano="7", disciplina="História", tema="X", palavras=10)

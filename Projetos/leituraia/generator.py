@@ -244,4 +244,4 @@ def gerar_texto(req: GerarTextoRequest) -> TextoGerado:
     return _gerar_template(req)
 
 
-__all__ = ["gerar_texto", "_gerar_template"]
+__all__ = ["_gerar_template", "gerar_texto"]

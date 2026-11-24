@@ -1,15 +1,21 @@
 """Biblioteca do LeituraIA Brasil — acervo de textos didáticos.
 
-Armazenamento em memória (padrão do monolito). O acervo inicial é semeado
-com materiais produzidos no ecossistema do professor (Feudalismo, fontes
-do Project Gutenberg) — demonstração de curadoria multi-disciplinar.
+Acervo e leituras persistidos via SQLAlchemy ORM (tabelas ``textos``/``leituras``).
+O acervo inicial é semeado apenas quando a tabela está vazia, com materiais
+produzidos no ecossistema do professor (Feudalismo, fontes do Project Gutenberg)
+— demonstração de curadoria multi-disciplinar.
 """
 
 from __future__ import annotations
 
 import uuid
+from datetime import UTC, datetime
 from typing import Any
 
+from sqlalchemy import func, select
+from sqlalchemy.exc import IntegrityError
+
+from leituraia import db, orm
 from leituraia.models import Pergunta, TextoCreate, TextoOut
 
 # ── Textos semeados ──────────────────────────────────────────────────
@@ -204,16 +210,48 @@ def _tempo_estimado(texto: str, ppm: int = 200) -> int:
     return max(1, round(_contar_palavras(texto) / ppm))
 
 
+def _para_texto(registro: orm.TextoORM) -> TextoOut:
+    return TextoOut(
+        id=registro.id,
+        titulo=registro.titulo,
+        conteudo=registro.conteudo,
+        autor=registro.autor,
+        ano=registro.ano,
+        disciplina=registro.disciplina,
+        tema=registro.tema,
+        nivel=registro.nivel,
+        tipo=registro.tipo,
+        genero=registro.genero,
+        idioma=registro.idioma,
+        tags=list(registro.tags),
+        bncc=list(registro.bncc),
+        crmg=list(registro.crmg),
+        glossario=list(registro.glossario),
+        perguntas=[Pergunta(**p) for p in registro.perguntas],
+        palavras=registro.palavras,
+        tempo_leitura_min=registro.tempo_leitura_min,
+    )
+
+
 class LibraryStore:
-    def __init__(self) -> None:
-        self._textos: dict[str, TextoOut] = {}
-        self._leituras: int = 0
+    """Acervo e leituras via ORM (tabelas ``textos``/``leituras``).
+
+    ``database_url`` permite apontar outra instância (testes); sem ele vale
+    ``LEITURAIA_DATABASE_URL`` ou o SQLite padrão de desenvolvimento.
+    """
+
+    def __init__(self, database_url: str | None = None) -> None:
+        self._url = database_url
+        db.init_db(database_url)
         self._sementes()
 
     def _sementes(self) -> None:
+        with db.session_scope(self._url) as sessao:
+            total = int(sessao.scalar(select(func.count()).select_from(orm.TextoORM)) or 0)
+        if total:
+            return
         for dados in _SEED:
-            texto = TextoCreate(**dados)
-            self.criar(texto)
+            self.criar(TextoCreate(**dados))
 
     def criar(self, dados: TextoCreate) -> TextoOut:
         texto = TextoOut(
@@ -236,99 +274,155 @@ class LibraryStore:
             palavras=_contar_palavras(dados.conteudo),
             tempo_leitura_min=_tempo_estimado(dados.conteudo),
         )
-        self._textos[texto.id] = texto
+        with db.session_scope(self._url) as sessao:
+            sessao.add(
+                orm.TextoORM(
+                    id=texto.id,
+                    titulo=texto.titulo,
+                    conteudo=texto.conteudo,
+                    autor=texto.autor,
+                    ano=texto.ano,
+                    disciplina=texto.disciplina,
+                    tema=texto.tema,
+                    nivel=texto.nivel,
+                    tipo=texto.tipo,
+                    genero=texto.genero,
+                    idioma=texto.idioma,
+                    tags=list(texto.tags),
+                    bncc=list(texto.bncc),
+                    crmg=list(texto.crmg),
+                    glossario=list(texto.glossario),
+                    perguntas=[p.model_dump() for p in texto.perguntas],
+                    palavras=texto.palavras,
+                    tempo_leitura_min=texto.tempo_leitura_min,
+                )
+            )
         return texto
 
     def obter(self, texto_id: str) -> TextoOut | None:
-        return self._textos.get(texto_id)
+        with db.session_scope(self._url) as sessao:
+            registro = sessao.get(orm.TextoORM, texto_id)
+        return _para_texto(registro) if registro is not None else None
 
     def deletar(self, texto_id: str) -> bool:
-        return self._textos.pop(texto_id, None) is not None
+        with db.session_scope(self._url) as sessao:
+            registro = sessao.get(orm.TextoORM, texto_id)
+            if registro is None:
+                return False
+            sessao.delete(registro)
+        return True
 
-    def registrar_leitura(self) -> int:
-        self._leituras += 1
-        return self._leituras
+    def registrar_leitura(
+        self,
+        texto_id: str | None = None,
+        usuario_id: str | None = None,
+        tempo_segundos: int = 0,
+        completou: bool = True,
+        sessao: str | None = None,
+    ) -> int:
+        """Grava uma leitura e devolve o total acumulado.
+
+        ``sessao`` é a chave de idempotência do Leitor Digital público: a mesma
+        visita (mesmo texto + sessão) é gravada uma única vez. Leituras com
+        ``sessao`` nula (endpoint autenticado) sempre contam.
+        """
+        with db.session_scope(self._url) as sessao_db:
+            try:
+                with sessao_db.begin_nested():
+                    sessao_db.add(
+                        orm.LeituraORM(
+                            texto_id=texto_id,
+                            usuario_id=usuario_id,
+                            tempo_segundos=int(tempo_segundos),
+                            completou=completou,
+                            sessao=sessao,
+                            criado_em=datetime.now(UTC),
+                        )
+                    )
+            except IntegrityError:
+                # Mesma visita (texto + sessão) já registrada: não conta de novo.
+                pass
+            return int(sessao_db.scalar(select(func.count()).select_from(orm.LeituraORM)) or 0)
 
     @property
     def total_leituras(self) -> int:
-        return self._leituras
+        with db.session_scope(self._url) as sessao:
+            return int(sessao.scalar(select(func.count()).select_from(orm.LeituraORM)) or 0)
 
     @property
     def total_textos(self) -> int:
-        return len(self._textos)
+        with db.session_scope(self._url) as sessao:
+            return int(sessao.scalar(select(func.count()).select_from(orm.TextoORM)) or 0)
 
     def listar(self, **filtros: Any) -> list[TextoOut]:
         """Filtros: disciplina, ano, tema, nivel, tipo, genero, idioma,
         tags, bncc, crmg, palavras_min, palavras_max, tempo_min, tempo_max."""
-        textos = list(self._textos.values())
+        consulta = select(orm.TextoORM)
 
         disciplina = filtros.get("disciplina")
         if disciplina:
-            textos = [t for t in textos if t.disciplina.lower() == disciplina.lower()]
+            consulta = consulta.where(
+                func.lower(orm.TextoORM.disciplina) == str(disciplina).lower()
+            )
 
         ano = filtros.get("ano")
         if ano:
-            anos = [a.strip() for a in str(ano).split(",")]
-            textos = [t for t in textos if t.ano in anos]
+            anos = [a.strip() for a in str(ano).split(",") if a.strip()]
+            if anos:
+                consulta = consulta.where(orm.TextoORM.ano.in_(anos))
 
         tema = filtros.get("tema")
         if tema:
-            q = tema.lower()
-            textos = [t for t in textos if q in t.tema.lower()]
+            consulta = consulta.where(func.lower(orm.TextoORM.tema).like(f"%{str(tema).lower()}%"))
 
-        nivel = filtros.get("nivel")
-        if nivel:
-            textos = [t for t in textos if t.nivel == nivel]
-
-        tipo = filtros.get("tipo")
-        if tipo:
-            textos = [t for t in textos if t.tipo == tipo]
-
-        genero = filtros.get("genero")
-        if genero:
-            textos = [t for t in textos if t.genero == genero]
-
-        idioma = filtros.get("idioma")
-        if idioma:
-            textos = [t for t in textos if t.idioma == idioma]
-
-        tags = filtros.get("tags")
-        if tags:
-            tags_list = [s.strip().lower() for s in str(tags).split(",") if s.strip()]
-            textos = [
-                t for t in textos if any(tag in [x.lower() for x in t.tags] for tag in tags_list)
-            ]
-
-        bncc = filtros.get("bncc")
-        if bncc:
-            bncc_list = [s.strip().upper() for s in str(bncc).split(",") if s.strip()]
-            textos = [t for t in textos if set(bncc_list) & set(t.bncc)]
-
-        crmg = filtros.get("crmg")
-        if crmg:
-            crmg_list = [s.strip().upper() for s in str(crmg).split(",") if s.strip()]
-            textos = [t for t in textos if set(crmg_list) & set(t.crmg)]
+        for campo in ("nivel", "tipo", "genero", "idioma"):
+            valor = filtros.get(campo)
+            if valor:
+                consulta = consulta.where(getattr(orm.TextoORM, campo) == valor)
 
         palavras_min = filtros.get("palavras_min")
         if palavras_min is not None:
-            textos = [t for t in textos if t.palavras >= int(palavras_min)]
+            consulta = consulta.where(orm.TextoORM.palavras >= int(palavras_min))
         palavras_max = filtros.get("palavras_max")
         if palavras_max is not None:
-            textos = [t for t in textos if t.palavras <= int(palavras_max)]
+            consulta = consulta.where(orm.TextoORM.palavras <= int(palavras_max))
 
         tempo_min = filtros.get("tempo_min")
         if tempo_min is not None:
-            textos = [t for t in textos if t.tempo_leitura_min >= int(tempo_min)]
+            consulta = consulta.where(orm.TextoORM.tempo_leitura_min >= int(tempo_min))
         tempo_max = filtros.get("tempo_max")
         if tempo_max is not None:
-            textos = [t for t in textos if t.tempo_leitura_min <= int(tempo_max)]
+            consulta = consulta.where(orm.TextoORM.tempo_leitura_min <= int(tempo_max))
 
-        return sorted(textos, key=lambda t: t.titulo.lower())
+        consulta = consulta.order_by(func.lower(orm.TextoORM.titulo))
+
+        with db.session_scope(self._url) as sessao:
+            textos = [_para_texto(registro) for registro in sessao.scalars(consulta).all()]
+
+        # Listas guardadas como JSON: filtro em Python (poucos textos por consulta).
+        tags = filtros.get("tags")
+        if tags:
+            alvo = [s.strip().lower() for s in str(tags).split(",") if s.strip()]
+            textos = [t for t in textos if any(tag in [x.lower() for x in t.tags] for tag in alvo)]
+
+        bncc = filtros.get("bncc")
+        if bncc:
+            alvo_bncc = [s.strip().upper() for s in str(bncc).split(",") if s.strip()]
+            textos = [t for t in textos if set(alvo_bncc) & set(t.bncc)]
+
+        crmg = filtros.get("crmg")
+        if crmg:
+            alvo_crmg = [s.strip().upper() for s in str(crmg).split(",") if s.strip()]
+            textos = [t for t in textos if set(alvo_crmg) & set(t.crmg)]
+
+        return textos
 
     def habilidades(self) -> list[str]:
+        with db.session_scope(self._url) as sessao:
+            listas = sessao.scalars(select(orm.TextoORM.bncc)).all()
         habilidades: set[str] = set()
-        for t in self._textos.values():
-            habilidades.update(t.bncc)
+        for lista in listas:
+            habilidades.update(lista or [])
         return sorted(habilidades)
 
 

@@ -19,13 +19,13 @@ from leituraia.library import LibraryStore, get_library
 from leituraia.rbac import PERMISSIONS, Profile, require, tem_permissao
 
 __all__ = [
-    "__version__",
-    "Profile",
     "PERMISSIONS",
+    "LibraryStore",
+    "Profile",
+    "UserStore",
+    "__version__",
+    "get_library",
+    "get_user_store",
     "require",
     "tem_permissao",
-    "UserStore",
-    "get_user_store",
-    "LibraryStore",
-    "get_library",
 ]

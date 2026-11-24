@@ -2,8 +2,7 @@
 
 - Senhas: PBKDF2-HMAC-SHA256 (stdlib, sem dependências externas).
 - Tokens: HS256 (python-jose) — access curto (30 min) + refresh (7 dias).
-- Usuários: armazenamento em memória (padrão do monolito); a persistência
-  em PostgreSQL é uma evolução natural (schema já desenhado nos models).
+- Usuários: persistidos via SQLAlchemy (tabela ``usuarios``) em PostgreSQL/SQLite.
 
 O módulo expõe ``get_current_user`` como dependência do FastAPI, usada
 pelo ``leituraia.rbac.require`` para o controle de permissões.
@@ -21,8 +20,10 @@ from datetime import UTC, datetime, timedelta
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from sqlalchemy import func, select
+from sqlalchemy.exc import IntegrityError
 
-from leituraia import config
+from leituraia import config, db, orm
 from leituraia.rbac import Profile
 
 _bearer = HTTPBearer(auto_error=False)
@@ -89,15 +90,30 @@ class Usuario:
     criado_em: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
+def _para_usuario(registro: orm.UsuarioORM) -> Usuario:
+    return Usuario(
+        uid=registro.uid,
+        nome=registro.nome,
+        email=registro.email,
+        perfil=Profile(registro.perfil),
+        senha_hash=registro.senha_hash,
+        criado_em=registro.criado_em,
+    )
+
+
 class UserStore:
-    def __init__(self) -> None:
-        self._por_id: dict[str, Usuario] = {}
-        self._por_email: dict[str, Usuario] = {}
+    """Usuários na tabela ``usuarios`` (ORM; PostgreSQL em produção).
+
+    ``database_url`` permite apontar outra instância (testes); sem ele vale
+    ``LEITURAIA_DATABASE_URL`` ou o SQLite padrão de desenvolvimento.
+    """
+
+    def __init__(self, database_url: str | None = None) -> None:
+        self._url = database_url
+        db.init_db(database_url)
 
     def criar(self, nome: str, email: str, senha: str, perfil: Profile) -> Usuario:
         email = email.strip().lower()
-        if email in self._por_email:
-            raise ValueError("email ja cadastrado")
         u = Usuario(
             uid=str(uuid.uuid4()),
             nome=nome.strip(),
@@ -105,25 +121,47 @@ class UserStore:
             perfil=perfil,
             senha_hash=hash_senha(senha),
         )
-        self._por_id[u.uid] = u
-        self._por_email[u.email] = u
+        try:
+            with db.session_scope(self._url) as sessao, sessao.begin_nested():
+                sessao.add(
+                    orm.UsuarioORM(
+                        uid=u.uid,
+                        nome=u.nome,
+                        email=u.email,
+                        perfil=u.perfil.value,
+                        senha_hash=u.senha_hash,
+                        criado_em=u.criado_em,
+                    )
+                )
+        except IntegrityError as exc:
+            raise ValueError("email ja cadastrado") from exc
         return u
 
     def autenticar(self, email: str, senha: str) -> Usuario | None:
-        u = self._por_email.get(email.strip().lower())
-        if u and verificar_senha(senha, u.senha_hash):
-            return u
-        return None
+        with db.session_scope(self._url) as sessao:
+            registro = sessao.scalar(
+                select(orm.UsuarioORM).where(orm.UsuarioORM.email == email.strip().lower())
+            )
+        if registro is None or not verificar_senha(senha, registro.senha_hash):
+            return None
+        return _para_usuario(registro)
 
     def por_id(self, uid: str) -> Usuario | None:
-        return self._por_id.get(uid)
+        with db.session_scope(self._url) as sessao:
+            registro = sessao.get(orm.UsuarioORM, uid)
+        return _para_usuario(registro) if registro is not None else None
 
     def listar(self) -> list[Usuario]:
-        return sorted(self._por_id.values(), key=lambda u: u.nome.lower())
+        with db.session_scope(self._url) as sessao:
+            registros = sessao.scalars(
+                select(orm.UsuarioORM).order_by(func.lower(orm.UsuarioORM.nome))
+            ).all()
+        return [_para_usuario(registro) for registro in registros]
 
     @property
     def total(self) -> int:
-        return len(self._por_id)
+        with db.session_scope(self._url) as sessao:
+            return int(sessao.scalar(select(func.count()).select_from(orm.UsuarioORM)) or 0)
 
 
 _user_store: UserStore | None = None
@@ -152,13 +190,13 @@ def get_current_user(
 
 
 __all__ = [
-    "Usuario",
     "UserStore",
-    "get_user_store",
-    "hash_senha",
-    "verificar_senha",
+    "Usuario",
     "criar_access_token",
     "criar_refresh_token",
     "decodificar_token",
     "get_current_user",
+    "get_user_store",
+    "hash_senha",
+    "verificar_senha",
 ]

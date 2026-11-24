@@ -107,11 +107,7 @@ class TestGetCurrentUser:
     def _call(self, token: str | None):
         from fastapi.security import HTTPAuthorizationCredentials
 
-        cred = (
-            HTTPAuthorizationCredentials(scheme="Bearer", credentials=token)
-            if token
-            else None
-        )
+        cred = HTTPAuthorizationCredentials(scheme="Bearer", credentials=token) if token else None
         return get_current_user(cred)
 
     def test_credencial_ausente_401(self):

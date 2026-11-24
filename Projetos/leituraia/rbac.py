@@ -106,4 +106,4 @@ def require(permissao: str):
     return _depender
 
 
-__all__ = ["Profile", "PERMISSIONS", "tem_permissao", "require"]
+__all__ = ["PERMISSIONS", "Profile", "require", "tem_permissao"]

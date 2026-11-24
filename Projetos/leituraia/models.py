@@ -153,6 +153,14 @@ class LeituraRegistro(BaseModel):
     completou: bool = True
 
 
+class LeituraPublica(BaseModel):
+    """Leitura enviada pelo próprio Leitor Digital (sem autenticação)."""
+
+    tempo_segundos: int = Field(default=0, ge=0, le=86400)
+    completou: bool = True
+    sessao: str | None = Field(default=None, max_length=64)
+
+
 class DashboardOut(BaseModel):
     alunos: int
     professores: int
@@ -163,19 +171,20 @@ class DashboardOut(BaseModel):
 
 
 __all__ = [
-    "Nivel",
     "NIVEL_ROTULO",
-    "TipoQuestao",
-    "RegistroRequest",
-    "LoginRequest",
-    "UsuarioOut",
-    "TokenPair",
-    "GerarTextoRequest",
-    "Pergunta",
-    "LinhaTempoItem",
-    "TextoGerado",
-    "TextoCreate",
-    "TextoOut",
-    "LeituraRegistro",
     "DashboardOut",
+    "GerarTextoRequest",
+    "LeituraPublica",
+    "LeituraRegistro",
+    "LinhaTempoItem",
+    "LoginRequest",
+    "Nivel",
+    "Pergunta",
+    "RegistroRequest",
+    "TextoCreate",
+    "TextoGerado",
+    "TextoOut",
+    "TipoQuestao",
+    "TokenPair",
+    "UsuarioOut",
 ]

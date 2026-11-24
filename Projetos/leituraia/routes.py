@@ -1,10 +1,13 @@
 """Rotas do LeituraIA Brasil (MVP) — prefixo ``/api/leituraia``.
 
-Inclui também a página do Leitor Digital acessível (``/leituraia/leitor/{id}``),
-servida como HTML, com controles de tamanho de fonte e alto contraste.
+Inclui também as páginas HTML: a biblioteca (``/leituraia``) e o Leitor
+Digital acessível (``/leituraia/leitor/{id}``), com controles de tamanho de
+fonte e alto contraste.
 """
 
 from __future__ import annotations
+
+from string import Template as _Template
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import HTMLResponse
@@ -22,6 +25,7 @@ from leituraia.models import (
     NIVEL_ROTULO,
     DashboardOut,
     GerarTextoRequest,
+    LeituraPublica,
     LeituraRegistro,
     LoginRequest,
     RegistroRequest,
@@ -159,11 +163,16 @@ def payload_leitura(texto_id: str, _=Depends(require("textos:ler"))) -> dict:
 def registrar_leitura(
     texto_id: str,
     dados: LeituraRegistro,
-    _=Depends(require("leitura:registrar")),
+    usuario=Depends(require("leitura:registrar")),
 ) -> dict:
     if get_library().obter(texto_id) is None:
         raise HTTPException(404, "texto nao encontrado")
-    total = get_library().registrar_leitura()
+    total = get_library().registrar_leitura(
+        texto_id=texto_id,
+        usuario_id=usuario.uid,
+        tempo_segundos=dados.tempo_segundos,
+        completou=dados.completou,
+    )
     return {"registrado": True, "total_leituras": total, "completou": dados.completou}
 
 
@@ -188,9 +197,169 @@ def dashboard(_=Depends(require("dashboard:ver"))) -> DashboardOut:
     )
 
 
-# ── Página do Leitor Digital (HTML acessível) ────────────────────────
-# O texto é renderizado no servidor (sem fetch no cliente): funciona sem
-# autenticação, não expõe as respostas do gabarito e é mais rápido.
+# ── Páginas HTML (biblioteca + Leitor Digital) ───────────────────────
+# Renderizadas no servidor (sem fetch autenticado): funcionam sem login, não
+# expõem as respostas do gabarito e são mais rápidas em conexões escolares.
+_HOME_HTML = """<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LeituraIA Brasil — Biblioteca</title>
+<style>
+:root{--tinta:#333;--fundo:#faf7f0;--papel:#fffdf8;--acento:#1a5276}
+body{font-family:Georgia,serif;color:var(--tinta);background:var(--fundo);margin:0;padding:24px;line-height:1.6}
+.wrap{max-width:960px;margin:0 auto}
+header{border-bottom:2px solid var(--acento);padding-bottom:14px;margin-bottom:24px}
+h1{margin:0;font-size:1.9em;color:var(--acento)}
+.lead{margin:6px 0 0;color:#555}
+.filtros{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;background:var(--papel);border-radius:10px;padding:16px;box-shadow:0 2px 10px rgba(0,0,0,.06);margin-bottom:18px}
+.filtros label{display:flex;flex-direction:column;gap:4px;font-size:.85em;color:#555}
+.filtros select,.filtros input{font:inherit;font-size:.95em;padding:7px 10px;border:1px solid #bbb;border-radius:6px;background:#fff;color:var(--tinta);min-width:150px}
+.filtros button{font:inherit;padding:8px 16px;border:0;border-radius:6px;background:var(--acento);color:#fff;cursor:pointer}
+.filtros button:hover{filter:brightness(1.15)}
+.limpar{align-self:center;font-size:.85em;color:var(--acento)}
+.resumo{margin:0 0 14px;color:#555;font-size:.9em}
+.grade{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px}
+.card{background:var(--papel);border-radius:10px;padding:20px;box-shadow:0 2px 10px rgba(0,0,0,.08);display:flex;flex-direction:column;gap:8px}
+.card h2{font-size:1.15em;margin:0;color:var(--acento)}
+.card h2 a{color:inherit;text-decoration:none}
+.card h2 a:hover{text-decoration:underline}
+.meta{font-size:.85em;color:#666;margin:0}
+.trecho{font-size:.95em;margin:4px 0;color:#444}
+.dados{font-size:.85em;color:#666;margin:0}
+.botao{align-self:flex-start;margin-top:auto;padding:8px 14px;border-radius:6px;background:var(--acento);color:#fff;text-decoration:none;font-size:.9em}
+.botao:hover{filter:brightness(1.15)}
+.vazio{background:var(--papel);border-radius:10px;padding:28px;text-align:center;color:#666}
+footer{margin-top:28px;font-size:.85em;color:#666;border-top:1px solid #ddd;padding-top:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>📖 LeituraIA Brasil</h1>
+    <p class="lead">$total textos de compreensão leitora alinhados à BNCC e ao CRMG. Escolha um e leia no Leitor Digital.</p>
+  </header>
+  <form class="filtros" method="get" action="/leituraia" role="search">
+    <label>Disciplina
+      <select name="disciplina">
+        <option value="">Todas</option>
+        $opcoes_disciplina
+      </select>
+    </label>
+    <label>Ano
+      <select name="ano">
+        <option value="">Todos</option>
+        $opcoes_ano
+      </select>
+    </label>
+    <label>Buscar por tema
+      <input type="search" name="q" value="$valor_q" placeholder="ex.: feudalismo" maxlength="120">
+    </label>
+    <button type="submit">Filtrar</button>
+    $limpar
+  </form>
+  $resumo_html
+  <section class="grade">$cards</section>
+  <footer>Leitor Digital acessível: fonte ajustável, alto contraste e impressão. Nenhum gabarito é exibido ao aluno.</footer>
+</div>
+</body>
+</html>
+"""
+
+
+@leitor_pages.get("/leituraia", response_class=HTMLResponse)
+def biblioteca_html(
+    disciplina: str | None = None,
+    ano: str | None = None,
+    q: str | None = None,
+) -> HTMLResponse:
+    """Catálogo com filtros por disciplina, ano e busca no tema (GET, sem JS)."""
+    import html as _html
+
+    disciplina = (disciplina or "").strip() or None
+    ano = (ano or "").strip() or None
+    busca = (q or "").strip() or None
+    filtrando = any((disciplina, ano, busca))
+
+    todos = get_library().listar()
+    disciplinas = {t.disciplina for t in todos}
+    anos = {t.ano for t in todos}
+    # Um filtro vindo pela URL que não existe no acervo continua visível no select.
+    if disciplina:
+        disciplinas.add(disciplina)
+    if ano:
+        anos.add(ano)
+    opcoes_disciplina = sorted(disciplinas, key=str.lower)
+    opcoes_ano = sorted(anos, key=lambda a: (len(a), a))
+
+    textos = get_library().listar(disciplina=disciplina, ano=ano, tema=busca)
+
+    if textos:
+        cards = "".join(_card_biblioteca(t) for t in textos)
+    elif filtrando:
+        cards = (
+            "<p class='vazio'>Nenhum texto encontrado com esses filtros. "
+            "Tente outra disciplina, ano ou tema.</p>"
+        )
+    else:
+        cards = (
+            "<p class='vazio'>Nenhum texto publicado ainda. "
+            "Professores podem gerar materiais pela API "
+            "(<code>/api/leituraia/textos/gerar</code>).</p>"
+        )
+
+    resumo_html = ""
+    if filtrando:
+        quantidade = len(textos)
+        rotulo = "texto encontrado" if quantidade == 1 else "textos encontrados"
+        resumo_html = f"<p class='resumo'>{quantidade} {rotulo} com os filtros atuais.</p>"
+
+    limpar = "<a class='limpar' href='/leituraia'>Limpar filtros</a>" if filtrando else ""
+
+    pagina = _Template(_HOME_HTML).safe_substitute(
+        total=get_library().total_textos,
+        opcoes_disciplina=_opcoes_select(opcoes_disciplina, disciplina),
+        opcoes_ano=_opcoes_select(opcoes_ano, ano, sufixo="º ano"),
+        valor_q=_html.escape(busca or ""),
+        limpar=limpar,
+        resumo_html=resumo_html,
+        cards=cards,
+    )
+    return HTMLResponse(pagina)
+
+
+def _opcoes_select(valores: list[str], atual: str | None, sufixo: str = "") -> str:
+    """Opções de um ``<select>`` com o valor atual marcado como ``selected``."""
+    import html as _html
+
+    return "".join(
+        f"<option value='{_html.escape(valor)}'"
+        f"{' selected' if atual == valor else ''}>"
+        f"{_html.escape(valor + sufixo)}</option>"
+        for valor in valores
+    )
+
+
+def _card_biblioteca(texto: TextoOut) -> str:
+    import html as _html
+
+    trecho = texto.conteudo.split("\n\n")[0]
+    if len(trecho) > 180:
+        trecho = trecho[:177].rsplit(" ", 1)[0] + "…"
+    return (
+        "<article class='card'>"
+        f"<h2><a href='/leituraia/leitor/{_html.escape(texto.id)}'>"
+        f"{_html.escape(texto.titulo)}</a></h2>"
+        f"<p class='meta'>{_html.escape(texto.disciplina)} · {_html.escape(texto.ano)}º ano · "
+        f"{_html.escape(texto.tema)} · Nível: {_html.escape(NIVEL_ROTULO.get(texto.nivel, texto.nivel))}</p>"
+        f"<p class='trecho'>{_html.escape(trecho)}</p>"
+        f"<p class='dados'>{texto.palavras} palavras · ~{texto.tempo_leitura_min} min de leitura</p>"
+        f"<a class='botao' href='/leituraia/leitor/{_html.escape(texto.id)}'>Ler agora →</a>"
+        "</article>"
+    )
+
+
 _LEITOR_HTML = """<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -219,11 +388,12 @@ article p{margin:0 0 1em;text-align:justify}
 @media print{body{background:#fff}article{box-shadow:none;padding:0}.controles{display:none}}
 </style>
 </head>
-<body>
+<body data-texto-id="$texto_id">
 <div class="wrap">
   <header>
     <div><h1>📖 Leitor Digital</h1><div class="meta">$meta</div></div>
     <div class="controles">
+      <a href="/leituraia">← Biblioteca</a>
       <button onclick="fonte(2)">A+</button>
       <button onclick="fonte(0)">A</button>
       <button onclick="fonte(-2)">A−</button>
@@ -245,10 +415,70 @@ function fonte(delta){
   const novo=Math.min(30,Math.max(14,atual+delta));
   r.style.setProperty('--fonte', novo+'px');
 }
+
+// Registro automático da leitura: endpoint público, idempotente pela sessão.
+(function () {
+  const textoId = document.body.dataset.textoId;
+  const inicio = Date.now();
+  const sessao =
+    window.crypto && crypto.randomUUID
+      ? crypto.randomUUID()
+      : String(Date.now()) + Math.random().toString(16).slice(2);
+  let enviado = false;
+
+  function registrar() {
+    if (enviado) return;
+    const segundos = Math.round((Date.now() - inicio) / 1000);
+    if (segundos < 5) return; // visita rápida não conta como leitura
+    enviado = true;
+    const fim =
+      window.scrollY + window.innerHeight >= document.body.scrollHeight - 80;
+    const corpo = JSON.stringify({
+      tempo_segundos: segundos,
+      completou: fim,
+      sessao: sessao,
+    });
+    const url = '/leituraia/leitor/' + encodeURIComponent(textoId) + '/leitura';
+    if (navigator.sendBeacon) {
+      navigator.sendBeacon(url, new Blob([corpo], { type: 'application/json' }));
+    } else {
+      fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: corpo,
+        keepalive: true,
+      }).catch(function () {});
+    }
+  }
+
+  setTimeout(registrar, 30000);
+  window.addEventListener('pagehide', registrar);
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'hidden') registrar();
+  });
+})();
 </script>
 </body>
 </html>
 """
+
+
+@leitor_pages.post("/leituraia/leitor/{texto_id}/leitura", status_code=201)
+def registrar_leitura_publica(texto_id: str, dados: LeituraPublica) -> dict:
+    """Registro disparado pelo próprio Leitor Digital (sem login).
+
+    Idempotente por ``sessao``: recarregar ou reenviar a mesma visita não infla
+    o contador. As respostas do gabarito continuam fora do escopo da página.
+    """
+    if get_library().obter(texto_id) is None:
+        raise HTTPException(404, "texto nao encontrado")
+    total = get_library().registrar_leitura(
+        texto_id=texto_id,
+        tempo_segundos=dados.tempo_segundos,
+        completou=dados.completou,
+        sessao=dados.sessao,
+    )
+    return {"total_leituras": total}
 
 
 @leitor_pages.get("/leituraia/leitor/{texto_id}", response_class=HTMLResponse)
@@ -279,9 +509,8 @@ def leitor_html(texto_id: str) -> HTMLResponse:
         f"{_html.escape(texto.tema)} · Nível: {NIVEL_ROTULO.get(texto.nivel, texto.nivel)} · "
         f"{texto.palavras} palavras · ~{texto.tempo_leitura_min} min de leitura"
     )
-    from string import Template as _Template
-
     pagina = _Template(_LEITOR_HTML).safe_substitute(
+        texto_id=_html.escape(texto.id),
         titulo=_html.escape(texto.titulo),
         meta=_html.escape(meta),
         titulo_h2=_html.escape(texto.titulo),

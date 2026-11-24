@@ -5,6 +5,7 @@ These tests stub ``ai.*`` in sys.modules so the endpoints can be exercised
 without the full monolith (LLM clients, Qdrant, Ollama) being available.
 """
 
+import os
 import sys
 import types
 from enum import Enum
@@ -16,6 +17,19 @@ import pytest
 PROJECT_WEB = Path(__file__).resolve().parents[2]  # ~/Projetos/web
 if str(PROJECT_WEB) not in sys.path:
     sys.path.insert(0, str(PROJECT_WEB))
+
+
+@pytest.fixture(scope="session", autouse=True)
+def leituraia_db_temporario(tmp_path_factory):
+    """Aponta o LeituraIA para um banco descartável: nada é gravado no módulo."""
+    anterior = os.environ.get("LEITURAIA_DATABASE_URL")
+    caminho = tmp_path_factory.mktemp("leituraia") / "leituraia.db"
+    os.environ["LEITURAIA_DATABASE_URL"] = f"sqlite+pysqlite:///{caminho}"
+    yield
+    if anterior is None:
+        os.environ.pop("LEITURAIA_DATABASE_URL", None)
+    else:
+        os.environ["LEITURAIA_DATABASE_URL"] = anterior
 
 
 class _StubTaskType(str, Enum):

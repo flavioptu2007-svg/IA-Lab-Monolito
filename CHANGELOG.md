@@ -10,6 +10,16 @@ versionamento segue o [SemVer](https://semver.org/lang/pt-BR/). A versão corren
 
 ### Adicionado
 
+- `Projetos/leituraia` (fase 2 — persistência): usuários, textos e leituras
+  saem da memória para **SQLAlchemy 2.0** (`leituraia/orm.py` + `leituraia/db.py`),
+  com PostgreSQL em produção (`LEITURAIA_DATABASE_URL`), SQLite local por padrão
+  (`LEITURAIA_DB_PATH`, `leituraia/data/leituraia.db`) e migrações versionadas no
+  Alembic (`leituraia/migrations`, revisão `0001`); o acervo semeado deixa de
+  duplicar a cada reinício.
+- `Projetos/leituraia`: página inicial `/leituraia` com filtros de disciplina,
+  ano e busca por tema, e registro público de leitura do Leitor Digital
+  (`POST /leituraia/leitor/{id}/leitura`, idempotente por sessão, ignorando
+  visitas abaixo de 5 s).
 - `src/drive_audit/`: auditoria do Google Drive (rclone) — inventário,
   detecção transitiva de pastas vazias e de duplicatas por hash, plano de
   renomeação arquivística e `apply` de lixeira em dry-run por padrão

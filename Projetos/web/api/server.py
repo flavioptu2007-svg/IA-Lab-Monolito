@@ -6,21 +6,54 @@ Fornece endpoints REST para:
 - Histórico de conversas (em memória)
 - Métricas do Prometheus
 - Health check
+- LeituraIA Brasil: ``/api/leituraia/*`` (auth, biblioteca, gerador, dashboard)
+  e o Leitor Digital em ``/leituraia/leitor/{texto_id}``
+
+O painel sobe mesmo sem o pacote ``ai/`` deste monólito: ``/api/health``
+reporta o componente como ``unavailable`` e os endpoints que dependem dele
+(chat, agentes, providers, config) respondem 503 com uma mensagem clara.
 """
 
 from __future__ import annotations
 
 import os
+import sys
 import time
+from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    import logging
+
+    if monolito_disponivel():
+        try:
+            from ai.telemetry import get_logger
+
+            logger = get_logger("web.api")
+        except ImportError:
+            logger = logging.getLogger(__name__)
+    else:
+        logger = logging.getLogger(__name__)
+
+    logger.info("API IA-Lab Enterprise iniciada")
+    if not LEITURAIA_MONTADO:
+        logger.warning("Modulo LeituraIA indisponivel: rotas /api/leituraia ausentes")
+    if not monolito_disponivel():
+        logger.warning("Monolito ai/ ausente: chat, agentes, providers e config responderao 503")
+    yield
+
+
 app = FastAPI(
     title="IA-Lab Enterprise API",
     version="0.1.0",
     description="API do painel de controle do IA-Lab Enterprise",
+    lifespan=lifespan,
 )
 
 # CORS para desenvolvimento (React em localhost:5173)
@@ -34,20 +67,42 @@ app.add_middleware(
 
 # ---- Dependências internas (lazy import para evitar circular no startup) ----
 
+_DETALHE_SEM_MONOLITO = (
+    "Monolito ai/ indisponivel neste ambiente: este endpoint depende do pacote "
+    "ai/ do IA-Lab. As rotas do LeituraIA continuam funcionando."
+)
+
+
+def monolito_disponivel() -> bool:
+    """True quando o pacote ``ai`` (monólito) está importável."""
+    try:
+        import ai  # noqa: F401
+    except ImportError:
+        return False
+    return True
+
+
+def _exigir_monolito() -> None:
+    if not monolito_disponivel():
+        raise HTTPException(status_code=503, detail=_DETALHE_SEM_MONOLITO)
+
 
 def get_service():
+    _exigir_monolito()
     from ai.service import AIService
 
     return AIService()
 
 
 def get_agent_registry():
+    _exigir_monolito()
     from ai.agents.base import get_agent_registry
 
     return get_agent_registry()
 
 
 def get_settings():
+    _exigir_monolito()
     from ai.settings import settings
 
     return settings
@@ -109,16 +164,66 @@ class HistoryStore:
 
 history_store = HistoryStore()
 
+
+# ---- Módulo LeituraIA (pacote irmão de web/) ----
+
+
+def montar_leituraia(app: FastAPI) -> bool:
+    """Monta as rotas do LeituraIA no app do painel.
+
+    O ``leituraia`` vive ao lado de ``web/`` (``~/Projetos/leituraia``), então a
+    raiz do projeto entra no ``sys.path``. A importação é tolerante a falhas:
+    sem o pacote (ou sem ``python-jose``/``email-validator``), o painel continua
+    subindo e apenas registra o aviso.
+    """
+    raiz = Path(__file__).resolve().parents[2]
+    if str(raiz) not in sys.path:
+        sys.path.insert(0, str(raiz))
+
+    try:
+        from leituraia.routes import leitor_pages
+        from leituraia.routes import router as leituraia_router
+    except ImportError as exc:
+        import logging
+
+        logging.getLogger(__name__).warning("LeituraIA nao montado: %s", exc)
+        return False
+
+    app.include_router(leituraia_router)
+    app.include_router(leitor_pages)
+    return True
+
+
+LEITURAIA_MONTADO = montar_leituraia(app)
+
 # ---- Rotas da API ----
 
 
 @app.get("/api/health")
 async def health():
-    """Health check completo do sistema."""
-    from ai.memory.store import VectorStore
-    from ai.telemetry import health_status as hs
-
+    """Health check completo do sistema (degrada sem o monólito ``ai/``)."""
     checks: dict[str, str] = {}
+
+    if not monolito_disponivel():
+        return {
+            "status": "degraded",
+            "checks": {"monolito": "unavailable", "qdrant": "unavailable", "ollama": "unavailable"},
+            "version": "0.1.0",
+            "detail": _DETALHE_SEM_MONOLITO,
+        }
+
+    try:
+        from ai.memory.store import VectorStore
+        from ai.telemetry import health_status as hs
+    except ImportError:
+        return {
+            "status": "degraded",
+            "checks": {"monolito": "incomplete", "qdrant": "unavailable", "ollama": "unavailable"},
+            "version": "0.1.0",
+            "detail": _DETALHE_SEM_MONOLITO,
+        }
+
+    checks["monolito"] = "ok"
 
     # Qdrant
     try:
@@ -126,7 +231,7 @@ async def health():
         qdrant_ok = store.is_available()
         checks["qdrant"] = "ok" if qdrant_ok else "error"
         hs.labels(component="qdrant").set(1 if qdrant_ok else 0)
-    except Exception:
+    except Exception:  # noqa: BLE001 - health check degrada graciosamente
         checks["qdrant"] = "error"
         hs.labels(component="qdrant").set(0)
 
@@ -135,11 +240,14 @@ async def health():
 
     try:
         cfg = get_settings()
-        resp = httpx.get(f"{cfg.ollama_base_url}/api/tags", timeout=cfg.health_check_timeout)
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(
+                f"{cfg.ollama_base_url}/api/tags", timeout=cfg.health_check_timeout
+            )
         ollama_ok = resp.status_code == 200
         checks["ollama"] = "ok" if ollama_ok else "error"
         hs.labels(component="ollama").set(1 if ollama_ok else 0)
-    except Exception:
+    except Exception:  # noqa: BLE001 - health check degrada graciosamente
         checks["ollama"] = "error"
         hs.labels(component="ollama").set(0)
 
@@ -218,6 +326,7 @@ async def list_agents():
 @app.post("/api/chat", response_model=ChatResponse)
 async def chat(request: ChatRequest):
     """Envia uma mensagem para a IA com roteamento inteligente."""
+    _exigir_monolito()
 
     from ai.providers.base import TaskType
 
@@ -345,17 +454,6 @@ async def get_config():
     }
 
 
-# ---- Startup ----
-
-
-@app.on_event("startup")
-async def startup():
-    from ai.telemetry import get_logger
-
-    logger = get_logger("web.api")
-    logger.info("API IA-Lab Enterprise iniciada")
-
-
 # ---- Ponto de entrada ----
 
 
@@ -363,4 +461,5 @@ if __name__ == "__main__":
     import uvicorn
 
     port = int(os.getenv("API_PORT", "8000"))
-    uvicorn.run("web.api.server:app", host="0.0.0.0", port=port, reload=True)
+    host = os.getenv("API_HOST", "0.0.0.0")
+    uvicorn.run("web.api.server:app", host=host, port=port, reload=True)
