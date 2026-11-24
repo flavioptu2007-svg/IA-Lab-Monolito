@@ -39,35 +39,7 @@ class TestCaminhosIsolados:
     ``save_config``/a API gravam sempre em um caminho sobrescrito (tmp),
     nunca no ``config.json``/conexão de banco versionados."""
 
-    def test_save_config_nao_escreve_no_repositorio(self, tmp_path, monkeypatch):
-        from src.api.v2 import chat_coraci
-
-        alvo = tmp_path / "config.json"
-        monkeypatch.setenv("IA_LAB_CORACI_CONFIG", str(alvo))
-        antes = (RAIZ / "Aplicativo_Coraci" / "config.json").read_bytes()
-
-        chat_coraci.save_config({"model": "modelo-de-teste"})
-
-        assert alvo.exists()
-        assert "modelo-de-teste" in alvo.read_text()
-        assert (RAIZ / "Aplicativo_Coraci" / "config.json").read_bytes() == antes
-
-    def test_flask_save_config_nao_escreve_no_repositorio(
-        self, flask_coraci, tmp_path, monkeypatch
-    ):
-        alvo = tmp_path / "flask-config.json"
-        monkeypatch.setenv("IA_LAB_CORACI_FLASK_CONFIG", str(alvo))
-        antes = (RAIZ / "Aplicativo_Coraci" / "config.json").read_bytes()
-
-        flask_coraci.save_config({"model": "modelo-de-teste"})
-
-        assert alvo.exists()
-        assert "modelo-de-teste" in alvo.read_text()
-        assert (RAIZ / "Aplicativo_Coraci" / "config.json").read_bytes() == antes
-
-    """save_config deve gravar no caminho do override, nunca no arquivo versionado."""
-
-    def test_fastapi(self, tmp_path, monkeypatch):
+    def test_save_config_fastapi_nao_escreve_no_repositorio(self, tmp_path, monkeypatch):
         from src.api.v2 import chat_coraci
 
         alvo = tmp_path / "config.json"
@@ -80,7 +52,9 @@ class TestCaminhosIsolados:
         assert "modelo-de-teste" in alvo.read_text()
         assert _ler(CONFIG_FASTAPI) == antes
 
-    def test_flask(self, flask_coraci, tmp_path, monkeypatch):
+    def test_save_config_flask_nao_escreve_no_repositorio(
+        self, flask_coraci, tmp_path, monkeypatch
+    ):
         alvo = tmp_path / "flask-config.json"
         monkeypatch.setenv("IA_LAB_CORACI_FLASK_CONFIG", str(alvo))
         antes = _ler(CONFIG_FLASK)

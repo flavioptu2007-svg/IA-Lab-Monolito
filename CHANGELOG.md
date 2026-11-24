@@ -165,6 +165,15 @@ versionamento segue o [SemVer](https://semver.org/lang/pt-BR/). A versão corren
 
 ### Corrigido
 
+- `tests/test_coraci_state_isolation.py`: dois testes duplicados liam
+  `Aplicativo_Coraci/config.json` com `read_bytes()`, arquivo de estado ignorado
+  pelo git — a suíte quebrava em checkout limpo. As versões equivalentes (que
+  usam `_ler()` e aceitam o arquivo ausente) ficaram como única cobertura.
+- `Projetos/web/api/tests/test_server.py`: o cenário "sem monólito" apagava
+  `ai.*` de `sys.modules`, mas a raiz do repositório está em `sys.path` e o
+  import seguinte recarregava o pacote real (métrica Prometheus duplicada,
+  `status == "ok"`). Agora um finder em `sys.meta_path` esconde o pacote de
+  fato, e o caminho degradado do painel volta a ser verificado.
 - `README.md`/`README.en.md` alinhados à estrutura atual: árvore de diretórios
   reescrita (`Projetos/`, `scripts/`, `docs/`, `src/historia_gen`,
   `src/drive_audit`), versão 2.1.1, 12 páginas do dashboard, 13 serviços Docker,
