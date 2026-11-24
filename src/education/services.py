@@ -15,6 +15,7 @@ from pydantic import BaseModel
 
 from src.education.enums import BNCC_SKILLS
 from src.education.persistence import SQLiteEducationRepository, check_revision
+from src.education.presentation_models import PresentationResponse
 from src.education.schemas import (
     ActivityCreate,
     ActivityResponse,
@@ -34,6 +35,7 @@ from src.education.schemas import (
 logger = logging.getLogger(__name__)
 Model = TypeVar("Model", bound=EducationBase)
 MATERIAL_MODELS: dict[str, tuple[str, type[EducationBase]]] = {
+    "presentation": ("presentations", PresentationResponse),
     "lesson_plan": ("lesson_plans", LessonPlanResponse),
     "activity": ("activities", ActivityResponse),
     "evaluation": ("evaluations", EvaluationResponse),
@@ -59,6 +61,7 @@ class EducationStore:
         self._activities: dict[str, ActivityResponse] = {}
         self._evaluations: dict[str, EvaluationResponse] = {}
         self._calendar_events: dict[str, CalendarEventResponse] = {}
+        self._presentations: dict[str, PresentationResponse] = {}
 
     def _save(self, collection: str, item: EducationBase) -> None:
         if self._repository is not None:
@@ -118,6 +121,9 @@ class EducationStore:
             "evaluations": counts.get("evaluations", 0),
             "events": counts.get("calendar_events", 0),
         }
+
+    def get_presentation(self, material_id: str) -> PresentationResponse | None:
+        return self._get("presentations", material_id, PresentationResponse)
 
     def create_generated_material(self, kind: str, content: dict[str, Any]) -> EducationBase:
         """Grava a saída validada da IA como rascunho, nunca como aprovada."""

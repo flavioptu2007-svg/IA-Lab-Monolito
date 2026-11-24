@@ -621,3 +621,9 @@ textarea.input {
 .studio-notice { color: var(--text-primary); padding: 12px; border: 1px solid var(--accent); border-radius: var(--radius-sm); }
 
 .education-studio button:disabled { opacity: .55; cursor: not-allowed; }
+
+.slide-preview { aspect-ratio: 16 / 9; padding: 4%; border-top: 5px solid #8de4d4; background: #111c32; color: #f8fafc; overflow: hidden; }
+.slide-preview h3 { font-size: clamp(18px, 2.2vw, 30px); line-height: 1.2; margin: 10px 0; }
+.slide-preview p, .slide-preview li { font-size: clamp(12px, 1.4vw, 20px); line-height: 1.35; }
+.slide-preview ul { padding-left: 20px; }
+.slide-preview-paper { background: #f8fafc; color: #14213d; border-top-color: #006b68; }

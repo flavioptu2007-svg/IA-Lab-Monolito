@@ -1,4 +1,25 @@
-export type MaterialType = "lesson_plan" | "activity" | "evaluation";
+export interface PresentationSlide {
+  layout: "title" | "content" | "comparison" | "closing";
+  title: string;
+  subtitle: string;
+  bullets: string[];
+  speaker_notes: string;
+  sources: string[];
+}
+export interface EducationTools {
+  plugins: {
+    id: string;
+    name: string;
+    license: string;
+    installed: boolean;
+    cost: string;
+    format: string;
+  }[];
+  agents: { id: string; name: string; provider: string }[];
+  skills: { id: string; content: string }[];
+}
+export type MaterialType =
+  "lesson_plan" | "activity" | "evaluation" | "presentation";
 export interface Moment {
   moment: string;
   title: string;
@@ -45,6 +66,8 @@ export interface Material {
   total_score?: number;
   passing_score?: number;
   questions?: Question[];
+  slides?: PresentationSlide[];
+  theme?: "navy" | "paper";
 }
 export interface SavedMaterial {
   material_type: MaterialType;
@@ -58,8 +81,19 @@ export interface GenerateRequest {
   learning_objectives: string[];
   bncc_skills: string[];
   instructions: string;
+  slide_count?: number;
+  theme?: "navy" | "paper";
 }
 const FIELDS: Record<MaterialType, string[]> = {
+  presentation: [
+    "title",
+    "academic_year",
+    "subject",
+    "duration_minutes",
+    "bncc_skills",
+    "theme",
+    "slides",
+  ],
   lesson_plan: [
     "title",
     "topic",
@@ -104,7 +138,14 @@ export function editableContent(
   kind: MaterialType,
   material: Material,
 ): Record<string, unknown> {
-  const values = material as unknown as Record<string, unknown>;
+  const values = { ...material } as unknown as Record<string, unknown>;
+  if (kind === "presentation" && material.slides) {
+    values.slides = material.slides.map((slide) => ({
+      ...slide,
+      bullets: slide.bullets.map((value) => value.trim()).filter(Boolean),
+      sources: slide.sources.map((value) => value.trim()).filter(Boolean),
+    }));
+  }
   return Object.fromEntries(
     FIELDS[kind]
       .filter((key) => values[key] !== undefined)
@@ -136,6 +177,32 @@ export function educationStudioApi(token: string) {
     return data as T;
   }
   return {
+    tools: () => request<EducationTools>("/tools"),
+    checks: (id: string) =>
+      request<{ issues: string[]; fact_checked: boolean }>(
+        `/materials/presentation/${encodeURIComponent(id)}/checks`,
+      ),
+    download: async (id: string, format: "html" | "pptx") => {
+      const response = await fetch(
+        `/api/v2/education/materials/presentation/${encodeURIComponent(id)}/export/${format}`,
+        { headers: token ? { "X-API-Key": token } : {} },
+      );
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({}));
+        throw new Error(
+          typeof error.detail === "string"
+            ? error.detail
+            : "Não foi possível exportar a apresentação.",
+        );
+      }
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `apresentacao-${id.slice(0, 8)}.${format}`;
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    },
     generate: (body: GenerateRequest) =>
       request<SavedMaterial>("/generate", body),
     list: (offset = 0) =>

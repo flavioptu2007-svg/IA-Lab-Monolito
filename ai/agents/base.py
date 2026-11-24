@@ -65,4 +65,12 @@ def get_agent_registry() -> AgentRegistry:
         from ai.agents.audio_agent import AudioAgent
 
         _registry.register(AudioAgent)
+        from ai.agents.education_agents import (
+            EducationPlannerAgent,
+            EducationReviewerAgent,
+            PresentationDesignerAgent,
+        )
+
+        for agent_cls in (EducationPlannerAgent, PresentationDesignerAgent, EducationReviewerAgent):
+            _registry.register(agent_cls)
     return _registry

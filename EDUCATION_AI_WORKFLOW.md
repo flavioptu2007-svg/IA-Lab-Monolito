@@ -1,6 +1,6 @@
 # Gerar, revisar e salvar materiais de História
 
-O fluxo oferece planos de aula, atividades e avaliações com IA local, revisão do
+O fluxo oferece planos de aula, atividades, avaliações e apresentações com IA local, revisão do
 professor e gravação na mesma base SQLite dos materiais educacionais.
 
 ## Preparar o ambiente
@@ -58,7 +58,9 @@ As rotas usam a mesma autenticação `X-API-Key` de `/api/v2/education`.
 | GET | `/api/v2/education/materials?limit=20&offset=0` | Lista o acervo unificado por atualização recente |
 | POST | `/api/v2/education/materials/{kind}/{id}/review` | Salva revisão ou aprovação com controle de versão |
 
-`kind` aceita `lesson_plan`, `activity` ou `evaluation`.
+`kind` aceita `lesson_plan`, `activity`, `evaluation` ou `presentation`.
+
+Para slides, plugins e agentes gratuitos, consulte [FREE_EDUCATION_TOOLS.md](FREE_EDUCATION_TOOLS.md).
 
 Exemplo de solicitação de geração:
 

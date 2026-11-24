@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Literal
+
 import httpx
 from fastapi import APIRouter, Depends, HTTPException, Query
 from starlette.concurrency import run_in_threadpool
@@ -74,3 +76,60 @@ def review(kind: MaterialType, material_id: str, request: ReviewRequest):
     if saved is None:
         raise HTTPException(status_code=404, detail="Material não encontrado")
     return {"status": "ok", "material_type": kind, "material": saved.model_dump()}
+
+
+@router.get("/tools")
+def education_tools():
+    from ai.agents.education_agents import read_skill
+    from src.education.presentation_plugins import available_plugins
+
+    return {
+        "plugins": available_plugins(),
+        "agents": [
+            {"id": "education_planner", "name": "Planejamento pedagógico", "provider": "ollama"},
+            {
+                "id": "presentation_designer",
+                "name": "Apresentações profissionais",
+                "provider": "ollama",
+            },
+            {"id": "education_reviewer", "name": "Revisão educacional", "provider": "ollama"},
+        ],
+        "skills": [
+            {"id": name, "content": read_skill(name)}
+            for name in ("education-planning", "professional-presentations", "education-review")
+        ],
+    }
+
+
+@router.get("/materials/presentation/{material_id}/checks")
+def presentation_quality(material_id: str):
+    from src.education.presentation_models import presentation_checks
+
+    material = get_store().get_presentation(material_id)
+    if material is None:
+        raise HTTPException(status_code=404, detail="Apresentação não encontrada")
+    return {"issues": presentation_checks(material), "fact_checked": False}
+
+
+@router.get("/materials/presentation/{material_id}/export/{file_format}")
+def export_presentation(material_id: str, file_format: Literal["html", "pptx"]):
+    from fastapi.responses import Response
+
+    from src.education.presentation_plugins import EXPORTERS
+
+    material = get_store().get_presentation(material_id)
+    if material is None:
+        raise HTTPException(status_code=404, detail="Apresentação não encontrada")
+    exporter, media_type = EXPORTERS[file_format]
+    try:
+        data = exporter(material)
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    return Response(
+        content=data,
+        media_type=media_type,
+        headers={
+            "Content-Disposition": f'attachment; filename="apresentacao-{material.id[:8]}.{file_format}"',
+            "X-Content-Type-Options": "nosniff",
+        },
+    )
