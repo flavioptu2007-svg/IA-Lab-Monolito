@@ -165,6 +165,10 @@ versionamento segue o [SemVer](https://semver.org/lang/pt-BR/). A versão corren
 
 ### Corrigido
 
+- `tests/test_coraci_app.py`: os testes de erro de conexão criavam
+  `openai.APIConnectionError(request=None)`, que estoura `AttributeError` no
+  openai >= 3.5x (o construtor lê `request.headers`). Agora usam uma requisição
+  falsa mínima, compatível com as versões antigas e novas.
 - `Projects CI`: os jobs `leituraia` e `web/api` não instalavam as dependências
   do módulo (SQLAlchemy, Alembic, `python-jose`, `pydantic[email]`). O primeiro
   falhava na coleta dos testes; o segundo perdia as rotas do LeituraIA no

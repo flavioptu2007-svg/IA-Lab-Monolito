@@ -200,6 +200,25 @@ def test_post_config_ignora_chave_desconhecida(client, coraci):
 # ---------------------------------------------------------------------------
 
 
+class _RequisicaoFalsa:
+    """Requisição mínima para construir ``openai.APIConnectionError``.
+
+    O openai >= 3.5x inspeciona ``request.headers`` ao criar a exceção (para
+    remover cabeçalhos sensíveis); passar ``request=None`` estoura
+    ``AttributeError`` nessas versões.
+    """
+
+    headers: dict[str, str] = {}
+    method = "GET"
+    url = "http://localhost/v1"
+
+
+def _erro_de_conexao():
+    import openai
+
+    return openai.APIConnectionError(request=_RequisicaoFalsa())
+
+
 def _fake_models_client(model_ids):
     models = [type("M", (), {"id": mid})() for mid in model_ids]
     return type("C", (), {"models": type("MS", (), {"list": staticmethod(lambda: models)})()})()
@@ -215,9 +234,7 @@ def test_list_models_retorna_modelos_da_api(client, coraci):
 
 
 def test_list_models_erro_de_conexao_retorna_400(client):
-    import openai
-
-    with patch("openai.OpenAI", side_effect=openai.APIConnectionError(request=None)):
+    with patch("openai.OpenAI", side_effect=_erro_de_conexao()):
         resp = client.get("/api/config/models")
     assert resp.status_code == 400
     body = resp.get_json()
@@ -274,11 +291,9 @@ def test_stream_chat_temperature_none_usa_config(coraci):
 
 
 def test_stream_chat_erro_gera_evento_error(coraci):
-    import openai
-
     class _Boom:
         def create(self, **kw):
-            raise openai.APIConnectionError(request=None)
+            raise _erro_de_conexao()
 
     class _BoomClient:
         chat = type("C", (), {"completions": _Boom()})()
