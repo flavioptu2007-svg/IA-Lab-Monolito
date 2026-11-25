@@ -14,12 +14,14 @@ versionamento segue o [SemVer](https://semver.org/lang/pt-BR/). A versão corren
   `X-Fingerprint-Visitor-Id` com o `visitor_id` já resolvido pelo agente (sem
   aguardar a identificação, para não atrasar a requisição); quando o visitante
   ainda não foi identificado, o cabeçalho é omitido.
-- `web/dashboard`: agente JavaScript do Fingerprint (`@fingerprint/agent`
-  4.1.7) inicializado no boot do app (`src/fingerprint.ts`) com a public API key
-  lida de `VITE_FINGERPRINT_PUBLIC_API_KEY`. A variável é documentada em
+- `web/dashboard`: identificação de dispositivo com o SDK React do Fingerprint
+  (`@fingerprint/react` 3.3.0): `FingerprintProvider` montado em
+  `src/fingerprint.tsx` com a public API key de
+  `VITE_FINGERPRINT_PUBLIC_API_KEY`, consumo via `useVisitorData()` e snapshot do
+  `visitor_id` publicado para o cliente de API. A variável é documentada em
   `web/dashboard/.env.example` e repassada no build do GitHub Pages
-  (`.github/workflows/cd.yml`, secret de mesmo nome). Sem a chave o agente fica
-  desligado, com aviso apenas em desenvolvimento, e o dashboard segue igual.
+  (`.github/workflows/cd.yml`, secret de mesmo nome). Sem a chave o provider não
+  é montado, com aviso apenas em desenvolvimento, e o dashboard segue igual.
 - `Projetos/leituraia/tests/test_postgres.py`: testes de integração contra
   PostgreSQL. Cobrem a migração Alembic (`upgrade head` cria o schema e grava a
   revisão, `upgrade` repetido não duplica a versão, `downgrade base` remove as
