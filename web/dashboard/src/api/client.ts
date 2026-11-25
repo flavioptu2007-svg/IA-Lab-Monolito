@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { visitorIdAtual } from "../fingerprint";
 
 // ─── Tipos Compartilhados ──────────────────────────────────────────────
 
@@ -170,13 +171,28 @@ export interface ConfigResponse {
 
 const BASE_URL = "/api";
 
+/** Cabeçalho com o visitante identificado pelo agente Fingerprint. */
+export const FINGERPRINT_VISITOR_HEADER = "X-Fingerprint-Visitor-Id";
+
+/**
+ * Cabeçalhos padrão das requisições: JSON + visitor id, quando já resolvido.
+ * A identificação não é aguardada aqui para não atrasar a requisição.
+ */
+function montarHeaders(extra?: HeadersInit): Headers {
+  const headers = new Headers(extra);
+  if (!headers.has("Content-Type")) headers.set("Content-Type", "application/json");
+  const visitorId = visitorIdAtual();
+  if (visitorId) headers.set(FINGERPRINT_VISITOR_HEADER, visitorId);
+  return headers;
+}
+
 async function apiFetch<T>(
   path: string,
   options?: RequestInit,
 ): Promise<T> {
   const res = await fetch(`${BASE_URL}${path}`, {
-    headers: { "Content-Type": "application/json", ...options?.headers },
     ...options,
+    headers: montarHeaders(options?.headers),
   });
   if (!res.ok) {
     const detail = await res.json().catch(() => ({ detail: res.statusText }));
@@ -187,8 +203,8 @@ async function apiFetch<T>(
 
 async function apiFetchText(path: string, options?: RequestInit): Promise<string> {
   const res = await fetch(`${BASE_URL}${path}`, {
-    headers: { "Content-Type": "application/json", ...options?.headers },
     ...options,
+    headers: montarHeaders(options?.headers),
   });
   if (!res.ok) {
     const detail = await res.json().catch(() => ({ detail: res.statusText }));
@@ -215,7 +231,7 @@ export const api = {
   chatStream: (req: ChatRequest): Promise<Response> =>
     fetch(`${BASE_URL}/api/chat`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: montarHeaders(),
       body: JSON.stringify({ ...req, stream: true }),
     }),
 

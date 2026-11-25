@@ -11,6 +11,7 @@ const publicApiKey = import.meta.env.VITE_FINGERPRINT_PUBLIC_API_KEY?.trim();
 
 let agente: Agent | null = null;
 let inicializacao: Promise<GetResult | null> | null = null;
+let visitorId: string | null = null;
 
 function criarAgente(): Agent | null {
   if (agente) return agente;
@@ -38,19 +39,33 @@ export function iniciarFingerprint(): Promise<GetResult | null> {
     return Promise.resolve(null);
   }
 
-  inicializacao = instancia.get().catch((erro: unknown) => {
-    // Falha de identificação não pode derrubar a aplicação: libera nova tentativa.
-    inicializacao = null;
-    const motivo = isFingerprintError(erro) ? `${erro.code}: ${erro.message}` : String(erro);
-    console.warn("[fingerprint] não foi possível identificar o visitante:", motivo);
-    return null;
-  });
+  inicializacao = instancia
+    .get()
+    .then((resultado) => {
+      visitorId = resultado.visitor_id ?? null;
+      return resultado;
+    })
+    .catch((erro: unknown) => {
+      // Falha de identificação não pode derrubar a aplicação: libera nova tentativa.
+      inicializacao = null;
+      const motivo = isFingerprintError(erro) ? `${erro.code}: ${erro.message}` : String(erro);
+      console.warn("[fingerprint] não foi possível identificar o visitante:", motivo);
+      return null;
+    });
 
   return inicializacao;
 }
 
+/**
+ * Identificador já resolvido, ou `null` se a identificação ainda não terminou
+ * (ou não está configurada). Não bloqueia: use em cabeçalhos de requisição.
+ */
+export function visitorIdAtual(): string | null {
+  return visitorId;
+}
+
 /** Identificador do visitante, ou `null` se o agente não estiver configurado/disponível. */
 export async function obterVisitorId(): Promise<string | null> {
-  const resultado = await iniciarFingerprint();
-  return resultado?.visitor_id ?? null;
+  await iniciarFingerprint();
+  return visitorId;
 }

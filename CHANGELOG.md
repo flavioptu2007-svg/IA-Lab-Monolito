@@ -10,6 +10,10 @@ versionamento segue o [SemVer](https://semver.org/lang/pt-BR/). A versão corren
 
 ### Adicionado
 
+- `web/dashboard`: todas as chamadas à API passam a enviar o cabeçalho
+  `X-Fingerprint-Visitor-Id` com o `visitor_id` já resolvido pelo agente (sem
+  aguardar a identificação, para não atrasar a requisição); quando o visitante
+  ainda não foi identificado, o cabeçalho é omitido.
 - `web/dashboard`: agente JavaScript do Fingerprint (`@fingerprint/agent`
   4.1.7) inicializado no boot do app (`src/fingerprint.ts`) com a public API key
   lida de `VITE_FINGERPRINT_PUBLIC_API_KEY`. A variável é documentada em
