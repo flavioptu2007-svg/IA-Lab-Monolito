@@ -29,17 +29,29 @@ def _texto(**overrides) -> TextoCreate:
 
 
 class TestConfiguracao:
-    def test_url_sqlite_vem_do_ambiente(self, banco_isolado):
+    def test_url_sqlite_vem_do_ambiente(self, tmp_path, monkeypatch):
+        # Explicita o caminho: com LEITURAIA_TEST_DATABASE_URL a suíte roda
+        # contra PostgreSQL e a URL ambiente seria outra.
+        caminho = tmp_path / "config.db"
+        monkeypatch.delenv("LEITURAIA_DATABASE_URL", raising=False)
+        monkeypatch.setenv("LEITURAIA_DB_PATH", str(caminho))
+        db.reset_engines()
+
         assert db.get_database_url().startswith("sqlite+pysqlite:///")
-        assert db.get_db_path() == banco_isolado.resolve()
+        assert db.get_db_path() == caminho.resolve()
 
     def test_url_postgres_nao_tem_arquivo(self, monkeypatch):
         monkeypatch.setenv("LEITURAIA_DATABASE_URL", "postgresql+psycopg:///leituraia")
         assert db.get_db_path() is None
 
-    def test_arquivo_sqlite_e_criado(self, banco_isolado):
+    def test_arquivo_sqlite_e_criado(self, tmp_path, monkeypatch):
+        caminho = tmp_path / "novo" / "config.db"
+        monkeypatch.delenv("LEITURAIA_DATABASE_URL", raising=False)
+        monkeypatch.setenv("LEITURAIA_DB_PATH", str(caminho))
+        db.reset_engines()
+
         UserStore()
-        assert banco_isolado.exists()
+        assert caminho.exists()
 
 
 class TestMigracoes:

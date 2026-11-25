@@ -59,7 +59,15 @@ LEITURAIA_DATABASE_URL='postgresql+psycopg://usuario:senha@host/leituraia' \
   python3 -m alembic -c leituraia/alembic.ini upgrade head
 ```
 
-Em desenvolvimento/testes, `init_db()` usa `create_all` no SQLite local — não é preciso rodar Alembic. A suíte aceita `LEITURAIA_TEST_DATABASE_URL` para rodar contra um PostgreSQL de verdade (as tabelas são truncadas antes de cada teste).
+Em desenvolvimento/testes, `init_db()` usa `create_all` no SQLite local — não é preciso rodar Alembic. A suíte aceita `LEITURAIA_TEST_DATABASE_URL` para rodar contra um PostgreSQL de verdade (as tabelas são truncadas antes de cada teste):
+
+```bash
+cd ~/Projetos
+LEITURAIA_TEST_DATABASE_URL='postgresql+psycopg://leituraia:leituraia@localhost:5432/leituraia' \
+  python3 -m pytest leituraia/tests -q
+```
+
+Nesse modo, `tests/test_postgres.py` valida a **migração** de ponta a ponta: `upgrade head` cria o schema e grava a revisão, `upgrade` repetido não duplica a versão, `downgrade base` remove as tabelas, o índice único parcial por sessão existe e o schema migrado é idêntico ao do ORM (`compare_metadata` vazio). Em seguida exercita a API sobre esse schema — registro/login, publicação de texto, leitura autenticada e pública (idempotente por sessão), página do Leitor Digital sem gabarito e persistência para uma nova conexão. Sem a variável, esses testes são pulados e a suíte roda em SQLite.
 
 ---
 

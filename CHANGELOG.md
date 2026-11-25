@@ -10,6 +10,17 @@ versionamento segue o [SemVer](https://semver.org/lang/pt-BR/). A versão corren
 
 ### Adicionado
 
+- `Projetos/leituraia/tests/test_postgres.py`: testes de integração contra
+  PostgreSQL. Cobrem a migração Alembic (`upgrade head` cria o schema e grava a
+  revisão, `upgrade` repetido não duplica a versão, `downgrade base` remove as
+  tabelas, índice único parcial por sessão, `compare_metadata` sem divergência
+  entre ORM e schema) e a API sobre o schema migrado (registro/login, publicação
+  de texto, leitura autenticada e pública idempotente por sessão, Leitor Digital
+  sem gabarito, persistência para uma nova conexão). Novos testes rodam com
+  `LEITURAIA_TEST_DATABASE_URL`; sem ela são pulados.
+- Novo job `leituraia-postgres` no `Projects CI`, com serviço `postgres:16`,
+  rodando a suíte inteira do módulo contra o banco real. `psycopg[binary]`
+  passou a constar em `Projetos/leituraia/requirements.txt`.
 - `Projetos/leituraia` (fase 2 — persistência): usuários, textos e leituras
   saem da memória para **SQLAlchemy 2.0** (`leituraia/orm.py` + `leituraia/db.py`),
   com PostgreSQL em produção (`LEITURAIA_DATABASE_URL`), SQLite local por padrão
