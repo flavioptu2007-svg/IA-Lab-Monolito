@@ -343,6 +343,11 @@ npm run dev
 
 O Vite faz proxy de `/api/*` para `localhost:8000` automaticamente.
 
+Opcional: para ativar a identificação de dispositivo (agente Fingerprint),
+copie `web/dashboard/.env.example` para `web/dashboard/.env.local` e preencha
+`VITE_FINGERPRINT_PUBLIC_API_KEY`. Sem a variável o agente não é inicializado e
+o dashboard funciona normalmente.
+
 ### Demonstração de áudio
 
 ```bash

@@ -69,6 +69,8 @@ jobs:
           # Define o base path para o GitHub Pages
           # URL final: https://flavioptu2007-svg.github.io/IA-Lab-Monolito/
           VITE_BASE_PATH: /IA-Lab-Monolito/
+          # Public API key do Fingerprint; vazia = agente desativado no build
+          VITE_FINGERPRINT_PUBLIC_API_KEY: ${{ secrets.VITE_FINGERPRINT_PUBLIC_API_KEY }}
 
       - name: Setup Pages
         uses: actions/configure-pages@v5

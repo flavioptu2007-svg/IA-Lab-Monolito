@@ -10,6 +10,12 @@ versionamento segue o [SemVer](https://semver.org/lang/pt-BR/). A versão corren
 
 ### Adicionado
 
+- `web/dashboard`: agente JavaScript do Fingerprint (`@fingerprint/agent`
+  4.1.7) inicializado no boot do app (`src/fingerprint.ts`) com a public API key
+  lida de `VITE_FINGERPRINT_PUBLIC_API_KEY`. A variável é documentada em
+  `web/dashboard/.env.example` e repassada no build do GitHub Pages
+  (`.github/workflows/cd.yml`, secret de mesmo nome). Sem a chave o agente fica
+  desligado, com aviso apenas em desenvolvimento, e o dashboard segue igual.
 - `Projetos/leituraia/tests/test_postgres.py`: testes de integração contra
   PostgreSQL. Cobrem a migração Alembic (`upgrade head` cria o schema e grava a
   revisão, `upgrade` repetido não duplica a versão, `downgrade base` remove as
