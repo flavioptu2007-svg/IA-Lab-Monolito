@@ -68,7 +68,7 @@ jobs:
           cache: pip
 
       - name: Install deps
-        run: pip install pytest fastapi httpx "pydantic[email]" "python-jose[cryptography]" sqlalchemy alembic
+        run: pip install pytest -r Projetos/leituraia/requirements.txt
 
       - name: Run tests (scripts/test_all.sh)
         run: ./scripts/test_all.sh --only leituraia --verbose
@@ -90,7 +90,9 @@ jobs:
           cache: pip
 
       - name: Install deps
-        run: pip install pytest fastapi httpx prometheus-client
+        # O app monta o LeituraIA quando o pacote é importável; sem as
+        # dependências dele as rotas somem e os testes de integração quebram.
+        run: pip install pytest prometheus-client -r Projetos/leituraia/requirements.txt
 
       - name: Run tests (scripts/test_all.sh)
         run: ./scripts/test_all.sh --only web-api --verbose

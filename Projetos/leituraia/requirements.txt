@@ -1,0 +1,9 @@
+# Dependências do LeituraIA Brasil (backend FastAPI + persistência).
+# Usado pelo `pip install -r` local e pelos jobs do Projects CI
+# (`leituraia` e `web/api`, que monta o pacote no monólito).
+fastapi
+httpx
+pydantic[email]
+python-jose[cryptography]
+sqlalchemy
+alembic

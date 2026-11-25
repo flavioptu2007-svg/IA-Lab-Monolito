@@ -165,6 +165,11 @@ versionamento segue o [SemVer](https://semver.org/lang/pt-BR/). A versão corren
 
 ### Corrigido
 
+- `Projects CI`: os jobs `leituraia` e `web/api` não instalavam as dependências
+  do módulo (SQLAlchemy, Alembic, `python-jose`, `pydantic[email]`). O primeiro
+  falhava na coleta dos testes; o segundo perdia as rotas do LeituraIA no
+  monólito e quebrava 12 testes de integração. As dependências agora ficam em
+  `Projetos/leituraia/requirements.txt`, instalado pelos dois jobs.
 - `tests/test_coraci_state_isolation.py`: dois testes duplicados liam
   `Aplicativo_Coraci/config.json` com `read_bytes()`, arquivo de estado ignorado
   pelo git — a suíte quebrava em checkout limpo. As versões equivalentes (que
