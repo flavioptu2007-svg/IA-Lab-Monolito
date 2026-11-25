@@ -68,7 +68,7 @@ jobs:
           cache: pip
 
       - name: Install deps
-        run: pip install pytest fastapi httpx "pydantic[email]" "python-jose[cryptography]"
+        run: pip install pytest fastapi httpx "pydantic[email]" "python-jose[cryptography]" sqlalchemy alembic
 
       - name: Run tests (scripts/test_all.sh)
         run: ./scripts/test_all.sh --only leituraia --verbose
