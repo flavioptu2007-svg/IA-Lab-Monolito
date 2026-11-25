@@ -3,8 +3,13 @@
 The API server lazy-imports the ``ai`` monolith package at request time.
 These tests stub ``ai.*`` in sys.modules so the endpoints can be exercised
 without the full monolith (LLM clients, Qdrant, Ollama) being available.
+
+O painel é carregado **pelo caminho do arquivo**, sob um nome próprio, e não
+como ``api.server``: o monólito da raiz também tem um pacote ``api``, e no
+mesmo processo o Python memoriza em ``sys.modules`` o primeiro que encontrar.
 """
 
+import importlib.util
 import os
 import sys
 import types
@@ -15,8 +20,27 @@ from unittest.mock import MagicMock
 import pytest
 
 PROJECT_WEB = Path(__file__).resolve().parents[2]  # ~/Projetos/web
-if str(PROJECT_WEB) not in sys.path:
-    sys.path.insert(0, str(PROJECT_WEB))
+MODULO_PAINEL = "painel_api_server"
+
+
+def carregar_painel():
+    """Importa ``web/api/server.py`` uma única vez, com nome que não colide."""
+    modulo = sys.modules.get(MODULO_PAINEL)
+    if modulo is not None:
+        return modulo
+    caminho = PROJECT_WEB / "api" / "server.py"
+    spec = importlib.util.spec_from_file_location(MODULO_PAINEL, caminho)
+    assert spec is not None and spec.loader is not None
+    modulo = importlib.util.module_from_spec(spec)
+    sys.modules[MODULO_PAINEL] = modulo
+    spec.loader.exec_module(modulo)
+    return modulo
+
+
+@pytest.fixture(scope="session")
+def painel():
+    """O módulo do painel (``app``, ``HistoryStore`` etc.) sem tocar em ``api``."""
+    return carregar_painel()
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -159,7 +183,7 @@ def ai_stubs(monkeypatch):
 
 
 @pytest.fixture
-def client(ai_stubs):
-    from api.server import app
+def client(ai_stubs, painel):
+    from fastapi.testclient import TestClient
 
-    return __import__("fastapi.testclient", fromlist=["TestClient"]).TestClient(app)
+    return TestClient(painel.app)

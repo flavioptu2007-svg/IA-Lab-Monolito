@@ -543,7 +543,7 @@ python3 -m pytest tests/ --cov=ai,api,src --cov-report=term-missing
 docker compose --profile test up
 ```
 
-### Suíte atual: **802 testes** (`pytest --collect-only`)
+### Suíte atual: **818 testes** no monólito (`pytest tests/ --collect-only`)
 
 O repositório tem mais de um projeto; a matriz que roda tudo num comando só é
 [`scripts/test_all.sh`](scripts/test_all.sh):
@@ -552,6 +552,13 @@ O repositório tem mais de um projeto; a matriz que roda tudo num comando só é
 ./scripts/test_all.sh                  # monolito + dashboard + leituraia + web/api + odysseus
 ./scripts/test_all.sh --fast           # sem builds npm e sem odysseus
 ./scripts/test_all.sh --only monolito  # pytest, ruff, mypy, shellcheck e bats
+```
+
+As suítes também rodam juntas num único processo (926 testes com as de
+LeituraIA e do painel):
+
+```bash
+python3 -m pytest tests/ Projetos/leituraia Projetos/web/api/tests
 ```
 
 Áreas cobertas no monolito: core (IA, providers, settings), chat SSE do Coraci,

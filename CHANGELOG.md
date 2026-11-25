@@ -176,6 +176,14 @@ versionamento segue o [SemVer](https://semver.org/lang/pt-BR/). A versão corren
 
 ### Corrigido
 
+- Sombreamento entre os dois pacotes `api` (monólito na raiz e painel em
+  `Projetos/web/api`): rodar as suítes num único processo fazia o Python
+  memorizar em `sys.modules` o primeiro `api` importado, então os testes do
+  painel executavam o app do monólito (versão 2.1.1, `/leituraia` ausente,
+  `bitnet_model` inexistente). O `conftest` do painel agora carrega
+  `web/api/server.py` pelo caminho, sob o nome `painel_api_server`, e os
+  testes o recebem por fixture. `pytest tests/ Projetos/leituraia
+  Projetos/web/api/tests` roda 926 testes num só processo.
 - `tests/test_coraci_app.py`: os testes de erro de conexão criavam
   `openai.APIConnectionError(request=None)`, que estoura `AttributeError` no
   openai >= 3.5x (o construtor lê `request.headers`). Agora usam uma requisição

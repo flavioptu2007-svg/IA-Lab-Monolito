@@ -85,8 +85,8 @@ class TestChat:
 
 
 class TestHistoryStore:
-    def test_add_list_clear(self, ai_stubs):
-        from api.server import HistoryEntry, HistoryStore
+    def test_add_list_clear(self, ai_stubs, painel):
+        HistoryEntry, HistoryStore = painel.HistoryEntry, painel.HistoryStore
 
         store = HistoryStore()
         for i in range(3):
@@ -270,16 +270,14 @@ class TestSemMonolito:
     """O painel precisa subir quando o pacote ai/ não está disponível."""
 
     @pytest.fixture
-    def client_sem_ai(self, ai_stubs, monkeypatch):
+    def client_sem_ai(self, ai_stubs, painel, monkeypatch):
         for nome in [n for n in sys.modules if n == "ai" or n.startswith("ai.")]:
             monkeypatch.delitem(sys.modules, nome, raising=False)
         monkeypatch.setattr(sys, "meta_path", [_BloqueioMonolito(), *sys.meta_path])
 
         from fastapi.testclient import TestClient
 
-        from api.server import app
-
-        with TestClient(app) as cliente:  # o context manager dispara o startup
+        with TestClient(painel.app) as cliente:  # o context manager dispara o startup
             yield cliente
 
     def test_health_degrada_sem_monolito(self, client_sem_ai):
