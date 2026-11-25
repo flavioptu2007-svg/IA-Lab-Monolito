@@ -371,7 +371,6 @@ export function useApi<T>(fetcher: () => Promise<T>, deps: unknown[] = []): UseA
       .then(setData)
       .catch((e: Error) => setError(e.message))
       .finally(() => setLoading(false));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);
 
   useEffect(() => {
